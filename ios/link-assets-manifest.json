@@ -1,0 +1,17 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/SOYO MAPLE BOLD.TTF",
+      "sha1": "bb636b8361c61c03b0c6da1f14159270f5c9ae4b"
+    },
+    {
+      "path": "src/assets/fonts/SOYO MAPLE REGULAR.TTF",
+      "sha1": "2629468d304a3c53fb91594f2cece095ab945831"
+    },
+    {
+      "path": "src/assets/fonts/SOYOMapleBold.ttf",
+      "sha1": "dc9d7a3e57b9b2afdf0ff44ff37e6b888ad7a024"
+    }
+  ]
+}

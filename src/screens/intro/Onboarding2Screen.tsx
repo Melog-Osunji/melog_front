@@ -1,0 +1,35 @@
+import React from 'react';
+import {StackScreenProps} from '@react-navigation/stack';
+import {StyleSheet, Text, View} from 'react-native';
+
+import {IntroStackParamList} from '@/navigations/stack/IntroStackNavigator';
+import {introNavigations} from '@/constants';
+import CustomButton from '@/components/CustomButton';
+
+type IntroScreenProps = StackScreenProps<
+  IntroStackParamList,
+  typeof introNavigations.INTRO_ONBOARDING_2
+>;
+
+function AuthHomeScreen({navigation}: IntroScreenProps) {
+  return (
+    <View style={styles.container}>
+      <Text>INTRO_ONBOARDING_2</Text>
+      <CustomButton
+        label="다음"
+        onPress={() => navigation.navigate(introNavigations.INTRO_ONBOARDING_3)}
+        size="medium"
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
+
+export default AuthHomeScreen;
