@@ -17,11 +17,11 @@ const TAB_ICON_SIZE = 48;
 
 import {Dimensions} from 'react-native';
 
-const TAB_BAR_HEIGHT = Dimensions.get('window').height * 0.11;
+const TAB_BAR_HEIGHT = Dimensions.get('window').height * 0.075;
 
 export const TAB_BAR_STYLE = {
-  paddingHorizontal: 8,
-  paddingVertical: 20,
+  paddingHorizontal: 18,
+  paddingVertical: 10,
   width: Dimensions.get('window').width,
   height: TAB_BAR_HEIGHT,
   backgroundColor: colors.WHITE,
@@ -32,18 +32,6 @@ export const TAB_BAR_STYLE = {
 export const MAIN_TAB_SCREEN_OPTIONS = {
   headerShown: false,
   tabBarStyle: TAB_BAR_STYLE,
-  tabBarIconStyle: {
-    flex: 1,
-  },
-  tabBarLabelStyle: {
-    flex: 1,
-    fontSize: 12,
-    color: colors.BLACK,
-  },
-  tabBarItemStyle: {
-    alignItems: 'center' as 'center',
-    justifyContent: 'center' as 'center',
-  },
 };
 
 function MainTabNavigator() {

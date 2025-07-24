@@ -9,6 +9,7 @@ import {Post} from '@/constants/types';
 import {ScrollView} from 'react-native-gesture-handler';
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
+import IconButton from '@/components/IconButton';
 
 import CustomButton from '@/components/CustomButton';
 
@@ -56,12 +57,19 @@ function PostHomeScreen({navigation}: IntroScreenProps) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text>post_home</Text>
-      <CustomButton
-        label="다음"
-        onPress={() => navigation.navigate(postNavigations.POST_SEARCH)}
-        size="medium"
-      />
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>추천 피드</Text>
+        <View style={{flexDirection: 'row', gap: 8}}>
+          <IconButton<PostStackParamList>
+            imageSource={require('@/assets/icons/Search.png')}
+            target={[postNavigations.POST_SEARCH]}
+          />
+          <IconButton<PostStackParamList>
+            imageSource={require('@/assets/icons/Notice.png')}
+            target={[postNavigations.POST_SEARCH]}
+          />
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -69,8 +77,23 @@ function PostHomeScreen({navigation}: IntroScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.WHITE,
+  },
+  header: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.GRAY_400,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.BLACK,
   },
 });
 
