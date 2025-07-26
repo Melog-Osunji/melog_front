@@ -1,100 +1,96 @@
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native';
-import {colors, postNavigations} from '@/constants';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import PostListItem from '@/components/PostListItem';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import axiosInstance from '@/api/axiosInstance';
 import {Post} from '@/constants/types';
-import {ScrollView} from 'react-native-gesture-handler';
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 import IconButton from '@/components/IconButton';
-
-import CustomButton from '@/components/CustomButton';
+import {DropdownMenu} from '@/components/DropdownMenu';
+import PostList from '@/components/post/PostList';
+import styled from 'styled-components/native';
+import {mockPosts} from '@/constants/types'; // 더미 데이터
+import {colors, postNavigations} from '@/constants';
 
 type IntroScreenProps = StackScreenProps<
   PostStackParamList,
   typeof postNavigations.POST_HOME
 >;
 
-// function mapBackendPostToPost(backendPost: any): Post {
-//   return {
-//     id: backendPost.id,
-//     title: backendPost.title,
-//     content: backendPost.content,
-//     tags: backendPost.category ? [backendPost.category] : [],
-//     imageUrl: '', // 필요시 매핑
-//     likes: backendPost.likeCount,
-//     comments: backendPost.commentCount,
-//     views: backendPost.viewCount,
-//     // author, category, createdAt 등 필요시 타입/컴포넌트에 추가
-//   };
-// }
-
 function PostHomeScreen({navigation}: IntroScreenProps) {
-  // const navigation = useNavigation<any>();
-  // const [posts, setPosts] = useState<any[]>([]);
-
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     const fetchPosts = async () => {
-  //       try {
-  //         const res = await axiosInstance.get('/api/posts');
-  //         if (res.data.success) {
-  //           console.log('게시글 전체 조회 성공:', res.data.response);
-  //           setPosts(res.data.response.map(mapBackendPostToPost));
-  //         } else {
-  //           console.log('게시글 불러오기 실패:', res.data.error?.message);
-  //         }
-  //       } catch (error) {
-  //         console.error('게시글 불러오기 에러:', error);
-  //       }
-  //     };
-  //     fetchPosts();
-  //   }, []),
-  // );
-
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>추천 피드</Text>
-        <View style={{flexDirection: 'row', gap: 8}}>
+    <Container>
+      <Header>
+        <DropdownMenu
+          trigger={(open: () => void) => (
+            <HeaderTitleTouchable onPress={open}>
+              <HeaderTitleText>추천 피드</HeaderTitleText>
+            </HeaderTitleTouchable>
+          )}
+          items={[
+            {
+              label: '추천 피드',
+              onPress: function (): void {
+                throw new Error('Function not implemented.');
+              },
+            },
+            {
+              label: '인기 피드',
+              onPress: function (): void {
+                throw new Error('Function not implemented.');
+              },
+            },
+          ]}
+        />
+        <HeaderIconRow>
           <IconButton<PostStackParamList>
-            imageSource={require('@/assets/icons/Search.png')}
+            imageSource={require('@/assets/icons/post/Search.png')}
             target={[postNavigations.POST_SEARCH]}
           />
           <IconButton<PostStackParamList>
-            imageSource={require('@/assets/icons/Notice.png')}
+            imageSource={require('@/assets/icons/post/Notice.png')}
             target={[postNavigations.POST_SEARCH]}
           />
-        </View>
-      </View>
-    </SafeAreaView>
+        </HeaderIconRow>
+      </Header>
+
+      <PostList data={mockPosts} />
+    </Container>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    backgroundColor: colors.WHITE,
-  },
-  header: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.GRAY_400,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.BLACK,
-  },
-});
+// Styled Components
+const Header = styled.View`
+  width: 100%;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-horizontal: 20px;
+  padding-vertical: 16px;
+  border-bottom-width: 1px;
+  border-bottom-color: ${colors.GRAY_100};
+`;
+
+const HeaderTitleTouchable = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+`;
+
+const HeaderTitleText = styled.Text`
+  font-size: 20px;
+  font-weight: bold;
+  color: ${colors.BLACK};
+`;
+
+const HeaderIconRow = styled.View`
+  flex-direction: row;
+  gap: 8px;
+`;
+
+const Container = styled(SafeAreaView)`
+  flex: 1;
+  align-items: center;
+  background-color: ${colors.WHITE};
+`;
 
 export default PostHomeScreen;

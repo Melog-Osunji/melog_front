@@ -3,9 +3,9 @@ import React, {useEffect} from 'react';
 import {Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const RefreshTokenCheck: React.FC = () => {
+const RefreshTokenCheck = (): React.ReactElement | null => {
   useEffect(() => {
-    const verifyAccessToken = async () => {
+    const verifyAccessToken = async (): Promise<void> => {
       const accessToken = await AsyncStorage.getItem('accessToken');
 
       if (!accessToken) {
@@ -14,7 +14,7 @@ const RefreshTokenCheck: React.FC = () => {
       }
 
       try {
-        const response = await fetch(
+        const response: Response = await fetch(
           'https://your-backend.com/api/auth/verify',
           {
             method: 'POST',
@@ -29,7 +29,7 @@ const RefreshTokenCheck: React.FC = () => {
           throw new Error('유효하지 않은 토큰');
         }
 
-        const {refreshToken} = await response.json();
+        const {refreshToken}: {refreshToken: string} = await response.json();
         console.log('새로운 리프레시 토큰:', refreshToken);
 
         // TODO: refreshToken 저장 필요 시

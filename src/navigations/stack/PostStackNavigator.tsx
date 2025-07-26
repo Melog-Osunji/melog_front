@@ -5,10 +5,11 @@ import PostPageScreen from '@/screens/post/PostPageScreen';
 import PostCreateScreen from '@/screens/post/PostCreateScreen';
 import PostSearchScreen from '@/screens/post/PostSearchScreen';
 import {postNavigations} from '@/constants';
+import {Post} from '@/constants/types';
 
 export type PostStackParamList = {
   [postNavigations.POST_HOME]: undefined;
-  [postNavigations.POST_PAGE]: undefined;
+  [postNavigations.POST_PAGE]: {postId: string; postData?: Post};
   [postNavigations.POST_CREATE]: undefined;
   [postNavigations.POST_SEARCH]: undefined;
 };

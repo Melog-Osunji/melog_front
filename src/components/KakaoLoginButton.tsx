@@ -25,7 +25,7 @@ interface KakaoLoginProps {
   onPress?: () => void;
 }
 
-const KakaoLogin: React.FC<KakaoLoginProps> = ({onPress}) => {
+const KakaoLogin = ({onPress}: KakaoLoginProps) => {
   const navigation = useNavigation<NavigationProp<any>>();
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
