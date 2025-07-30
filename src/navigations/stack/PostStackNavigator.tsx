@@ -40,7 +40,7 @@ function MainStackNavigator() {
       <Stack.Screen
         name={postNavigations.POST_SEARCH}
         component={PostSearchScreen}
-        options={{headerShown: true, title: ' '}}
+        options={{headerShown: false}}
       />
     </Stack.Navigator>
   );

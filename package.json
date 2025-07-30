@@ -33,7 +33,7 @@
     "react-native-screens": "^3.27.0",
     "react-native-splash-screen": "^3.3.0",
     "react-native-webview": "^13.13.5",
-    "styled-components": "^6.1.19"
+    "styled-components": "^5.3.11"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
