@@ -12,6 +12,7 @@ const postNavigations = {
   POST_PAGE: 'PostPage',
   POST_CREATE: 'PostCreate',
   POST_SEARCH: 'PostSearch',
+  POST_SEARCH_RESULT: 'PostSearchResult',
 } as const;
 
 const harmonyNavigations = {

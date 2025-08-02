@@ -284,3 +284,33 @@ export const DUMMY_YOUTUBE_VIDEOS: YouTubeVideo[] = [
     thumbnail: 'https://www.youtube.com/watch?v=9_7loz-HWUM',
   },
 ];
+
+// Search
+export interface PopularMedia {
+    userNickname:string;
+    userProfileImgLink:string;
+    postID:string;
+    mediaURL:string;
+    mediaType:string;
+    createdAgo:string;
+}
+
+// popularMedia dummy data
+export const PopularMediaData: PopularMedia[] = [
+    {
+        userNickname:'바흐흑',
+        userProfileImgLink:'https://randomuser.me/api/portraits/men/33.jpg',
+        postID:'post001',
+        mediaURL:'https://youtu.be/4-9gp1puvMI?si=GOa0h4oLuak7DM6I',
+        mediaType:'Youtube',
+        createdAgo:'7일 전',
+    },
+    {
+        userNickname:'클래식 듣기 딱 좋은 날',
+        userProfileImgLink:'https://randomuser.me/api/portraits/men/33.jpg',
+        postID:'post001',
+        mediaURL:'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
+        mediaType:'Youtube',
+        createdAgo:'3일 전',
+        }
+]
