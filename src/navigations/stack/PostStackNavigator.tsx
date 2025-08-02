@@ -45,6 +45,11 @@ function MainStackNavigator() {
           component={PostSearchScreen}
           options={{headerShown: false, title: ' '}}
         />
+        <Stack.Screen
+          name={postNavigations.POST_SEARCH_RESULT}
+          component={PostSearchResultScreen}
+          options={{headerShown: false, title: ' '}}
+        />
       </Stack.Navigator>
     </PostProvider>
   );

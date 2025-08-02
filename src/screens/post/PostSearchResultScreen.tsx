@@ -1,21 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { StackScreenProps } from '@react-navigation/stack';
+import React, {useState, useEffect} from 'react';
+import {StackScreenProps} from '@react-navigation/stack';
 import styled from 'styled-components/native';
-import { PostStackParamList } from '@/navigations/stack/PostStackNavigator';
-import { colors, postNavigations } from '@/constants';
-import IconButton from '@/components/IconButton';
+import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
+import {colors, postNavigations} from '@/constants';
+import IconButton from '@/components/common/IconButton';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {
-    ScrollView,
-    Text,
-    Dimensions
-    } from 'react-native';
-import SearchResultAllTab from '@/components/search/SearchResultAllTab.tsx';
-import SearchResultProfileTab from '@/components/search/SearchResultProfileTab.tsx';
-import SearchResultFeedTab from '@/components/search/SearchResultFeedTab.tsx';
-import SearchResultHarmonyTab from '@/components/search/SearchResultHarmonyTab.tsx';
+import {ScrollView, Text, Dimensions} from 'react-native';
+import SearchResultAllTab from '@/components/search/SearchResultAllTab';
+import SearchResultProfileTab from '@/components/search/SearchResultProfileTab';
+import SearchResultFeedTab from '@/components/search/SearchResultFeedTab';
+import SearchResultHarmonyTab from '@/components/search/SearchResultHarmonyTab';
 import SearchInputField from '@/components/search/SearchInputField';
-
 
 type IntroScreenProps = StackScreenProps<
   PostStackParamList,
@@ -25,59 +20,69 @@ type IntroScreenProps = StackScreenProps<
 const DEVICE_WIDTH = Dimensions.get('window').width;
 const TAB_WIDTH = DEVICE_WIDTH / 4;
 
-function PostSearchResultScreen ({navigation}: IntroScreenProps) {
-    const [selectedTab, setSelectedTab] = useState<'all' | 'profile' | 'feed' | 'harmony'>('all');
-    const [keyword, setKeyword] = useState('Bach');
+function PostSearchResultScreen({navigation}: IntroScreenProps) {
+  const [selectedTab, setSelectedTab] = useState<
+    'all' | 'profile' | 'feed' | 'harmony'
+  >('all');
+  const [keyword, setKeyword] = useState('Bach');
 
+  const handleSearchSubmit = () => {
+    console.log('검색어:', keyword);
+    // 필터링 또는 API 호출 로직 넣기
+  };
 
-    const handleSearchSubmit = () => {
-      console.log('검색어:', keyword);
-      // 필터링 또는 API 호출 로직 넣기
-    };
+  return (
+    <Container>
+      <Header>
+        <IconButton<PostStackParamList>
+          imageSource={require('@/assets/icons/post/BackArrow.png')}
+          target={[postNavigations.POST_SEARCH]}
+          size={24}
+        />
+        <SearchInputField
+          value={keyword}
+          onChangeText={setKeyword}
+          placeholder="작곡가, 연주가, 장르, 시대 등"
+          onSubmitEditing={handleSearchSubmit}
+        />
+        <CancelButton
+          onPress={() => navigation.navigate(postNavigations.POST_SEARCH)}>
+          <CancelText>취소</CancelText>
+        </CancelButton>
+      </Header>
+      <TabRowScroll>
+        <TabScrollContent>
+          <TabButton
+            isActive={selectedTab === 'all'}
+            onPress={() => setSelectedTab('all')}>
+            <TabText isActive={selectedTab === 'all'}>전체</TabText>
+          </TabButton>
+          <TabButton
+            isActive={selectedTab === 'profile'}
+            onPress={() => setSelectedTab('profile')}>
+            <TabText isActive={selectedTab === 'profile'}>프로필</TabText>
+          </TabButton>
+          <TabButton
+            isActive={selectedTab === 'feed'}
+            onPress={() => setSelectedTab('feed')}>
+            <TabText isActive={selectedTab === 'feed'}>피드</TabText>
+          </TabButton>
+          <TabButton
+            isActive={selectedTab === 'harmony'}
+            onPress={() => setSelectedTab('harmony')}>
+            <TabText isActive={selectedTab === 'harmony'}>하모니룸</TabText>
+          </TabButton>
+        </TabScrollContent>
+      </TabRowScroll>
 
-    return(
-        <Container>
-            <Header>
-                <IconButton<PostStackParamList>
-                    imageSource={require('@/assets/icons/post/BackArrow.png')}
-                    target={[postNavigations.POST_SEARCH]}
-                    size={24}
-                  />
-                <SearchInputField
-                  value={keyword}
-                  onChangeText={setKeyword}
-                  placeholder="작곡가, 연주가, 장르, 시대 등"
-                  onSubmitEditing={handleSearchSubmit}
-                />
-                <CancelButton onPress={() => navigation.navigate(postNavigations.POST_SEARCH)}>
-                    <CancelText>취소</CancelText>
-                </CancelButton>
-            </Header>
-            <TabRowScroll>
-                <TabScrollContent>
-                    <TabButton isActive={selectedTab === 'all'} onPress={() => setSelectedTab('all')}>
-                      <TabText isActive={selectedTab === 'all'}>전체</TabText>
-                    </TabButton>
-                    <TabButton isActive={selectedTab === 'profile'} onPress={() => setSelectedTab('profile')}>
-                      <TabText isActive={selectedTab === 'profile'}>프로필</TabText>
-                    </TabButton>
-                    <TabButton isActive={selectedTab === 'feed'} onPress={() => setSelectedTab('feed')}>
-                      <TabText isActive={selectedTab === 'feed'}>피드</TabText>
-                    </TabButton>
-                    <TabButton isActive={selectedTab === 'harmony'} onPress={() => setSelectedTab('harmony')}>
-                      <TabText isActive={selectedTab === 'harmony'}>하모니룸</TabText>
-                    </TabButton>
-                </TabScrollContent>
-            </TabRowScroll>
-
-            <TabContent>
-                {selectedTab === 'all' && <SearchResultAllTab />}
-                {selectedTab === 'profile' && <SearchResultProfileTab />}
-                {selectedTab === 'feed' && <SearchResultFeedTab />}
-                {selectedTab === 'harmony' && <SearchResultHarmonyTab />}
-          </TabContent>
-        </Container>
-    )
+      <TabContent>
+        {selectedTab === 'all' && <SearchResultAllTab />}
+        {selectedTab === 'profile' && <SearchResultProfileTab />}
+        {selectedTab === 'feed' && <SearchResultFeedTab />}
+        {selectedTab === 'harmony' && <SearchResultHarmonyTab />}
+      </TabContent>
+    </Container>
+  );
 }
 
 // styledComponent
@@ -109,18 +114,19 @@ const TabScrollContent = styled(ScrollView).attrs({
     paddingHorizontal: 0,
   },
 })``;
-const TabButton = styled.TouchableOpacity<{ isActive: boolean }>`
+const TabButton = styled.TouchableOpacity<{isActive: boolean}>`
   padding: 12px 18px;
-  width:${TAB_WIDTH}px;
-  border-bottom-width: ${({ isActive }) => (isActive ? 2 : 0)}px;
-  border-bottom-color: ${({ isActive }) => (isActive ? colors.LINE_BLUE : 'transparent')};
+  width: ${TAB_WIDTH}px;
+  border-bottom-width: ${({isActive}) => (isActive ? 2 : 0)}px;
+  border-bottom-color: ${({isActive}) =>
+    isActive ? colors.LINE_BLUE : 'transparent'};
   align-items: center;
   height: 100%;
 `;
-const TabText = styled.Text<{ isActive: boolean }>`
+const TabText = styled.Text<{isActive: boolean}>`
   font-size: 16px;
-  color: ${({ isActive }) => (isActive ? colors.LINE_BLUE : colors.GRAY_500)};
-  font-weight: ${({ isActive }) => (isActive ? 'bold' : 'normal')};
+  color: ${({isActive}) => (isActive ? colors.LINE_BLUE : colors.GRAY_500)};
+  font-weight: ${({isActive}) => (isActive ? 'bold' : 'normal')};
 `;
 
 const TabContent = styled.View`
