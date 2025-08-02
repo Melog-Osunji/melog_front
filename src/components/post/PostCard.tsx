@@ -2,9 +2,10 @@ import React from 'react';
 import {Image, Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
 import {Post} from '@/constants/types';
-import YouTubeEmbed from '@/components/YouTubeEmbed';
+import YouTubeEmbed from '@/components/common/YouTubeEmbed';
+import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
 import PostStats from '@/components/post/PostStats';
-import IconButton from '@/components/IconButton';
+import IconButton from '@/components/common/IconButton';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
@@ -73,6 +74,22 @@ function PostCard(post: Post) {
 
       {/* 상태바 */}
       <PostStats likeCount={likeCount} commentCount={commentCount} />
+
+      {/* 베스트 댓글 */}
+      {post.bestComment && (
+        <View style={styles.bestCommentContainer}>
+          <Image
+            source={{uri: post.bestComment.profileImg}}
+            style={styles.bestCommentProfileImage}
+          />
+          <Text
+            style={styles.bestCommentContent}
+            numberOfLines={1}
+            ellipsizeMode="tail">
+            {post.bestComment.content}
+          </Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 }
@@ -115,7 +132,6 @@ const styles = StyleSheet.create({
   },
   content: {
     fontSize: 14,
-    lineHeight: 20,
     color: colors.BLACK,
   },
   tags: {
@@ -125,6 +141,35 @@ const styles = StyleSheet.create({
   tag: {
     marginRight: 8,
     color: colors.BLUE_600,
+  },
+  bestCommentContainer: {
+    backgroundColor: '#F5F7F8',
+    borderRadius: 8,
+    padding: 12,
+    paddingTop: 14,
+    paddingBottom: 12,
+    gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bestCommentProfileImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  bestCommentLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.GRAY_500,
+    lineHeight: 16,
+  },
+  bestCommentContent: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '400',
+    color: colors.BLACK,
+    lineHeight: 20,
+    marginLeft: 8,
   },
 });
 

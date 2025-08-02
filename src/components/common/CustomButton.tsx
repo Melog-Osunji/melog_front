@@ -13,7 +13,7 @@ import {colors} from '@/constants';
 interface CustomButtonProps extends PressableProps {
   label: string;
   variant?: 'filled' | 'outlined';
-  size?: 'large' | 'medium';
+  size?: 'large' | 'medium' | 'small';
   inValid?: boolean;
   onPress?: () => void;
 }
@@ -32,20 +32,21 @@ function CustomButton({
       disabled={inValid}
       style={({pressed}) => [
         styles.container,
+        styles[size],
         pressed ? styles[`${variant}Pressed`] : styles[variant],
         inValid && styles.inValid,
       ]}
       {...props}>
-      <View style={styles[size]}>
-        <Text style={[styles.text, styles[`${variant}Text`]]}>{label}</Text>
-      </View>
+      <Text
+        style={[styles.text, styles[`${variant}Text`], styles[`${size}Text`]]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 4,
     flexDirection: 'row',
     justifyContent: 'center',
   },
@@ -61,15 +62,16 @@ const styles = StyleSheet.create({
   },
 
   filledPressed: {
-    backgroundColor: colors.BLACK,
+    backgroundColor: colors.WHITE,
   },
   outlinedPressed: {
-    borderColor: colors.BLACK,
+    borderColor: colors.WHITE,
     borderWidth: 1,
     opacity: 0.5,
   },
 
   large: {
+    borderRadius: 4,
     width: '100%',
     paddingVertical: deviceHeight > 700 ? 18 : 15,
     alignItems: 'center',
@@ -77,14 +79,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   medium: {
+    borderRadius: 4,
     width: '50%',
     paddingVertical: deviceHeight > 700 ? 12 : 8,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
   },
+  small: {
+    borderRadius: 60,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    width: 72,
+    height: 36,
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
   text: {
     fontSize: 15,
+    fontWeight: '500',
+    textAlignVertical: 'center',
+    includeFontPadding: false,
+  },
+  largeText: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  mediumText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  smallText: {
+    fontSize: 14,
     fontWeight: '500',
   },
   filledText: {

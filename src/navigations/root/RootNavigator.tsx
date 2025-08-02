@@ -2,7 +2,6 @@ import React from 'react';
 import MainTabNavigator from '@/navigations/tab/MainTabNavigator';
 import AuthStackNavigator from '@/navigations/stack/IntroStackNavigator';
 import {useAuthContext} from '@/contexts/AuthContext';
-import {tapGestureHandlerProps} from 'react-native-gesture-handler/lib/typescript/handlers/TapGestureHandler';
 
 function RootNavigator() {
   const {isLogin, setIsLogin} = useAuthContext();

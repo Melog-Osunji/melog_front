@@ -4,7 +4,7 @@ import {StyleSheet, Text, View} from 'react-native';
 
 import {IntroStackParamList} from '@/navigations/stack/IntroStackNavigator';
 import {introNavigations} from '@/constants';
-import CustomButton from '@/components/CustomButton';
+import CustomButton from '@/components/common/CustomButton';
 
 type IntroScreenProps = StackScreenProps<
   IntroStackParamList,

@@ -5,12 +5,12 @@ import axiosInstance from '@/api/axiosInstance';
 import {Post} from '@/constants/types';
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
-import IconButton from '@/components/IconButton';
-import {DropdownMenu} from '@/components/DropdownMenu';
+import IconButton from '@/components/common/IconButton';
 import PostList from '@/components/post/PostList';
-import styled from 'styled-components/native';
+import {View, Text, StyleSheet} from 'react-native';
 import {mockPosts} from '@/constants/types'; // 더미 데이터
 import {colors, postNavigations} from '@/constants';
+import {usePostContext} from '@/contexts/PostContext';
 
 type IntroScreenProps = StackScreenProps<
   PostStackParamList,
@@ -18,31 +18,16 @@ type IntroScreenProps = StackScreenProps<
 >;
 
 function PostHomeScreen({navigation}: IntroScreenProps) {
+  const {posts: newPosts} = usePostContext();
+
+  // 새로운 포스트들과 기존 mockPosts를 합침 (새 포스트가 위에 표시됨)
+  const allPosts = [...newPosts, ...mockPosts];
+
   return (
-    <Container>
-      <Header>
-        <DropdownMenu
-          trigger={(open: () => void) => (
-            <HeaderTitleTouchable onPress={open}>
-              <HeaderTitleText>추천 피드</HeaderTitleText>
-            </HeaderTitleTouchable>
-          )}
-          items={[
-            {
-              label: '추천 피드',
-              onPress: function (): void {
-                throw new Error('Function not implemented.');
-              },
-            },
-            {
-              label: '인기 피드',
-              onPress: function (): void {
-                throw new Error('Function not implemented.');
-              },
-            },
-          ]}
-        />
-        <HeaderIconRow>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitleText}>추천 피드</Text>
+        <View style={styles.headerIconRow}>
           <IconButton<PostStackParamList>
             imageSource={require('@/assets/icons/post/Search.png')}
             target={[postNavigations.POST_SEARCH]}
@@ -51,46 +36,55 @@ function PostHomeScreen({navigation}: IntroScreenProps) {
             imageSource={require('@/assets/icons/post/Notice.png')}
             target={[postNavigations.POST_SEARCH]}
           />
-        </HeaderIconRow>
-      </Header>
+        </View>
+      </View>
 
-      <PostList data={mockPosts} />
-    </Container>
+      <PostList data={allPosts} />
+
+      {/* Write 버튼 */}
+      <View style={styles.writeButton}>
+        <IconButton<PostStackParamList>
+          imageSource={require('@/assets/icons/post/Write.png')}
+          target={[postNavigations.POST_CREATE]}
+          size={72}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
-// Styled Components
-const Header = styled.View`
-  width: 100%;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding-horizontal: 20px;
-  padding-vertical: 16px;
-  border-bottom-width: 1px;
-  border-bottom-color: ${colors.GRAY_100};
-`;
-
-const HeaderTitleTouchable = styled.TouchableOpacity`
-  flex-direction: row;
-  align-items: center;
-`;
-
-const HeaderTitleText = styled.Text`
-  font-size: 20px;
-  font-weight: bold;
-  color: ${colors.BLACK};
-`;
-
-const HeaderIconRow = styled.View`
-  flex-direction: row;
-  gap: 8px;
-`;
-
-const Container = styled(SafeAreaView)`
-  flex: 1;
-  align-items: center;
-  background-color: ${colors.WHITE};
-`;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: colors.WHITE,
+  },
+  header: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.GRAY_100,
+  },
+  headerTitleText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.BLACK,
+  },
+  headerIconRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  writeButton: {
+    position: 'absolute',
+    bottom: 80,
+    right: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 export default PostHomeScreen;

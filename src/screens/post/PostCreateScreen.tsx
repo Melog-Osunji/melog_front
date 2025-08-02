@@ -6,6 +6,10 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  SafeAreaView,
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 
 import {colors} from '@/constants';
@@ -13,204 +17,244 @@ import axiosInstance from '@/api/axiosInstance';
 import {useNavigation} from '@react-navigation/native';
 import {postNavigations} from '@/constants';
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
+import PostActionButtons from '@/components/post/PostActionButtons';
+import CustomButton from '@/components/common/CustomButton';
+import YouTubeEmbed from '@/components/common/YouTubeEmbed';
+import {YouTubeVideo, Post} from '@/constants/types';
+import {usePostContext} from '@/contexts/PostContext';
 
-type Tag = '공부' | '자유' | '모집' | '정보';
-const tagToCategoryId: Record<Tag, number> = {
-  공부: 1,
-  자유: 2,
-  모집: 3,
-  정보: 4,
-};
-
-export default function PostForm() {
+export default function PostCreateScreen() {
   const navigation = useNavigation();
-  const [title, setTitle] = useState('');
+  const {addPost} = usePostContext();
   const [content, setContent] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [categoryId, setCategoryId] = useState<number>(); // 카테고리 선택 UI에 맞게 관리
+  const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
 
   useHideTabBarOnFocus();
 
-  const handleSubmit = async () => {
-    if (!title.trim()) {
-      Alert.alert('알림', '제목을 입력해주세요.');
-      return;
-    }
+  const handleCancel = () => {
+    navigation.goBack();
+  };
+
+  const handlePost = () => {
     if (!content.trim()) {
-      Alert.alert('알림', '본문을 입력해주세요.');
-      return;
-    }
-    if (!categoryId) {
-      Alert.alert('알림', '카테고리를 선택해주세요.');
+      Alert.alert('알림', '내용을 입력해주세요.');
       return;
     }
 
-    setLoading(true);
+    // 새로운 포스트 생성
+    const newPost: Post = {
+      id: `post_${Date.now()}`, // 임시 ID 생성
+      userId: 'current_user',
+      title: '', // 포스트에 제목 필드가 없어서 빈 문자열
+      content: content.trim(),
+      mediaType: selectedVideo ? 'youtube' : 'text',
+      mediaUrl: selectedVideo
+        ? `https://www.youtube.com/watch?v=${extractVideoId(
+            selectedVideo.thumbnail,
+          )}`
+        : undefined,
+      createdAgo: 0, // 방금 생성됨
+      likeCount: 0,
+      commentCount: 0,
+      tags: [], // TODO: 태그 선택 기능과 연동
+      user: {
+        profileImg: '', // TODO: 실제 사용자 프로필 이미지
+        nickName: '홍길동', // TODO: 실제 사용자 닉네임
+      },
+    };
 
-    try {
-      const response = await axiosInstance.post('/api/posts', {
-        categoryId,
-        title,
-        content,
-        imageUrls: [], // 이미지 업로드 기능이 있다면 배열로 전달
-      });
+    // Context에 포스트 추가
+    addPost(newPost);
 
-      // 응답 결과 콘솔 출력
-      console.log('서버 응답:', response.data);
+    console.log('게시 내용:', content);
+    console.log('선택된 비디오:', selectedVideo);
+    console.log('생성된 포스트:', newPost);
 
-      if (response.data.success) {
-        console.log('게시글이 등록되었습니다.');
-        navigation.navigate(postNavigations.POST_HOME as never); // 여기서는 그냥 사용
-      } else {
-        console.log(
-          'response.data.error?.message: ',
-          response.data?.error?.message || 'No error message provided',
-        );
-      }
-    } catch (error) {
-      console.error('게시글 등록 에러:', error);
-      Alert.alert('오류', '서버 전송에 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
+    Alert.alert('성공', '게시되었습니다.');
+    navigation.goBack();
+  };
+
+  const handleVideoSelect = (video: YouTubeVideo) => {
+    setSelectedVideo(video);
+  };
+
+  const handleRemoveVideo = () => {
+    setSelectedVideo(null);
+  };
+
+  // YouTube URL에서 비디오 ID 추출하는 함수
+  const extractVideoId = (url: string) => {
+    const regex =
+      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : 'dQw4w9WgXcQ'; // 기본값
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.writeContainer}>
-        <Text style={styles.label}>게시글 카테고리를 선택해주세요.</Text>
-        <View style={styles.tagContainer}>
-          {(['공부', '자유', '모집', '정보'] as Tag[]).map(t => (
-            <TouchableOpacity
-              key={t}
-              style={[
-                styles.tagButton,
-                categoryId === tagToCategoryId[t] && styles.tagButtonSelected,
-              ]}
-              onPress={() => setCategoryId(tagToCategoryId[t])}
-              disabled={loading}>
-              <Text
-                style={[
-                  styles.tagText,
-                  categoryId === tagToCategoryId[t] && styles.tagTextSelected,
-                ]}>
-                {t}
-              </Text>
-            </TouchableOpacity>
-          ))}
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
+            <Text style={styles.cancelText}>취소</Text>
+          </TouchableOpacity>
+
+          <CustomButton
+            label="게시"
+            variant="filled"
+            size="small"
+            onPress={handlePost}
+          />
         </View>
 
-        <TextInput
-          style={(styles.input, styles.titleArea)}
-          placeholder="제목 입력"
-          value={title}
-          onChangeText={setTitle}
-          editable={!loading}
-        />
+        {/* User Profile Section */}
+        <View style={styles.profileSection}>
+          <View style={styles.profileImage} />
+          <Text style={styles.userId}>아이디</Text>
+        </View>
 
-        <TextInput
-          style={[styles.input, styles.contentArea]}
-          placeholder="본문 입력"
-          value={content}
-          onChangeText={setContent}
-          multiline
-          textAlignVertical="top"
-          editable={!loading}
-        />
-      </View>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.submitButton, loading && {backgroundColor: '#aaa'}]}
-          onPress={handleSubmit}
-          disabled={loading}>
-          <Text style={styles.submitButtonText}>
-            {loading ? '전송중...' : '완료'}
-            {/* 전송 결과 콘솔 출력 */}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+        {/* Content Input */}
+        <View style={styles.contentSection}>
+          <TextInput
+            style={styles.contentInput}
+            placeholder="오늘은 어떤 클래식을 감상했나요?"
+            placeholderTextColor="#8C9CAA"
+            multiline
+            textAlignVertical="top"
+            value={content}
+            onChangeText={setContent}
+          />
+
+          {/* Selected Video Display */}
+          {selectedVideo && (
+            <View style={styles.selectedVideoContainer}>
+              <View style={styles.videoEmbedWrapper}>
+                <YouTubeEmbed
+                  url={`https://www.youtube.com/watch?v=${extractVideoId(
+                    selectedVideo.thumbnail,
+                  )}`}
+                />
+                <TouchableOpacity
+                  style={styles.removeVideoButton}
+                  onPress={handleRemoveVideo}>
+                  <Text style={styles.removeVideoText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* Action Buttons */}
+        <PostActionButtons onVideoSelect={handleVideoSelect} />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: '100%',
-    maxWidth: 400,
-    alignSelf: 'center',
-    backgroundColor: colors.WHITE,
-    flexDirection: 'column',
-    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
   },
-  writeContainer: {
-    padding: 24,
-    marginBottom: -28,
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+  },
+  cancelButton: {
+    paddingVertical: 8,
+  },
+  cancelText: {
+    fontSize: 14,
+    fontWeight: '400',
+    lineHeight: 20,
+    letterSpacing: 0.2,
+    color: colors.BLACK,
+  },
+  postButton: {
+    backgroundColor: colors.BLUE_400,
+    paddingHorizontal: 24,
+    paddingVertical: 6,
+    borderRadius: 60,
+  },
+  postText: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+    letterSpacing: 0.2,
+    color: '#FBFBFC',
+  },
+  profileSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     gap: 8,
   },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-    paddingLeft: 4,
+  profileImage: {
+    width: 48,
+    height: 48,
+    backgroundColor: '#D9D9D9',
+    borderRadius: 24,
   },
-  tagContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 20,
-  },
-  tagButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.GRAY_400,
-    marginRight: 10,
-    marginBottom: 10,
-  },
-  tagButtonSelected: {
-    backgroundColor: colors.BLUE_400,
-    borderColor: colors.BLUE_400,
-  },
-  tagText: {
-    color: '#333',
-    fontSize: 14,
-  },
-  tagTextSelected: {
-    color: 'white',
-  },
-  input: {
-    borderBottomWidth: 1,
-    borderTopWidth: 1,
-    borderColor: colors.GRAY_600,
-    borderRadius: 6,
-    padding: 10,
-    fontSize: 16,
-  },
-  titleArea: {
-    fontSize: 24,
-    fontWeight: '700',
+  userId: {
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 22,
+    letterSpacing: 0.15,
     color: colors.BLACK,
-    paddingLeft: 8,
   },
-  contentArea: {
-    height: '60%',
+  contentSection: {
+    flex: 1,
+    paddingHorizontal: 18,
+    paddingTop: 20,
   },
-  buttonContainer: {
-    alignItems: 'flex-end',
-    borderTopWidth: 1,
-    marginBottom: 60,
-    borderColor: colors.GRAY_400,
+  contentInput: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '400',
+    lineHeight: 20,
+    letterSpacing: 0.2,
+    color: colors.BLACK,
+    textAlignVertical: 'top',
+  },
+  selectedVideoContainer: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 16,
+  },
+  videoEmbedWrapper: {
     width: '100%',
+    height: 200,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
   },
-  submitButton: {
-    marginHorizontal: 20,
-    paddingVertical: 12,
-    width: '20%',
-    alignItems: 'flex-end',
+  removeVideoButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
   },
-  submitButtonText: {
-    color: colors.GREEN,
-    fontSize: 16,
+  removeVideoText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

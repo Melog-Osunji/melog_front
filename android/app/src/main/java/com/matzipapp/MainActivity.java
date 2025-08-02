@@ -6,11 +6,6 @@ import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactActivityDelegate;
 
-//하단바 아이콘 색상 설정 위한 요소
-import android.os.Build;
-import android.view.View;
-import android.view.Window;
-
 public class MainActivity extends ReactActivity {
 
   /**
@@ -39,13 +34,5 @@ public class MainActivity extends ReactActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(null);
-
-  // 하단바 아이콘 색상 설정
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-    Window window = getWindow();
-    window.getDecorView().setSystemUiVisibility(
-      View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-    );
-  }
   }
 }

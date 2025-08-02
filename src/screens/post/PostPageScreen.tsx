@@ -6,17 +6,21 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
-import {RouteProp, useRoute} from '@react-navigation/native';
+import {RouteProp, useRoute, useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PostStats from '@/components/post/PostStats';
-import {colors, Post, mockPosts} from '@/constants';
+import {colors, Post, mockPosts, mockComments} from '@/constants';
 import axiosInstance from '@/api/axiosInstance';
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
-import LikeAndComment from '@/components/LikeAndComment';
+import LikeAndComment from '@/components/post/CommentBar';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 import {postNavigations} from '@/constants';
-import YouTubeEmbed from '@/components/YouTubeEmbed';
+import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
+import CommentList from '@/components/post/CommentList';
+import CustomButton from '@/components/common/CustomButton';
+import IconButton from '@/components/common/IconButton';
 
 // 네비게이션 param 타입 정의
 type PostPageScreenRouteProp = RouteProp<
@@ -24,26 +28,30 @@ type PostPageScreenRouteProp = RouteProp<
   typeof postNavigations.POST_PAGE
 >;
 
-function mapBackendPostToPost(backendPost: any): Post {
-  return {
-    id: backendPost.id,
-    userId: backendPost.userId || '',
-    title: backendPost.title,
-    content: backendPost.content ?? '',
-    mediaType: backendPost.mediaType || '',
-    mediaUrl: backendPost.mediaUrl,
-    createdAgo: backendPost.createdAgo || 0,
-    likeCount: backendPost.likeCount || 0,
-    commentCount: backendPost.commentCount || 0,
-    tags: backendPost.category
-      ? [backendPost.category]
-      : backendPost.tags || [],
-    user: backendPost.user || {
-      nickName: 'Unknown',
-      profileImg: '',
-    },
-  };
-}
+// 커스텀 헤더 컴포넌트
+const PostPageHeader = () => {
+  return (
+    <View style={headerStyles.container}>
+      <IconButton
+        imageSource={require('@/assets/icons/post/DownArrow.png')}
+        target={'goBack'}
+        size={36}
+        imageStyle={{transform: [{rotate: '90deg'}]}}
+      />
+
+      <View style={headerStyles.rightButtons}>
+        <IconButton
+          imageSource={require('@/assets/icons/post/Search.png')}
+          size={32}
+        />
+        <IconButton
+          imageSource={require('@/assets/icons/post/Info.png')}
+          size={32}
+        />
+      </View>
+    </View>
+  );
+};
 
 function PostPageScreen() {
   const route = useRoute<PostPageScreenRouteProp>();
@@ -51,6 +59,31 @@ function PostPageScreen() {
 
   const [post, setPost] = useState<Post | null>(postData || null);
   const [loading, setLoading] = useState(!postData);
+  const [comments, setComments] = useState(mockComments);
+
+  useHideTabBarOnFocus();
+
+  // 댓글 추가 함수
+  const handleAddComment = (commentText: string) => {
+    const newComment = {
+      id: `comment${Date.now()}`,
+      userId: 'current_user',
+      userName: '홍길동',
+      userProfileImg: '',
+      content: commentText,
+      createdAgo: 0,
+      likeCount: 0,
+      commentCount: 0,
+      replies: [],
+    };
+
+    setComments(prev => [...prev, newComment]);
+
+    // 포스트의 댓글 카운트도 업데이트
+    if (post) {
+      setPost({...post, commentCount: post.commentCount + 1});
+    }
+  };
 
   useHideTabBarOnFocus();
 
@@ -75,7 +108,8 @@ function PostPageScreen() {
           const res = await axiosInstance.get(`/api/posts/${postId}`);
           if (res.data.success) {
             console.log('res.data', res.data);
-            setPost(mapBackendPostToPost(res.data.response));
+            // 백엔드 데이터를 Post 타입으로 직접 설정
+            setPost(res.data.response);
           } else {
             setPost(null);
           }
@@ -107,112 +141,168 @@ function PostPageScreen() {
 
   return (
     <SafeAreaView style={{flex: 1}}>
-      <ScrollView contentContainerStyle={styles.container}>
-        {/* 사용자 정보 */}
-        <View style={styles.userSection}>
-          <Image
-            source={{uri: post.user.profileImg}}
-            style={styles.profileImage}
-          />
-          <View style={styles.userInfo}>
-            <Text style={styles.nickName}>{post.user.nickName}</Text>
-            <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
-          </View>
-        </View>
-
-        {/* 제목 */}
-        <Text style={styles.title}>{post.title}</Text>
-
-        {/* 본문 */}
-        <Text style={styles.content}>{post.content}</Text>
-
-        {/* 태그 */}
-        <View style={styles.tagsContainer}>
-          {(post.tags ?? []).map((tag, index) => (
-            <Text key={index} style={styles.tag}>
-              #{tag}
-            </Text>
-          ))}
-        </View>
-
-        {/* 미디어 */}
+      <PostPageHeader />
+      <ScrollView
+        style={{flex: 1}}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{paddingBottom: 100}}>
+        {/* 미디어 - 화면 전체 너비 사용 */}
         {post.mediaUrl && (
           <>
             {post.mediaUrl.includes('youtube.com') ||
             post.mediaUrl.includes('youtu.be') ? (
-              <YouTubeEmbed url={post.mediaUrl} />
+              <YouTubeEmbed2 url={post.mediaUrl} borderRadius={0} />
             ) : (
-              <Image source={{uri: post.mediaUrl}} style={styles.image} />
+              <Image
+                source={{uri: post.mediaUrl}}
+                style={styles.fullWidthImage}
+              />
             )}
           </>
         )}
 
-        {/* 통계 */}
-        <PostStats
-          likeCount={post.likeCount}
-          commentCount={post.commentCount}
+        <View style={styles.postContainer}>
+          {/* 사용자 정보 */}
+          <View style={styles.userSection}>
+            <View style={styles.userWrapper}>
+              <Image
+                source={{uri: post.user.profileImg}}
+                style={styles.profileImage}
+              />
+              <View style={styles.userInfo}>
+                <Text style={styles.nickName}>{post.user.nickName}</Text>
+                <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
+              </View>
+            </View>
+            <CustomButton label="팔로우" variant="filled" size="small" />
+          </View>
+
+          {/* 본문 */}
+          <Text style={styles.content}>{post.content}</Text>
+
+          {/* 태그 */}
+          <View style={styles.tags}>
+            {(post.tags ?? []).map((tag, index) => (
+              <Text key={index} style={styles.tag}>
+                #{tag}
+              </Text>
+            ))}
+          </View>
+
+          {/* 통계 */}
+          <PostStats
+            likeCount={post.likeCount}
+            commentCount={post.commentCount}
+          />
+        </View>
+
+        {/* 댓글 섹션 */}
+        <CommentList
+          comments={comments}
+          totalCommentCount={post.commentCount}
         />
       </ScrollView>
-      <LikeAndComment />
+
+      <LikeAndComment onSend={handleAddComment} />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: colors.WHITE,
-    padding: 24,
-    flexDirection: 'column',
-    gap: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 16,
+  },
+  postContainer: {
+    backgroundColor: colors.WHITE,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.GRAY_200,
   },
   userSection: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 4,
+  },
+  userWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   profileImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
   },
   userInfo: {
-    marginLeft: 12,
+    color: colors.BLACK,
+    marginLeft: 8,
   },
   nickName: {
     fontWeight: 'bold',
-    fontSize: 16,
     color: colors.BLACK,
   },
   timeText: {
-    color: colors.GRAY_500,
+    color: '#888',
     fontSize: 12,
-    marginTop: 2,
   },
-  header: {},
   title: {
     color: colors.BLACK,
     fontSize: 24,
     fontWeight: 'bold',
   },
-  tagsContainer: {flexDirection: 'row'},
+  content: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.BLACK,
+  },
+  tags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
   tag: {
-    borderColor: '#2196f3',
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    fontSize: 12,
-    color: '#2196f3',
-    marginRight: 6,
+    marginRight: 8,
+    color: colors.BLUE_600,
   },
   image: {
     width: '100%',
     height: 200,
     borderRadius: 8,
   },
-  content: {fontSize: 16, color: colors.BLACK},
-  stat: {fontSize: 14, color: '#555', marginRight: 16},
+  fullWidthImage: {
+    width: '100%',
+    height: 200,
+  },
+});
+
+const headerStyles = StyleSheet.create({
+  container: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.GRAY_100,
+    backgroundColor: colors.WHITE,
+  },
+  leftButton: {
+    padding: 8,
+  },
+  rightButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  icon: {
+    width: 32,
+    height: 32,
+  },
 });
 
 export default PostPageScreen;

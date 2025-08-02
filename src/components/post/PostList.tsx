@@ -19,6 +19,7 @@ function PostList({data}: PostListProps) {
         paddingBottom: 80,
       }}
       renderItem={renderItem}
+      showsVerticalScrollIndicator={false}
     />
   );
 }

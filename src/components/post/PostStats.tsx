@@ -1,36 +1,72 @@
-import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import React, {useState} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {colors} from '@/constants';
 import {Post} from '@/constants/types';
-import IconButton from '@/components/IconButton';
 
 type PostStatsProps = Pick<Post, 'likeCount' | 'commentCount'> & {};
 
 const PostStats = ({likeCount, commentCount}: PostStatsProps) => {
+  const [isLiked, setIsLiked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [currentLikeCount, setCurrentLikeCount] = useState(likeCount || 0);
+
+  const handleLikePress = () => {
+    if (isLiked) {
+      setCurrentLikeCount(prev => prev - 1);
+    } else {
+      setCurrentLikeCount(prev => prev + 1);
+    }
+    setIsLiked(!isLiked);
+  };
+
+  const handleBookmarkPress = () => {
+    setIsBookmarked(!isBookmarked);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.statsRow}>
-        <StatItem
-          source={require('@/assets/icons/post/Heart.png')}
-          value={likeCount || 0}
-        />
-        <StatItem
-          source={require('@/assets/icons/post/Comment.png')}
-          value={commentCount || 0}
-        />
-        <StatItem source={require('@/assets/icons/post/Share.png')} />
+        <TouchableOpacity style={styles.statItem} onPress={handleLikePress}>
+          <Image
+            source={
+              isLiked
+                ? require('@/assets/icons/post/Heart_activate.png')
+                : require('@/assets/icons/post/Heart.png')
+            }
+            style={styles.icon}
+          />
+          <Text style={styles.statText}>{currentLikeCount}</Text>
+        </TouchableOpacity>
+
+        <View style={styles.statItem}>
+          <Image
+            source={require('@/assets/icons/post/Comment.png')}
+            style={styles.icon}
+          />
+          <Text style={styles.statText}>{commentCount || 0}</Text>
+        </View>
+
+        <TouchableOpacity style={styles.statItem}>
+          <Image
+            source={require('@/assets/icons/post/Share.png')}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
       </View>
-      <StatItem source={require('@/assets/icons/post/Bookmark.png')} />
+
+      <TouchableOpacity style={styles.statItem} onPress={handleBookmarkPress}>
+        <Image
+          source={
+            isBookmarked
+              ? require('@/assets/icons/post/Bookmark_activate.png')
+              : require('@/assets/icons/post/Bookmark.png')
+          }
+          style={styles.icon}
+        />
+      </TouchableOpacity>
     </View>
   );
 };
-
-const StatItem = ({source, value}: {source: any; value?: number}) => (
-  <View style={styles.statItem}>
-    <IconButton imageSource={source} size={24} />
-    {value !== undefined ? <Text style={styles.statText}>{value}</Text> : null}
-  </View>
-);
 
 const styles = StyleSheet.create({
   container: {
@@ -53,6 +89,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: colors.GRAY_300,
+  },
+  icon: {
+    width: 24,
+    height: 24,
   },
 });
 
