@@ -28,6 +28,7 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
                 <IconButton<PostStackParamList>
                     imageSource={require('@/assets/icons/post/BackArrow.png')}
                     target={[postNavigations.POST_HOME]}
+                    size={24}
                   />
             </Header>
         <TabRowScroll>
