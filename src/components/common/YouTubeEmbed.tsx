@@ -17,7 +17,17 @@ const extractYouTubeVideoId = (url: string): string | null => {
   return match ? match[1] : null;
 };
 
-const YouTubeEmbed = ({url}: {url: string}) => {
+const YouTubeEmbed = ({
+  url,
+  showPlayButton = true,
+  height = 200,
+  borderRadius = 8,
+}: {
+  url: string;
+  showPlayButton?: boolean;
+  height?: number;
+  borderRadius?: number;
+}) => {
   const videoId = extractYouTubeVideoId(url);
 
   if (!videoId) return null;
@@ -31,13 +41,17 @@ const YouTubeEmbed = ({url}: {url: string}) => {
   };
 
   return (
-    <TouchableOpacity style={styles.container} onPress={handlePress}>
+    <TouchableOpacity
+      style={[styles.container, {height, borderRadius}]}
+      onPress={handlePress}>
       <Image source={{uri: thumbnailUrl}} style={styles.thumbnail} />
-      <View style={styles.overlay}>
-        <View style={styles.playButton}>
-          <Text style={styles.playIcon}>▶</Text>
+      {showPlayButton && (
+        <View style={styles.overlay}>
+          <View style={styles.playButton}>
+            <Text style={styles.playIcon}>▶</Text>
+          </View>
         </View>
-      </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -46,7 +60,6 @@ export default YouTubeEmbed;
 
 const styles = StyleSheet.create({
   container: {
-    height: 200,
     borderRadius: 8,
     overflow: 'hidden',
     position: 'relative',

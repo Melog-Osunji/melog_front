@@ -168,7 +168,7 @@ export const mockComments: Comment[] = [
     userId: 'user101',
     userName: '멋쟁이',
     userProfileImg:
-      'https://images.pexels.com/photos/164821/pexels-photo-164821.jpeg',
+      'https://images.pexels.com/photos/1370750/pexels-photo-1370750.jpeg',
     content: '덕분에 좋은 곡 들어요! 감사합니다.',
     createdAgo: 48,
     likeCount: 3,
@@ -180,7 +180,7 @@ export const mockComments: Comment[] = [
     userName: '효정',
     userProfileImg:
       'https://images.pexels.com/photos/2948636/pexels-photo-2948636.jpeg',
-    content: '바흐 노래에 이런것도 있는줄 몰랐어요.',
+    content: '드뷔시 노래에 이런것도 있는줄 몰랐어요.',
     createdAgo: 24,
     likeCount: 5,
     commentCount: 0,
@@ -191,7 +191,8 @@ export const mockComments: Comment[] = [
     userName: '클래식러버',
     userProfileImg:
       'https://images.pexels.com/photos/164935/pexels-photo-164935.jpeg',
-    content: '전 플룻 배웠는데 오히려 피아노가 좋아요.',
+    content:
+      '피아노 버전이 진짜 좋네요. 드뷔시의 매력을 다시 느끼게 해주셔서 감사합니다.',
     createdAgo: 18,
     likeCount: 2,
     commentCount: 0,
@@ -201,8 +202,8 @@ export const mockComments: Comment[] = [
     userId: 'user104',
     userName: '말차르트',
     userProfileImg:
-      'https://images.pexels.com/photos/33146374/pexels-photo-248510.jpeg',
-    content: '헉 완전 부럽다ㅠㅠ',
+      'https://images.pexels.com/photos/164821/pexels-photo-164821.jpeg',
+    content: '8분즈음에 시작하는 클래식 제목도 알려주세요!',
     createdAgo: 12,
     likeCount: 8,
     commentCount: 2,
@@ -213,17 +214,17 @@ export const mockComments: Comment[] = [
         userName: '클래식탐험가',
         userProfileImg:
           'https://images.pexels.com/photos/33146374/pexels-photo-33146374.jpeg',
-        content: '8분즈음에 시작하는 클래식 제목도 알려주세요!',
+        content: '세레나데 3번 D장조입니다~><',
         createdAgo: 10,
         likeCount: 1,
       },
       {
         id: 'reply002',
         userId: 'user106',
-        userName: '음악선생',
+        userName: '말차르트',
         userProfileImg:
           'https://images.pexels.com/photos/164821/pexels-photo-164821.jpeg',
-        content: '세레나데 3번 D장조입니다~><',
+        content: '감사합니다!',
         createdAgo: 8,
         likeCount: 4,
       },
@@ -257,10 +258,10 @@ export const mockComments: Comment[] = [
 export const DUMMY_YOUTUBE_VIDEOS: YouTubeVideo[] = [
   {
     id: '1',
-    title: 'Debussy - Clair de Lune (Official Video)',
+    title: 'Best of Debussy - Classical Music Gems',
     channel: 'ClassicalMusicOnly',
     duration: '5:03',
-    thumbnail: 'https://www.youtube.com/watch?v=CvFH_6DNRCY',
+    thumbnail: 'https://youtu.be/VRYRgA8Zbuo?si=C0YYXyR-_sZ4z0QC',
   },
   {
     id: '2',
@@ -271,46 +272,53 @@ export const DUMMY_YOUTUBE_VIDEOS: YouTubeVideo[] = [
   },
   {
     id: '3',
-    title: 'Debussy - La Mer (Complete)',
+    title: '[조성진 Seong-Jin Cho] Debussy Clair de lune 드뷔시 달빛',
     channel: 'Berlin Philharmonic',
     duration: '24:32',
-    thumbnail: 'https://www.youtube.com/watch?v=FOCucJw7iT8',
+    thumbnail: 'https://youtu.be/97_VJve7UVc?si=mZKcPe7jNxPQwAUq',
   },
   {
     id: '4',
-    title: 'Debussy - Prelude to the Afternoon of a Faun',
+    title: 'Clair de Lune (Studio Version)',
     channel: 'London Symphony Orchestra',
     duration: '10:45',
-    thumbnail: 'https://www.youtube.com/watch?v=9_7loz-HWUM',
+    thumbnail: 'https://youtu.be/JGJPVl7iQUM?si=IaeNLWAF9KQoS26s',
+  },
+  {
+    id: '4',
+    title: 'What if Debussy Wrote This for Cello? Clair de Lune, Reimagined',
+    channel: 'London Symphony Orchestra',
+    duration: '5:28',
+    thumbnail: 'https://youtu.be/TMRTJD-Ti7U?si=hpmgmhAwbo8ELjA4',
   },
 ];
 
 // Search
 export interface PopularMedia {
-    userNickname:string;
-    userProfileImgLink:string;
-    postID:string;
-    mediaURL:string;
-    mediaType:string;
-    createdAgo:string;
+  userNickname: string;
+  userProfileImgLink: string;
+  postID: string;
+  mediaURL: string;
+  mediaType: string;
+  createdAgo: string;
 }
 
 // popularMedia dummy data
 export const PopularMediaData: PopularMedia[] = [
-    {
-        userNickname:'바흐흑',
-        userProfileImgLink:'https://randomuser.me/api/portraits/men/33.jpg',
-        postID:'post001',
-        mediaURL:'https://youtu.be/4-9gp1puvMI?si=GOa0h4oLuak7DM6I',
-        mediaType:'Youtube',
-        createdAgo:'7일 전',
-    },
-    {
-        userNickname:'클래식 듣기 딱 좋은 날',
-        userProfileImgLink:'https://randomuser.me/api/portraits/men/33.jpg',
-        postID:'post001',
-        mediaURL:'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
-        mediaType:'Youtube',
-        createdAgo:'3일 전',
-        }
-]
+  {
+    userNickname: '바흐흑',
+    userProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
+    postID: 'post001',
+    mediaURL: 'https://youtu.be/4-9gp1puvMI?si=GOa0h4oLuak7DM6I',
+    mediaType: 'Youtube',
+    createdAgo: '7일 전',
+  },
+  {
+    userNickname: '클래식 듣기 딱 좋은 날',
+    userProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
+    postID: 'post001',
+    mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
+    mediaType: 'Youtube',
+    createdAgo: '3일 전',
+  },
+];

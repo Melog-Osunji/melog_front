@@ -15,19 +15,21 @@ const extractYouTubeVideoId = (url: string): string | null => {
 const YouTubeEmbed2 = ({
   url,
   borderRadius = 8,
+  height,
 }: {
   url: string;
   borderRadius?: number;
+  height?: number;
 }) => {
   const videoId = extractYouTubeVideoId(url);
 
   if (!videoId) return null;
 
-  // YouTube 임베드 URL with 360p minimum quality
-  const embedUrl = `https://www.youtube.com/embed/${videoId}?vq=small&hd=1&quality=360p`;
+  // 빠른 로딩을 위한 최적화된 YouTube 임베드 URL
+  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&iv_load_policy=3&fs=1&cc_load_policy=0&controls=1&disablekb=0`;
 
-  // 16:9 비율로 높이 계산
-  const videoHeight = (screenWidth / 16) * 9;
+  // 16:9 비율로 높이 계산 (height prop이 있으면 우선 사용)
+  const videoHeight = height || (screenWidth / 16) * 9;
 
   return (
     <View style={[styles.container, {borderRadius, height: videoHeight}]}>
@@ -36,12 +38,23 @@ const YouTubeEmbed2 = ({
         style={styles.webview}
         allowsFullscreenVideo={true}
         javaScriptEnabled={true}
+        domStorageEnabled={true}
+        startInLoadingState={false}
+        cacheEnabled={true}
+        cacheMode="LOAD_CACHE_ELSE_NETWORK"
+        androidLayerType="hardware"
+        allowsInlineMediaPlayback={true}
+        mediaPlaybackRequiresUserAction={false}
+        mixedContentMode="compatibility"
+        bounces={false}
+        scrollEnabled={false}
+        onShouldStartLoadWithRequest={() => true}
+        onLoadStart={() => console.log('YouTube WebView load started')}
+        onLoadEnd={() => console.log('YouTube WebView load ended')}
         onError={syntheticEvent => {
           const {nativeEvent} = syntheticEvent;
-          console.log('WebView error: ', nativeEvent);
+          console.log('YouTube WebView error: ', nativeEvent);
         }}
-        onLoadStart={() => console.log('WebView load started')}
-        onLoadEnd={() => console.log('WebView load ended')}
       />
     </View>
   );
@@ -53,10 +66,10 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     overflow: 'hidden',
-    backgroundColor: '#000', // 배경색 추가로 로딩 상태 확인
+    backgroundColor: '#000000',
   },
   webview: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: '#000000',
   },
 });

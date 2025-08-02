@@ -8,7 +8,7 @@ import {
   FlatList,
   Image,
 } from 'react-native';
-import YouTubeEmbed2 from '../common/YouTubeEmbed2';
+import YouTubeEmbed from '../common/YouTubeEmbed';
 import {colors} from '@/constants';
 import {YouTubeVideo, DUMMY_YOUTUBE_VIDEOS} from '@/constants/types';
 
@@ -59,8 +59,11 @@ export default function MusicSearchContent({
       style={styles.videoItem}
       onPress={() => handleVideoSelect(item)}>
       <View style={styles.videoThumbnail}>
-        <YouTubeEmbed2
+        <YouTubeEmbed
           url={generateYouTubeUrl(extractVideoId(item.thumbnail))}
+          showPlayButton={false}
+          height={68}
+          borderRadius={8}
         />
       </View>
       <View style={styles.videoInfo}>

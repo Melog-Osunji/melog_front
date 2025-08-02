@@ -114,7 +114,7 @@ export default function PostCreateScreen() {
         {/* User Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileImage} />
-          <Text style={styles.userId}>아이디</Text>
+          <Text style={styles.userId}>홍길동</Text>
         </View>
 
         {/* Content Input */}
