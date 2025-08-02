@@ -14,6 +14,7 @@ import SearchResultAllTab from '@/components/search/SearchResultAllTab.tsx';
 import SearchResultProfileTab from '@/components/search/SearchResultProfileTab.tsx';
 import SearchResultFeedTab from '@/components/search/SearchResultFeedTab.tsx';
 import SearchResultHarmonyTab from '@/components/search/SearchResultHarmonyTab.tsx';
+import SearchInputField from '@/components/search/SearchInputField';
 
 
 type IntroScreenProps = StackScreenProps<
@@ -25,17 +26,32 @@ const DEVICE_WIDTH = Dimensions.get('window').width;
 const TAB_WIDTH = DEVICE_WIDTH / 4;
 
 function PostSearchResultScreen ({navigation}: IntroScreenProps) {
-   const [selectedTab, setSelectedTab] = useState<'all' | 'profile' | 'feed' | 'harmony'>('all');
+    const [selectedTab, setSelectedTab] = useState<'all' | 'profile' | 'feed' | 'harmony'>('all');
+    const [keyword, setKeyword] = useState('Bach');
 
+
+    const handleSearchSubmit = () => {
+      console.log('검색어:', keyword);
+      // 필터링 또는 API 호출 로직 넣기
+    };
 
     return(
         <Container>
             <Header>
                 <IconButton<PostStackParamList>
                     imageSource={require('@/assets/icons/post/BackArrow.png')}
-                    target={[postNavigations.POST_HOME]}
+                    target={[postNavigations.POST_SEARCH]}
                     size={24}
                   />
+                <SearchInputField
+                  value={keyword}
+                  onChangeText={setKeyword}
+                  placeholder="작곡가, 연주가, 장르, 시대 등"
+                  onSubmitEditing={handleSearchSubmit}
+                />
+                <CancelButton onPress={() => navigation.navigate(postNavigations.POST_SEARCH)}>
+                    <CancelText>취소</CancelText>
+                </CancelButton>
             </Header>
             <TabRowScroll>
                 <TabScrollContent>
@@ -70,8 +86,7 @@ const Header = styled.View`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding-horizontal: 20px;
-  padding-vertical: 16px;
+  padding: 16px 20px;
   border-bottom-width: 1px;
   border-bottom-color: ${colors.GRAY_100};
 `;
@@ -112,15 +127,12 @@ const TabContent = styled.View`
   flex: 1;
 `;
 
-const FocusContent = styled.ScrollView`
-  width: 100%;
-  padding: 16px 20px;
+const CancelButton = styled.TouchableOpacity`
+  margin-left: 8px;
 `;
 
-const FocusTitle = styled.Text`
-  font-size: 17px;
-  font-weight: bold;
-  margin-bottom: 12px;
+const CancelText = styled.Text`
+  font-size: 12px;
   color: ${colors.GRAY_600};
 `;
 

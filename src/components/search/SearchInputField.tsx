@@ -45,13 +45,14 @@ const SearchInputField: React.FC<InputFieldProps> = ({ value, onChangeText, plac
 };
 
 const Container = styled.View`
-  width: 90%;
+  flex: 1;
   height:44px;
   flex-direction: row;
   align-items: center;
   background-color: ${colors.GRAY_100};
   border-radius: 12px;
   padding: 0px 8px;
+  margin-left:8px;
 `;
 
 const StyledInput = styled.TextInput`

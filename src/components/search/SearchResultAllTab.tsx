@@ -1,31 +1,39 @@
 import React from 'react';
-import { ScrollView, Text } from 'react-native';
+import { ScrollView, Text, FlatList } from 'react-native';
 import styled from 'styled-components/native';
 import {colors} from '@/constants';
 import {mockPosts} from '@/constants/types'; // 더미 데이터
 import PostList from '@/components/post/PostList';
-
+import PopularMediaCard from '@/components/search/PopularMediaCard';
+import {PopularMediaData} from '@/constants/types';
+import PostCard from '@/components/post/PostCard';
 
 
 const SearchResultAllTab = () => {
   return (
-    <ScrollView contentContainerStyle={{paddingVertical: 24, }}>
-      <FirstView>
-          <SectionTitle>인기 미디어</SectionTitle>
-      </FirstView>
-      <SecondView>
-          <SectionTitle>실시간 인기 피드</SectionTitle>
-          <PostList data={mockPosts} />
-      </SecondView>
-    </ScrollView>
+    <FlatList
+          data={mockPosts}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <PostCard {...item} />}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <HeaderContainer>
+              <SectionTitle>인기 미디어</SectionTitle>
+              <HorizontalList
+                data={PopularMediaData}
+                keyExtractor={(item, index) => `${item.postID}_${index}`}
+                renderItem={({ item }) => <PopularMediaCard data={item} />}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 20, gap: 16 }}
+              />
+              <SectionTitle style={{ marginTop: 28 }}>실시간 인기 피드</SectionTitle>
+            </HeaderContainer>
+          }
+          contentContainerStyle={{ paddingBottom: 48 }}
+        />
   );
 };
-
-const FirstView = styled.View`
-  padding : 0px 0px 24px 0px;
-  flex-direction: column;
-  gap:16px;
-`;
 
 const SectionTitle = styled.Text`
   font-size: 17px;
@@ -34,16 +42,13 @@ const SectionTitle = styled.Text`
   color: ${colors.GRAY_600};
 `;
 
-const SecondView = styled.View`
-  padding : 16px 0px 0px 0px;
-  flex-direction: column;
-  gap:24px;
+const HeaderContainer = styled.View`
+  padding: 24px 0px;
+  gap: 16px;
 `;
 
-const RowBetween = styled.View`
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-`;
+const HorizontalList = styled(FlatList).attrs({
+  horizontal: true,
+})``;
 
 export default SearchResultAllTab;
