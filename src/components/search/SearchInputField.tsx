@@ -14,9 +14,11 @@ interface InputFieldProps {
   placeholder?: string;
   onFocus?: () => void;
   onBlur?: () => void;
+  onSubmitEditing?: () => void;
+
 }
 
-const SearchInputField: React.FC<InputFieldProps> = ({ value, onChangeText, placeholder,onFocus, onBlur, }) => {
+const SearchInputField: React.FC<InputFieldProps> = ({ value, onChangeText, placeholder,onFocus, onBlur, onSubmitEditing}) => {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
@@ -30,6 +32,7 @@ const SearchInputField: React.FC<InputFieldProps> = ({ value, onChangeText, plac
         placeholderTextColor={colors.GRAY_300}
         onFocus={onFocus}
         onBlur={onBlur}
+        onSubmitEditing={onSubmitEditing}
       />
 
       {value.length > 0 && (

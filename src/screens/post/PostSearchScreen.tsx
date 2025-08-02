@@ -74,7 +74,15 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
                    value={searchText}
                    onChangeText={setSearchText}
                    placeholder="작곡가, 연주가, 장르, 시대 등"
-                   onFocus={() => setShowRecent(true)} // ✅ 이 부분 중요
+                   onFocus={() => setShowRecent(true)}
+                   onSubmitEditing={() => {
+                       if (searchText.trim() !== '') {
+                         navigation.navigate(postNavigations.POST_SEARCH_RESULT, {
+                           searchKeyword: searchText,
+                         });
+                         setShowRecent(false);
+                       }
+                     }}
                 />
             </Header>
         {showRecent ? (
