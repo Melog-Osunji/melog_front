@@ -14,7 +14,7 @@ export type PostStackParamList = {
   [postNavigations.POST_PAGE]: {postId: string; postData?: Post};
   [postNavigations.POST_CREATE]: undefined;
   [postNavigations.POST_SEARCH]: undefined;
-  [postNavigations.POST_SEARCH_RESULT] : { searchKeyword: string };
+  [postNavigations.POST_SEARCH_RESULT]: {searchKeyword: string};
 };
 
 const Stack = createStackNavigator<PostStackParamList>();
@@ -43,7 +43,7 @@ function MainStackNavigator() {
         <Stack.Screen
           name={postNavigations.POST_SEARCH}
           component={PostSearchScreen}
-          options={{headerShown: true, title: ' '}}
+          options={{headerShown: false, title: ' '}}
         />
       </Stack.Navigator>
     </PostProvider>

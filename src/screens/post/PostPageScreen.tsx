@@ -33,10 +33,9 @@ const PostPageHeader = () => {
   return (
     <View style={headerStyles.container}>
       <IconButton
-        imageSource={require('@/assets/icons/post/DownArrow.png')}
+        imageSource={require('@/assets/icons/post/BackArrow.png')}
         target={'goBack'}
-        size={36}
-        imageStyle={{transform: [{rotate: '90deg'}]}}
+        size={24}
       />
 
       <View style={headerStyles.rightButtons}>
