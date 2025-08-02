@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StackScreenProps } from '@react-navigation/stack';
 import styled from 'styled-components/native';
 import { PostStackParamList } from '@/navigations/stack/PostStackNavigator';
 import { colors, postNavigations } from '@/constants';
 import IconButton from '@/components/IconButton';
-import InputField from '@/components/InputField';
 import SearchAllTab from '@/components/search/SearchAllTab';
 import SearchComposerTab from '@/components/search/SearchComposerTab';
 import SearchPerformerTab from '@/components/search/SearchPerformerTab';
@@ -12,7 +11,17 @@ import SearchGenreTab from '@/components/search/SearchGenreTab';
 import SearchPeriodTab from '@/components/search/SearchPeriodTab';
 import SearchInstrumentTab from '@/components/search/SearchInstrumentTab';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import { ScrollView } from 'react-native';
+import {
+    ScrollView,
+    Text,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    TouchableWithoutFeedback, } from 'react-native';
+import SearchInputField from '@/components/search/SearchInputField';
+import RecentSearchList from '@/components/search/RecentSearchList';
+import AutoCompleteList from '@/components/search/AutoCompleteList';
+
 
 type IntroScreenProps = StackScreenProps<
   PostStackParamList,
@@ -21,8 +30,39 @@ type IntroScreenProps = StackScreenProps<
 
 function PostSearchScreen({navigation}: IntroScreenProps) {
    const [selectedTab, setSelectedTab] = useState<'all' | 'composer' | 'performer' | 'genre' | 'period' | 'instrument'>('all');
+   const [searchText, setSearchText] = useState('');
+   const [showRecent, setShowRecent] = useState(false);
+
+   const [recentKeywords, setRecentKeywords] = useState<string[]>([
+     '카페에서 듣기 좋은 클래식',
+     '바이올린 협주곡',
+     '멘델스존',
+     'Hilary Hahn',
+   ]);
+
+   const handleClearOne = (keyword: string) => {
+     setRecentKeywords(prev => prev.filter(k => k !== keyword));
+   };
+
+   const handleClearAll = () => {
+     setRecentKeywords([]);
+   };
+
+
+   useEffect(() => {
+       const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+    //          setShowRecent(false);
+       });
+
+       return () => {
+         hideSub.remove();
+       }
+   }, []);
+
 
       return (
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <Container>
             <Header>
                 <IconButton<PostStackParamList>
@@ -30,7 +70,39 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
                     target={[postNavigations.POST_HOME]}
                     size={24}
                   />
+                <SearchInputField
+                   value={searchText}
+                   onChangeText={setSearchText}
+                   placeholder="작곡가, 연주가, 장르, 시대 등"
+                   onFocus={() => setShowRecent(true)} // ✅ 이 부분 중요
+                />
             </Header>
+        {showRecent ? (
+            <FocusContent>
+              {/* 입력 중일 때 보여줄 화면 */}
+              {searchText.trim() === '' ? (
+                <>
+                  <RecentSearchList
+                    keywords={recentKeywords}
+                    onClearOne={handleClearOne}
+                    onClearAll={handleClearAll}
+                  />
+                </>
+              ) : (
+                <>
+                  <AutoCompleteList
+                      suggestions={['Bach', 'Bach Classic', 'Beethoven']}
+                        searchText={searchText}
+                        onSelect={(text) => {
+                          setSearchText(text);
+                          Keyboard.dismiss();
+                        }}
+                    />
+                </>
+              )}
+            </FocusContent>
+        ):(
+        <>
         <TabRowScroll>
             <TabScrollContent>
                 <TabButton isActive={selectedTab === 'all'} onPress={() => setSelectedTab('all')}>
@@ -62,7 +134,11 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
             {selectedTab === 'period' && <SearchPeriodTab />}
             {selectedTab === 'instrument' && <SearchInstrumentTab />}
       </TabContent>
+      </>
+      )}
         </Container>
+        </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
       );
     }
 
@@ -118,6 +194,18 @@ const TabText = styled.Text<{ isActive: boolean }>`
 
 const TabContent = styled.View`
   flex: 1;
+`;
+
+const FocusContent = styled.ScrollView`
+  width: 100%;
+  padding: 16px 20px;
+`;
+
+const FocusTitle = styled.Text`
+  font-size: 17px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: ${colors.GRAY_600};
 `;
 
 export default PostSearchScreen;
