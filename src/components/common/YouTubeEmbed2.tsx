@@ -23,8 +23,8 @@ const YouTubeEmbed2 = ({
 
   if (!videoId) return null;
 
-  // 기본 YouTube 임베드 URL (커스터마이징 없음)
-  const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+  // YouTube 임베드 URL with 360p minimum quality
+  const embedUrl = `https://www.youtube.com/embed/${videoId}?vq=small&hd=1&quality=360p`;
 
   // 16:9 비율로 높이 계산
   const videoHeight = (screenWidth / 16) * 9;
@@ -34,8 +34,14 @@ const YouTubeEmbed2 = ({
       <WebView
         source={{uri: embedUrl}}
         style={styles.webview}
-        allowsFullscreenVideo
-        javaScriptEnabled
+        allowsFullscreenVideo={true}
+        javaScriptEnabled={true}
+        onError={syntheticEvent => {
+          const {nativeEvent} = syntheticEvent;
+          console.log('WebView error: ', nativeEvent);
+        }}
+        onLoadStart={() => console.log('WebView load started')}
+        onLoadEnd={() => console.log('WebView load ended')}
       />
     </View>
   );
@@ -47,8 +53,10 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     overflow: 'hidden',
+    backgroundColor: '#000', // 배경색 추가로 로딩 상태 확인
   },
   webview: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
 });
