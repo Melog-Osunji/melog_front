@@ -48,6 +48,27 @@ export interface YouTubeVideo {
   thumbnail: string;
 }
 
+// Search
+export interface PopularMedia {
+  userNickname: string;
+  userProfileImgLink: string;
+  postID: string;
+  mediaURL: string;
+  mediaType: string;
+  createdAgo: string;
+}
+
+// HarmonyRoom
+export interface HarmonyRoomInfo {
+    roomID: string;
+    title : string;
+    tags : string[];
+    seeNum : number;
+    createdAgo: string;
+    mediaURL: string;
+    mediaType: string;
+};
+
 //dummy data
 export const mockPosts: Post[] = [
   {
@@ -160,7 +181,6 @@ export const mockPosts: Post[] = [
     },
   },
 ];
-
 // 더미 댓글 데이터
 export const mockComments: Comment[] = [
   {
@@ -293,16 +313,6 @@ export const DUMMY_YOUTUBE_VIDEOS: YouTubeVideo[] = [
   },
 ];
 
-// Search
-export interface PopularMedia {
-  userNickname: string;
-  userProfileImgLink: string;
-  postID: string;
-  mediaURL: string;
-  mediaType: string;
-  createdAgo: string;
-}
-
 // popularMedia dummy data
 export const PopularMediaData: PopularMedia[] = [
   {
@@ -321,4 +331,44 @@ export const PopularMediaData: PopularMedia[] = [
     mediaType: 'Youtube',
     createdAgo: '3일 전',
   },
+];
+
+// HarmonyRoomCard Dummy
+export const HarmonyRoomDummyData: HarmonyRoomInfo[] = [
+    {
+        roomID: 'room001',
+        title : '베토벤 교향곡 7번 감상🎧',
+        tags : ['기분전환', '베토벤'],
+        seeNum : 12,
+        createdAgo: '1시간 전',
+        mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
+        mediaType: 'YouTube',
+    },
+    {
+        roomID: 'room002',
+        title : '비 오는 날엔 드뷔시',
+        tags : ['인상주의', '드뷔시'],
+        seeNum : 8,
+        createdAgo: '10분 전',
+        mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
+        mediaType: 'YouTube',
+    },
+    {
+        roomID: 'room003',
+        title : '영화 속 클래식🎬 모음',
+        tags : ['OST클래식'],
+        seeNum : 5,
+        createdAgo: '1시간 전',
+        mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
+        mediaType: 'YouTube',
+    },
+    {
+        roomID: 'room004',
+        title : '내가 만든 [Playlist]',
+        tags : ['클래식', 'playlist'],
+        seeNum : 15,
+        createdAgo: '2시간 전',
+        mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
+        mediaType: '2시간 전',
+    },
 ];

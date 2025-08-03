@@ -4,7 +4,7 @@ import MapHomeScreen from '@/screens/harmonyRoom/HarmonyHomeScreen';
 import {harmonyNavigations} from '@/constants';
 import {MAIN_TAB_SCREEN_OPTIONS} from '@/navigations/tab/MainTabNavigator';
 
-export type MapStackParamList = {
+export type HarmonyStackParamList = {
   [harmonyNavigations.HARMONY_HOME]: undefined;
   [harmonyNavigations.HARMONY_PAGE]: undefined;
   [harmonyNavigations.HARMONY_CREATE]: undefined;
@@ -12,7 +12,7 @@ export type MapStackParamList = {
 
 const Stack = createStackNavigator<MapStackParamList>();
 
-function MainStackNavigator() {
+function HarmonyStackNavigator() {
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -24,4 +24,4 @@ function MainStackNavigator() {
   );
 }
 
-export default MainStackNavigator;
+export default HarmonyStackNavigator;
