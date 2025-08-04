@@ -7,14 +7,18 @@ interface PostListProps {
   data: Post[];
 }
 
-function PostList({ data }: PostListProps) {
-  const renderItem: ListRenderItem<Post> = ({ item }) => <PostCard {...item} />;
+function PostList({data}: PostListProps) {
+  const renderItem: ListRenderItem<Post> = ({item}) => <PostCard {...item} />;
+
+  // 디버깅용 로그
+  console.log('PostList - data length:', data.length);
+  console.log('PostList - first post:', data[0]);
 
   return (
     <FlatList
       data={data}
       keyExtractor={(item: Post) => item.id}
-      style={{ width: '100%' }}
+      style={{width: '100%'}}
       contentContainerStyle={{
         paddingBottom: 80,
       }}

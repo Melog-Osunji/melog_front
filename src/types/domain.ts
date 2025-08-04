@@ -13,4 +13,10 @@ interface Profile {
   loginType: 'email' | 'kakao' | 'apple';
 }
 
-export type {MarkerColor, Category, Profile};
+interface FeedType {
+  id: string;
+  name: string;
+  posts?: any[]; // 선택적으로 포스트 데이터를 포함할 수 있음
+}
+
+export type {MarkerColor, Category, Profile, FeedType};

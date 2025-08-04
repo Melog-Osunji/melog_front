@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useState, ReactNode} from 'react';
-import {Post} from '@/constants/types';
+import {Post, mockPosts} from '@/constants/types';
 
 interface PostContextType {
   posts: Post[];
@@ -22,7 +22,7 @@ interface PostProviderProps {
 }
 
 export const PostProvider: React.FC<PostProviderProps> = ({children}) => {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<Post[]>(mockPosts); // 초기값으로 mockPosts 사용
 
   const addPost = (post: Post) => {
     setPosts(prevPosts => [post, ...prevPosts]); // 새 포스트를 맨 앞에 추가
