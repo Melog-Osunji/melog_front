@@ -19,6 +19,7 @@ import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
 import styled from 'styled-components/native';
 import {colors, harmonyNavigations} from '@/constants';
 import IconButton from '@/components/common/IconButton';
+import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 import TagInputBox from '@/components/harmonyRoom/TagInputBox';
 import MusicSearchBottomSheet from '@/components/post/MusicSearchBottomSheet';
@@ -36,15 +37,19 @@ function HarmonyCreateScreen() {
     const [tags, setTags] = useState([]);
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
     const [isMusicSearchVisible, setIsMusicSearchVisible] = useState(false);
+    const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
+
 
     const handleMusicPress = () => {
         setIsMusicSearchVisible(true);
     };
 
     const handleVideoSelect = (video: YouTubeVideo) => {
-        setIsMusicSearchVisible(false);
-        onVideoSelect?.(video);
-        console.log('선택된 비디오:', video);
+      setIsMusicSearchVisible(false);
+      setSelectedVideo(video);
+    };
+    const handleRemoveVideo = () => {
+        setSelectedVideo(null);
     };
 
     useEffect(() => {
@@ -60,6 +65,15 @@ function HarmonyCreateScreen() {
           hideSubscription.remove();
         };
     }, []);
+
+
+    // YouTube URL에서 비디오 ID 추출하는 함수
+      const extractVideoId = (url: string) => {
+        const regex =
+          /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+        const match = url.match(regex);
+        return match ? match[1] : 'dQw4w9WgXcQ'; // 기본값
+      };
 
     return (
         <>
@@ -80,16 +94,40 @@ function HarmonyCreateScreen() {
             <ScrollView contentContainerStyle={styles.scrollContainer}>
             {/* 검색바 */}
             <View style={styles.searchContainer}>
-                <TouchableOpacity style={styles.searchInputContainer} onPress={handleMusicPress}>
-                  <Image
-                    source={require('@/assets/icons/post/Search.png')}
-                    style={styles.searchIcon}
-                  />
-                  <Text style={styles.searchInput}>어떤 클래식을 찾고있나요?"
-                  </Text>
-                </TouchableOpacity>
-                <Text style={styles.searchGuide}>함께 듣고 싶은 클래식 영상 혹은 음원을 찾아보세요.</Text>
+              {/* selectedVideo가 없을 때만 검색창 노출 */}
+              {!selectedVideo && (
+                <>
+                  <TouchableOpacity style={styles.searchInputContainer} onPress={handleMusicPress}>
+                    <Image
+                      source={require('@/assets/icons/post/Search.png')}
+                      style={styles.searchIcon}
+                    />
+                    <Text style={styles.searchInput}>어떤 클래식을 찾고있나요?</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.searchGuide}>함께 듣고 싶은 클래식 영상 혹은 음원을 찾아보세요.</Text>
+                </>
+              )}
+
+              {/* 선택된 비디오가 있을 때만 유튜브 영상 및 제거 버튼 노출 */}
+              {selectedVideo && (
+                <View style={styles.selectedVideoContainer}>
+                  <View style={styles.videoEmbedWrapper}>
+                    <YouTubeEmbed
+                      url={`https://www.youtube.com/watch?v=${extractVideoId(
+                        selectedVideo.thumbnail,
+                      )}`}
+                    />
+                    <TouchableOpacity
+                      style={styles.removeVideoButton}
+                      onPress={handleRemoveVideo}
+                    >
+                      <Text style={styles.removeVideoText}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
             </View>
+
 
             {/* 방 이름 */}
             <View style={styles.section}>
@@ -177,6 +215,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#FFFFFF',
+        paddingBottom:80,
     },
     header: {
         flexDirection: 'row',
@@ -308,6 +347,31 @@ const styles = StyleSheet.create({
         lineHeight:32,
         fontWeight: 'bold',
         fontFamily: 'Noto Sans KR',
+    },
+    selectedVideoContainer: {
+        backgroundColor: '#F8F9FA',
+        borderRadius: 12,
+        padding: 16,
+        marginVertical: 16,
+    },
+    videoEmbedWrapper: {
+        width: '100%',
+        height: 200,
+        borderRadius: 12,
+        overflow: 'hidden',
+        position: 'relative',
+    },
+    removeVideoButton: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1,
     },
 });
 
