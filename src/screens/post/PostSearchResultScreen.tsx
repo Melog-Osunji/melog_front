@@ -11,6 +11,8 @@ import SearchResultProfileTab from '@/components/search/SearchResultProfileTab';
 import SearchResultFeedTab from '@/components/search/SearchResultFeedTab';
 import SearchResultHarmonyTab from '@/components/search/SearchResultHarmonyTab';
 import SearchInputField from '@/components/search/SearchInputField';
+import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
+
 
 type IntroScreenProps = StackScreenProps<
   PostStackParamList,
@@ -21,6 +23,8 @@ const DEVICE_WIDTH = Dimensions.get('window').width;
 const TAB_WIDTH = DEVICE_WIDTH / 4;
 
 function PostSearchResultScreen({navigation}: IntroScreenProps) {
+
+    useHideTabBarOnFocus();
   const [selectedTab, setSelectedTab] = useState<
     'all' | 'profile' | 'feed' | 'harmony'
   >('all');
@@ -36,7 +40,7 @@ function PostSearchResultScreen({navigation}: IntroScreenProps) {
       <Header>
         <IconButton<PostStackParamList>
           imageSource={require('@/assets/icons/post/BackArrow.png')}
-          target={[postNavigations.POST_SEARCH]}
+          target={'goBack'}
           size={24}
         />
         <SearchInputField

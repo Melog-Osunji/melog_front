@@ -5,10 +5,12 @@ import HarmonyPageScreen from '@/screens/harmonyRoom/HarmonyPageScreen';
 import HarmonyCreateScreen from '@/screens/harmonyRoom/HarmonyCreateScreen';
 import {harmonyNavigations} from '@/constants';
 import {MAIN_TAB_SCREEN_OPTIONS} from '@/navigations/tab/MainTabNavigator';
+import {HarmonyRoomInfo} from '@/constants/types';
+
 
 export type HarmonyStackParamList = {
   [harmonyNavigations.HARMONY_HOME]: undefined;
-  [harmonyNavigations.HARMONY_PAGE]: undefined;
+  [harmonyNavigations.HARMONY_PAGE]: {roomId: string; roomData?: HarmonyRoomInfo};
   [harmonyNavigations.HARMONY_CREATE]: undefined;
 };
 

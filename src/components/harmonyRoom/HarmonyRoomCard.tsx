@@ -13,6 +13,7 @@ import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
 import YouTubeEmbed from '@/components/YouTubeEmbed';
 import {colors} from '@/constants';
 import {HarmonyRoomInfo} from '@/constants/types';
+import {harmonyNavigations} from '@/constants';
 
 type NavigationProp = StackNavigationProp<HarmonyStackParamList>;
 
@@ -24,14 +25,14 @@ type Props = {
 export default function HarmonyRoomCard({data, index}:Props){
     const navigation = useNavigation<NavigationProp>();
 
-    const {title,tags, seeNum, createdAgo, mediaURL } = data;
+    const {title,tags, seeNum, createdAgo, mediaURL, roomID } = data;
     const isLeft = index % 2 === 0;
 
-//     const handlePress = () => {
-//         navigation.navigate(ha.POST_PAGE, {
-//           postId: postID,
-//         });
-//       };
+    const handlePress = () => {
+        navigation.navigate(harmonyNavigations.HARMONY_PAGE, {
+          roomID: roomID,
+        });
+      };
 
     const getYouTubeThumbnail = (url: string): string => {
         const videoIdMatch = url.match(
@@ -48,7 +49,7 @@ export default function HarmonyRoomCard({data, index}:Props){
     return (
         <TouchableOpacity
             style={[styles.card, {marginRight: isLeft ? 10 : 0}]}
-//             onPress={handlePress}
+            onPress={handlePress}
             activeOpacity={0.85}>
             {/* 썸네일 */}
             <View style={styles.thumbnailWrapper}>

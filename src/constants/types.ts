@@ -341,7 +341,7 @@ export const HarmonyRoomDummyData: HarmonyRoomInfo[] = [
         tags : ['기분전환', '베토벤'],
         seeNum : 12,
         createdAgo: '1시간 전',
-        mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
+        mediaURL: 'https://youtu.be/AigCY0MQb5c',
         mediaType: 'YouTube',
     },
     {
@@ -350,7 +350,7 @@ export const HarmonyRoomDummyData: HarmonyRoomInfo[] = [
         tags : ['인상주의', '드뷔시'],
         seeNum : 8,
         createdAgo: '10분 전',
-        mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
+        mediaURL: 'https://youtu.be/Gu00H2ypeQY',
         mediaType: 'YouTube',
     },
     {
@@ -359,7 +359,7 @@ export const HarmonyRoomDummyData: HarmonyRoomInfo[] = [
         tags : ['OST클래식'],
         seeNum : 5,
         createdAgo: '1시간 전',
-        mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
+        mediaURL: 'https://youtu.be/_4Ecu-l2iH4',
         mediaType: 'YouTube',
     },
     {
@@ -368,7 +368,7 @@ export const HarmonyRoomDummyData: HarmonyRoomInfo[] = [
         tags : ['클래식', 'playlist'],
         seeNum : 15,
         createdAgo: '2시간 전',
-        mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
+        mediaURL: 'https://youtu.be/URPKkKMyBaQ',
         mediaType: '2시간 전',
     },
 ];

@@ -22,6 +22,7 @@ import {
 import SearchInputField from '@/components/search/SearchInputField';
 import RecentSearchList from '@/components/search/RecentSearchList';
 import AutoCompleteList from '@/components/search/AutoCompleteList';
+import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 
 type IntroScreenProps = StackScreenProps<
   PostStackParamList,
@@ -29,6 +30,7 @@ type IntroScreenProps = StackScreenProps<
 >;
 
 function PostSearchScreen({navigation}: IntroScreenProps) {
+  useHideTabBarOnFocus();
   const [selectedTab, setSelectedTab] = useState<
     'all' | 'composer' | 'performer' | 'genre' | 'period' | 'instrument'
   >('all');

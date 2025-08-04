@@ -85,7 +85,7 @@ function HarmonyCreateScreen() {
             <View style={styles.header}>
                 <IconButton<PostStackParamList>
                   imageSource={require('@/assets/icons/post/BackArrow.png')}
-                  target={[harmonyNavigations.HARMONY_HOME]}
+                  target={'goBack'}
                   size={24}
                 />
             </View>
