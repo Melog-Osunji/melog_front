@@ -2,17 +2,15 @@ import React, {useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import axiosInstance from '@/api/axiosInstance';
-import {Post} from '@/constants/types';
+import {Post, FeedType, feedTypes} from '@/constants/types';
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 import IconButton from '@/components/common/IconButton';
 import PostList from '@/components/post/PostList';
 import FeedSelector from '@/components/post/FeedSelector';
-import {FeedType} from '@/types/domain';
 import {View, StyleSheet} from 'react-native';
 import {colors, postNavigations} from '@/constants';
 import {usePostContext} from '@/contexts/PostContext';
-import {feedTypes} from '@/constants/feedData';
 
 type IntroScreenProps = StackScreenProps<
   PostStackParamList,

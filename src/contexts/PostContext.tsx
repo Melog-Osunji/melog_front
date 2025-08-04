@@ -1,5 +1,6 @@
 import React, {createContext, useContext, useState, ReactNode} from 'react';
-import {Post, mockPosts} from '@/constants/types';
+import {Post} from '@/constants/types';
+import {mockPosts} from '@/constants/dummyData';
 
 interface PostContextType {
   posts: Post[];
