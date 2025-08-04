@@ -317,19 +317,46 @@ export const DUMMY_YOUTUBE_VIDEOS: YouTubeVideo[] = [
 export const PopularMediaData: PopularMedia[] = [
   {
     userNickname: '바흐흑',
-    userProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
+    userProfileImgLink: 'https://i.pinimg.com/originals/2f/80/d0/2f80d0bcd314c89ca5fe138a1ad43c1b.png',
     postID: 'post001',
-    mediaURL: 'https://youtu.be/4-9gp1puvMI?si=GOa0h4oLuak7DM6I',
+    mediaURL: 'https://youtu.be/ngjrfM1Bcjw?si=N0A7gJ8ogIa9TsWC',
     mediaType: 'Youtube',
     createdAgo: '7일 전',
   },
   {
-    userNickname: '클래식 듣기 딱 좋은 날',
-    userProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
+    userNickname: '클래식 듣자',
+    userProfileImgLink: 'https://i.pinimg.com/236x/c7/16/7f/c7167f3f4330b963fbea1c486fb9badd.jpg',
     postID: 'post001',
-    mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
+    mediaURL: 'https://youtu.be/-zHXX9J_n5E?si=H2JGBdUYvHofe6MF',
     mediaType: 'Youtube',
     createdAgo: '3일 전',
+  },
+];
+
+export const realTimeData: Post[] = [
+  {
+    id: 'post005',
+    userId: 'user123',
+    title: '',
+    content:
+      "바흐의 '무반주 바이올린 모음곡 1번'은 언제 들어도 마음이 맑아지는 느낌임. 선율은 단순한데 뭔가 감동을 주는 느낌..? 오늘 아침 산책하며 들었는데 좋아서 추천함!!",
+    mediaType: 'youtube',
+    mediaUrl: 'https://youtu.be/VY7moMlUvg4',
+    createdAgo: 2,
+    likeCount: 201,
+    commentCount: 16,
+    tags: ['바흐', '바이올린_모음곡'],
+    bestComment: {
+      userId: 'user999',
+      content: '감사합니다! 한 번 들어볼게요',
+      profileImg:
+        'https://images.pexels.com/photos/248510/pexels-photo-248510.jpeg',
+    },
+    user: {
+      nickName: '토마토클래식',
+      profileImg:
+        'https://i.pinimg.com/736x/50/e3/0c/50e30c49279009badabf03b0fbf02a33.jpg',
+    },
   },
 ];
 

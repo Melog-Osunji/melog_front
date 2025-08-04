@@ -186,7 +186,6 @@ const Header = styled.View`
 
 const Container = styled(SafeAreaView)`
   flex: 1;
-  align-items: center;
   background-color: ${colors.WHITE};
   position: relative;
 `;
@@ -222,13 +221,10 @@ const TabText = styled.Text<{isActive: boolean}>`
 `;
 
 const TabContent = styled.View`
-  flex: 1;
+    flex: 1;
+    width: 100%;
 `;
 
-// const FocusContent = styled.View`
-//   width: 100%;
-//   padding: 16px 20px;
-// `;
 const FocusContent = styled.View`
   position: absolute;
   top: 84px; /* Header 높이 + margin 고려 */

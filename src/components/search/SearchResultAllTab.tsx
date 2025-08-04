@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView, Text, FlatList } from 'react-native';
 import styled from 'styled-components/native';
 import {colors} from '@/constants';
-import {mockPosts} from '@/constants/types'; // 더미 데이터
+import {realTimeData} from '@/constants/types'; // 더미 데이터
 import PostList from '@/components/post/PostList';
 import PopularMediaCard from '@/components/search/PopularMediaCard';
 import {PopularMediaData} from '@/constants/types';
@@ -12,7 +12,7 @@ import PostCard from '@/components/post/PostCard';
 const SearchResultAllTab = () => {
   return (
     <FlatList
-          data={mockPosts}
+          data={realTimeData}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <PostCard {...item} />}
           showsVerticalScrollIndicator={false}
