@@ -5,7 +5,7 @@ import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {StackScreenProps} from '@react-navigation/stack';
 import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
 import styled from 'styled-components/native';
-import {colors, postNavigations} from '@/constants';
+import {colors, postNavigations, harmonyNavigations} from '@/constants';
 import IconButton from '@/components/common/IconButton';
 import LinearGradient from 'react-native-linear-gradient';
 import ListButton from '@/components/ListButton';
@@ -17,6 +17,9 @@ const DEVICE_WIDTH = Dimensions.get('window').width;
 
 
 function HarmonyHomeScreen() {
+
+  const navigation = useNavigation<StackNavigationProp<HarmonyStackParamList>>();
+
   return (
     <Container>
         <Header>
@@ -41,7 +44,7 @@ function HarmonyHomeScreen() {
               <LeftSection>
                 <SubTitle>어떤 클래식을 듣고 싶으세요?</SubTitle>
                 <Title>직접 클래식 음악 감상룸을{'\n'}만들어봐요!</Title>
-                <HarmonyCreateButton>
+                <HarmonyCreateButton onPress={() => navigation.navigate(harmonyNavigations.HARMONY_CREATE)}>
                   <ButtonText>하모니룸 만들기</ButtonText>
                 </HarmonyCreateButton>
               </LeftSection>

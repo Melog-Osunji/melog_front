@@ -1,6 +1,8 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
-import MapHomeScreen from '@/screens/harmonyRoom/HarmonyHomeScreen';
+import HarmonyHomeScreen from '@/screens/harmonyRoom/HarmonyHomeScreen';
+import HarmonyPageScreen from '@/screens/harmonyRoom/HarmonyPageScreen';
+import HarmonyCreateScreen from '@/screens/harmonyRoom/HarmonyCreateScreen';
 import {harmonyNavigations} from '@/constants';
 import {MAIN_TAB_SCREEN_OPTIONS} from '@/navigations/tab/MainTabNavigator';
 
@@ -17,8 +19,18 @@ function HarmonyStackNavigator() {
     <Stack.Navigator>
       <Stack.Screen
         name={harmonyNavigations.HARMONY_HOME}
-        component={MapHomeScreen}
-        options={{...MAIN_TAB_SCREEN_OPTIONS, headerShown: false}}
+        component={HarmonyHomeScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+          name={harmonyNavigations.HARMONY_PAGE}
+          component={HarmonyPageScreen}
+          options={{headerShown: false}}
+        />
+      <Stack.Screen
+        name={harmonyNavigations.HARMONY_CREATE}
+        component={HarmonyCreateScreen}
+        options={{headerShown: false}}
       />
     </Stack.Navigator>
   );
