@@ -6,35 +6,39 @@ import HarmonyCreateScreen from '@/screens/harmonyRoom/HarmonyCreateScreen';
 import {harmonyNavigations} from '@/constants';
 import {MAIN_TAB_SCREEN_OPTIONS} from '@/navigations/tab/MainTabNavigator';
 import {HarmonyRoomInfo} from '@/constants/types';
+import {HarmonyRoomProvider} from '@/contexts/HarmonyRoomContext';
+import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
 
 
 export type HarmonyStackParamList = {
   [harmonyNavigations.HARMONY_HOME]: undefined;
-  [harmonyNavigations.HARMONY_PAGE]: {roomId: string; roomData?: HarmonyRoomInfo};
+  [harmonyNavigations.HARMONY_PAGE]: {roomID: string; roomData?: HarmonyRoomInfo};
   [harmonyNavigations.HARMONY_CREATE]: undefined;
 };
 
-const Stack = createStackNavigator<MapStackParamList>();
+const Stack = createStackNavigator<HarmonyStackParamList>();
 
 function HarmonyStackNavigator() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name={harmonyNavigations.HARMONY_HOME}
-        component={HarmonyHomeScreen}
-        options={{headerShown: false}}
-      />
-      <Stack.Screen
-          name={harmonyNavigations.HARMONY_PAGE}
-          component={HarmonyPageScreen}
-          options={{headerShown: false}}
-        />
-      <Stack.Screen
-        name={harmonyNavigations.HARMONY_CREATE}
-        component={HarmonyCreateScreen}
-        options={{headerShown: false}}
-      />
-    </Stack.Navigator>
+    <HarmonyRoomProvider>
+        <Stack.Navigator>
+          <Stack.Screen
+            name={harmonyNavigations.HARMONY_HOME}
+            component={HarmonyHomeScreen}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+              name={harmonyNavigations.HARMONY_PAGE}
+              component={HarmonyPageScreen}
+              options={{headerShown: false}}
+            />
+          <Stack.Screen
+            name={harmonyNavigations.HARMONY_CREATE}
+            component={HarmonyCreateScreen}
+            options={{headerShown: false}}
+          />
+        </Stack.Navigator>
+    </HarmonyRoomProvider>
   );
 }
 

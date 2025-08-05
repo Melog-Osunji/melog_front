@@ -14,6 +14,8 @@ import ChattingBar from '@/components/harmonyRoom/ChattingBar';
 import ChattingRoom from '@/components/harmonyRoom/ChattingRoom';
 import ExitConfirmModal from '@/components/harmonyRoom/ExitConfirmModal';
 import Chat from '@/constants/types';
+import { useHarmonyRoomContext } from '@/contexts/HarmonyRoomContext';
+import GuideModal from '@/components/harmonyRoom/GuideModal';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
@@ -48,12 +50,25 @@ export default function HarmonyPageScreen() {
     const navigation = useNavigation();
     const [modalVisible, setModalVisible] = useState(false);
     const [chatList, setChatList] = useState<Chat[]>([]);
-    const {roomID} = route.params;
+    const {roomID, roomData} = route.params;
     const scrollRef = useRef<ScrollView>(null);
+    const { rooms } = useHarmonyRoomContext();
+    const [showGuideModal, setShowGuideModal] = useState(false);
+
 
     useHideTabBarOnFocus();
 
     const userName = "럽클";
+
+    const harmony = roomData || // 먼저 전달받은 roomData 확인
+                        rooms.find(room => room.roomID === roomID) || // Context에서 찾기
+                        HarmonyRoomDummyData.find(room => room.roomID === roomID); // 마지막으로 더미데이터에서 찾기
+
+    useEffect(() => {
+      if (harmony?.ownerId === '럽클') {
+        setShowGuideModal(true);
+      }
+    }, [harmony]);
 
     useEffect(() => {
       const entryMessage: Chat = {
@@ -107,7 +122,7 @@ export default function HarmonyPageScreen() {
       setChatList(prev => [...prev, newChat]);
     };
 
-    const harmony = HarmonyRoomDummyData.find(room => room.roomID === roomID);
+
 
     if (!harmony) {
         return (
@@ -162,8 +177,9 @@ export default function HarmonyPageScreen() {
             <ExitConfirmModal
               visible={modalVisible}
               onClose={() => setModalVisible(false)}
-              onExit={() => { setModalVisible(false); navigation.goBack(); }}
+              onExit={() => { setModalVisible(false); navigation.navigate(harmonyNavigations.HARMONY_HOME); }}
             />
+        <GuideModal visible={showGuideModal} onClose={() => setShowGuideModal(false)} />
         </SafeAreaView>
         );
 };

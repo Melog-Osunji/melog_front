@@ -23,11 +23,15 @@ import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 import TagInputBox from '@/components/harmonyRoom/TagInputBox';
 import MusicSearchBottomSheet from '@/components/post/MusicSearchBottomSheet';
+import { useHarmonyRoomContext } from '@/contexts/HarmonyRoomContext';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
+type NavigationProp = StackNavigationProp<HarmonyStackParamList>;
+
 function HarmonyCreateScreen() {
-    const navigation = useNavigation();
+    const navigation = useNavigation<NavigationProp>();
+    const { addRoom } = useHarmonyRoomContext();
 
     useHideTabBarOnFocus();
 
@@ -75,6 +79,30 @@ function HarmonyCreateScreen() {
         return match ? match[1] : 'dQw4w9WgXcQ'; // 기본값
       };
 
+    const handleCreateRoom = () => {
+        if (!roomName.trim()) {
+            Alert.alert('알림', '방 이름을 입력해주세요.');
+            return;
+        }
+
+        const newRoom = {
+            roomID: `room_${Date.now()}`,
+            title: roomName,
+            description,
+            tags,
+            seeNum: personCount,
+            mediaURL: selectedVideo
+              ? `https://www.youtube.com/watch?v=${extractVideoId(selectedVideo.thumbnail)}`
+              : null,
+            ownerId: '럽클',
+        };
+
+        addRoom(newRoom);
+        navigation.navigate(harmonyNavigations.HARMONY_PAGE, {
+                    roomID: newRoom.roomID,
+                    roomData: newRoom
+                });
+    };
     return (
         <>
         <KeyboardAvoidingView
@@ -195,7 +223,7 @@ function HarmonyCreateScreen() {
             {/* 고정된 버튼 */}
             {!isKeyboardVisible && (
               <View style={styles.floatingButtonContainer}>
-                <TouchableOpacity style={styles.floatingButton}>
+                <TouchableOpacity style={styles.floatingButton} onPress={handleCreateRoom}>
                   <Text style={styles.floatingButtonText}>제작하기</Text>
                 </TouchableOpacity>
               </View>

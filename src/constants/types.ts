@@ -67,6 +67,7 @@ export interface HarmonyRoomInfo {
     createdAgo: string;
     mediaURL: string;
     mediaType: string;
+    ownerId?: string;
 };
 
 // HarmonyRoomChat
