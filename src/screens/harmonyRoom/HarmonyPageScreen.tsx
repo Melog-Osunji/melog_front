@@ -1,5 +1,5 @@
-import React from 'react';
-import {StyleSheet, Text, View, ScrollView, Image, Dimensions, FlatList} from 'react-native';
+import React, {useState} from 'react';
+import {StyleSheet, Text, View, ScrollView, Image, Dimensions, FlatList, TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useFocusEffect, useRoute} from '@react-navigation/native';
 import {StackScreenProps} from '@react-navigation/stack';
@@ -12,6 +12,7 @@ import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
 import {HarmonyRoomDummyData} from '@/constants/types';
 import ChattingBar from '@/components/harmonyRoom/ChattingBar';
 import ChattingRoom from '@/components/harmonyRoom/ChattingRoom';
+import ExitConfirmModal from '@/components/harmonyRoom/ExitConfirmModal';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
@@ -21,25 +22,30 @@ type HarmonyPageScreenRouteProp = StackScreenProps<
 >['route'];
 
 // 커스텀 헤더 컴포넌트
-const HarmonyPageHeader = ({title}: {title: string}) => {
+const HarmonyPageHeader = ({ title, onPressFollow }: {
+                             title: string; onPressFollow: () => void; }) => {
   return (
     <View style={headerStyles.container}>
-        <IconButton
-            imageSource={require('@/assets/icons/harmonyRoom/HarmonyFollow.png')}
-            target={'goBack'}
-            size={32}
-        />
+        <TouchableOpacity onPress={onPressFollow}>
+            <Image
+                source={require('@/assets/icons/harmonyRoom/HarmonyFollow.png')}
+                style={headerStyles.icon}
+            />
+        </TouchableOpacity>
         <Text style={headerStyles.roomTitle}>{title}</Text>
         <IconButton
             imageSource={require('@/assets/icons/post/Info.png')}
             size={32}
         />
+
     </View>
   );
 };
 
 export default function HarmonyPageScreen() {
     const route = useRoute<HarmonyPageScreenRouteProp>();
+    const navigation = useNavigation();
+    const [modalVisible, setModalVisible] = useState(false);
     const {roomID} = route.params;
     useHideTabBarOnFocus();
 
@@ -58,7 +64,7 @@ export default function HarmonyPageScreen() {
     }
     return (
         <SafeAreaView style={{flex: 1, backgroundColor:colors.GRAY_100}}>
-            <HarmonyPageHeader title={harmony.title}/>
+            <HarmonyPageHeader title={harmony.title} onPressFollow={() => setModalVisible(true)} />
             <ScrollView
                 style={{flex: 1}}
                 showsVerticalScrollIndicator={false}
@@ -97,6 +103,12 @@ export default function HarmonyPageScreen() {
             </ScrollView>
             {/*채팅쓰기*/}
             <ChattingBar onSend={handleAddChatt}/>
+
+            <ExitConfirmModal
+              visible={modalVisible}
+              onClose={() => setModalVisible(false)}
+              onExit={() => { setModalVisible(false); navigation.goBack(); }}
+            />
         </SafeAreaView>
         );
 };
@@ -168,6 +180,10 @@ const headerStyles = StyleSheet.create({
   },
   leftButton: {
     padding: 8,
+  },
+  icon: {
+    width:32,
+    height:32,
   },
   roomTitle: {
     fontSize: 17,
