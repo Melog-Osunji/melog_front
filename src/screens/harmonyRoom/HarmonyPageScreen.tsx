@@ -57,7 +57,7 @@ export default function HarmonyPageScreen() {
         );
     }
     return (
-        <SafeAreaView style={{flex: 1}}>
+        <SafeAreaView style={{flex: 1, backgroundColor:colors.GRAY_100}}>
             <HarmonyPageHeader title={harmony.title}/>
             <ScrollView
                 style={{flex: 1}}
