@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {StyleSheet, Text, View, ScrollView, Image, Dimensions, FlatList, TouchableOpacity} from 'react-native';
+import React, {useState, useEffect, useRef} from 'react';
+import {StyleSheet, Text, View, ScrollView, Image, Dimensions, FlatList, TouchableOpacity, Keyboard} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useFocusEffect, useRoute} from '@react-navigation/native';
 import {StackScreenProps} from '@react-navigation/stack';
@@ -13,6 +13,7 @@ import {HarmonyRoomDummyData} from '@/constants/types';
 import ChattingBar from '@/components/harmonyRoom/ChattingBar';
 import ChattingRoom from '@/components/harmonyRoom/ChattingRoom';
 import ExitConfirmModal from '@/components/harmonyRoom/ExitConfirmModal';
+import Chat from '@/constants/types';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
@@ -46,12 +47,65 @@ export default function HarmonyPageScreen() {
     const route = useRoute<HarmonyPageScreenRouteProp>();
     const navigation = useNavigation();
     const [modalVisible, setModalVisible] = useState(false);
+    const [chatList, setChatList] = useState<Chat[]>([]);
     const {roomID} = route.params;
+    const scrollRef = useRef<ScrollView>(null);
+
     useHideTabBarOnFocus();
 
-    const handleAddChatt = () => {
-        console.log("입력");
-        };
+    const userName = "럽클";
+
+    useEffect(() => {
+      const entryMessage: Chat = {
+        id: 'entry',
+        sender: 'system',
+        message: `${userName}님이 입장했습니다.`,
+      };
+
+      const message1: Chat = {
+        id: 'user001',
+        sender: 'other',
+        nickname: '클래식조아',
+        message: '비 오는 날 창밖 보면서 듣기 딱 좋은 곡 같아요 ☕',
+        time: '오전 10:20',
+      };
+
+      const message2: Chat = {
+        id: 'user001',
+        sender: 'other',
+        nickname: '클래식조아',
+        message: '안녕하세요~!',
+        time: '오전 10:21',
+      };
+
+      setChatList([entryMessage]);
+
+      setTimeout(() => {
+        setChatList(prev => [...prev, message1]);
+      }, 1000);
+
+      setTimeout(() => {
+        setChatList(prev => [...prev, message2]);
+      }, 2000);
+    }, [userName]);
+
+    useEffect(() => {
+      const showSub = Keyboard.addListener('keyboardDidShow', () => {
+        scrollRef.current?.scrollToEnd({ animated: true });
+      });
+
+      return () => showSub.remove();
+    }, []);
+
+    const handleAddChatt = (text: string) => {
+      const newChat: Chat = {
+        id: `me-${Date.now()}`,
+        sender: 'me',
+        message: text,
+        time: '오전 10:30',
+      };
+      setChatList(prev => [...prev, newChat]);
+    };
 
     const harmony = HarmonyRoomDummyData.find(room => room.roomID === roomID);
 
@@ -67,8 +121,9 @@ export default function HarmonyPageScreen() {
             <HarmonyPageHeader title={harmony.title} onPressFollow={() => setModalVisible(true)} />
             <ScrollView
                 style={{flex: 1}}
+                ref={scrollRef}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{paddingBottom: 100}}>
+                contentContainerStyle={{paddingBottom: 60}}>
             {/*유튜브 임베딩*/}
             {harmony.mediaURL && (
               <>
@@ -99,7 +154,7 @@ export default function HarmonyPageScreen() {
                 </View>
             </View>
             {/*채팅창*/}
-            <ChattingRoom userName="000" />
+            <ChattingRoom userName={userName} chatList={chatList}/>
             </ScrollView>
             {/*채팅쓰기*/}
             <ChattingBar onSend={handleAddChatt}/>

@@ -7,59 +7,16 @@ import {
   Image,
 } from 'react-native';
 import { colors } from '@/constants';
+import Chat from '@/constants/types';
 
-interface Chat {
-  id: string;
-  sender: 'me' | 'other' | 'system';
-  message: string;
-  time?: string;
-  nickname?: string;
-}
 
 interface Props {
   userName: string;
+  chatList: Chat[];
 }
 
-export default function ChattingRoom({ userName }: Props) {
-  const [chatList, setChatList] = useState<Chat[]>([]);
+export default function ChattingRoom({ userName, chatList }: Props) {
   const flatListRef = useRef<FlatList>(null);
-
-  useEffect(() => {
-    const entryMessage: Chat = {
-      id: 'entry',
-      sender: 'system',
-      message: `${userName}님이 입장했습니다.`,
-    };
-
-    const message1: Chat = {
-      id: 'user001',
-      sender: 'other',
-      nickname: '아이디',
-      message: '비 오는 날 창밖 보면서 듣기 딱 좋은 곡 같아요 ☕',
-      time: '오전 10:20',
-    };
-
-    const message2: Chat = {
-      id: 'user002',
-      sender: 'other',
-      nickname: '아이디',
-      message: '안녕하세요~!',
-      time: '오전 10:21',
-    };
-
-    // 입장 메시지 먼저
-    setChatList([entryMessage]);
-
-    // 1초 뒤 첫 메시지
-    setTimeout(() => {
-      setChatList(prev => [...prev, message1]);
-    }, 1000);
-
-    // 2초 뒤 두 번째 메시지
-    setTimeout(() => {
-      setChatList(prev => [...prev, message2]);
-    }, 2000);
-  }, []);
 
 
   const renderItem = ({ item, index }: { item: Chat; index: number }) => {
@@ -78,7 +35,7 @@ export default function ChattingRoom({ userName }: Props) {
       index > 0 && chatList[index - 1].sender === item.sender && chatList[index - 1].nickname === item.nickname;
 
     return (
-      <View style={[styles.chatRow, isMe && styles.myRow]}>
+        <View style={[styles.chatRow, isMe && styles.myRow]}>
         {!isMe && (
           <View style={styles.avatarWrapper}>
             {!isSameSender ? (
@@ -93,11 +50,27 @@ export default function ChattingRoom({ userName }: Props) {
           {!isMe && !isSameSender && item.nickname && (
             <Text style={styles.nickname}>{item.nickname}</Text>
           )}
-          <View style={styles.chatAndTime}>
-            <View style={[styles.chatBubble, isMe ? styles.myChat : styles.otherChat]}>
-              <Text style={styles.chatText}>{item.message}</Text>
-            </View>
-            <Text style={styles.timeText}>{item.time}</Text>
+          <View
+            style={[
+              styles.chatAndTime,
+              isMe ? styles.myChatAndTime : styles.otherChatAndTime,
+            ]}
+          >
+            {isMe ? (
+                <>
+                  <Text style={styles.timeText}>{item.time}</Text>
+                  <View style={[styles.chatBubble, styles.myChat]}>
+                    <Text style={styles.myChatText}>{item.message}</Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={[styles.chatBubble, styles.otherChat]}>
+                    <Text style={styles.chatText}>{item.message}</Text>
+                  </View>
+                  <Text style={styles.timeText}>{item.time}</Text>
+                </>
+              )}
           </View>
         </View>
       </View>
@@ -165,6 +138,8 @@ const styles = StyleSheet.create({
     },
     myRow: {
         flexDirection: 'row-reverse',
+        alignItems: 'flex-end',
+        gap:8,
     },
     avatar: {
         width: 36,
@@ -184,17 +159,29 @@ const styles = StyleSheet.create({
         alignItems:'flex-end',
         gap:4,
     },
+    myChatAndTime: {
+      justifyContent: 'flex-end',
+    },
+    otherChatAndTime: {
+      justifyContent: 'flex-start',
+    },
     chatBubble: {
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 8,
         maxWidth: '80%',
+        marginBottom:4,
     },
     otherChat: {
         backgroundColor:colors.WHITE,
     },
     myChat: {
         backgroundColor: colors.BLUE_400,
+    },
+    myChatText: {
+        fontSize: 14,
+        lineHeight:20,
+        color: colors.WHITE,
     },
     chatText: {
         fontSize: 14,

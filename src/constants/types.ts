@@ -69,6 +69,16 @@ export interface HarmonyRoomInfo {
     mediaType: string;
 };
 
+// HarmonyRoomChat
+export interface Chat{
+    id: string,
+    sender: 'other' | 'system' | 'me',
+    nickName?: string,
+    message: string,
+    time?: string,
+};
+
+
 //dummy data
 export const mockPosts: Post[] = [
   {
