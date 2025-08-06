@@ -5,7 +5,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   SafeAreaView,
   StatusBar,
   KeyboardAvoidingView,
@@ -19,6 +18,7 @@ import {postNavigations} from '@/constants';
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 import PostActionButtons from '@/components/post/PostActionButtons';
 import CustomButton from '@/components/common/CustomButton';
+import Toast from '@/components/common/Toast';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 import {YouTubeVideo, Post} from '@/constants/types';
 import {usePostContext} from '@/contexts/PostContext';
@@ -28,16 +28,42 @@ export default function PostCreateScreen() {
   const {addPost} = usePostContext();
   const [content, setContent] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   useHideTabBarOnFocus();
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setToastVisible(true);
+  };
+
+  const hideToast = () => {
+    setToastVisible(false);
+  };
 
   const handleCancel = () => {
     navigation.goBack();
   };
 
+  const handleTagSelect = (tag: string) => {
+    if (selectedTags.includes(tag)) {
+      // 이미 선택된 태그면 제거
+      setSelectedTags(prev => prev.filter(t => t !== tag));
+    } else {
+      // 새로운 태그면 추가
+      setSelectedTags(prev => [...prev, tag]);
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setSelectedTags(prev => prev.filter(tag => tag !== tagToRemove));
+  };
+
   const handlePost = () => {
     if (!content.trim()) {
-      Alert.alert('알림', '내용을 입력해주세요.');
+      showToast('내용을 입력해주세요.');
       return;
     }
 
@@ -56,7 +82,7 @@ export default function PostCreateScreen() {
       createdAgo: 0, // 방금 생성됨
       likeCount: 0,
       commentCount: 0,
-      tags: [], // TODO: 태그 선택 기능과 연동
+      tags: selectedTags, // 선택된 태그들 사용
       user: {
         profileImg: '', // TODO: 실제 사용자 프로필 이미지
         nickName: '홍길동', // TODO: 실제 사용자 닉네임
@@ -70,8 +96,9 @@ export default function PostCreateScreen() {
     console.log('선택된 비디오:', selectedVideo);
     console.log('생성된 포스트:', newPost);
 
-    Alert.alert('성공', '게시되었습니다.');
     navigation.goBack();
+
+    showToast('게시되었습니다.');
   };
 
   const handleVideoSelect = (video: YouTubeVideo) => {
@@ -129,6 +156,20 @@ export default function PostCreateScreen() {
             onChangeText={setContent}
           />
 
+          {/* Selected Tags Display */}
+          {selectedTags.length > 0 && (
+            <View style={styles.selectedTagsContainer}>
+              {selectedTags.map((tag, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.selectedTag}
+                  onPress={() => removeTag(tag)}>
+                  <Text style={styles.selectedTagText}>#{tag}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
           {/* Selected Video Display */}
           {selectedVideo && (
             <View style={styles.selectedVideoContainer}>
@@ -149,8 +190,14 @@ export default function PostCreateScreen() {
         </View>
 
         {/* Action Buttons */}
-        <PostActionButtons onVideoSelect={handleVideoSelect} />
+        <PostActionButtons
+          onVideoSelect={handleVideoSelect}
+          onTagSelect={handleTagSelect}
+        />
       </KeyboardAvoidingView>
+
+      {/* Toast */}
+      <Toast message={toastMessage} visible={toastVisible} onHide={hideToast} />
     </SafeAreaView>
   );
 }
@@ -230,7 +277,6 @@ const styles = StyleSheet.create({
   selectedVideoContainer: {
     backgroundColor: '#F8F9FA',
     borderRadius: 12,
-    padding: 16,
     marginVertical: 16,
   },
   videoEmbedWrapper: {
@@ -256,5 +302,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  selectedTagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 12,
+    gap: 8,
+  },
+  selectedTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderColor: colors.BLUE_600,
+  },
+  selectedTagText: {
+    fontSize: 14,
+    color: colors.BLUE_600,
+    fontWeight: '500',
+  },
+  removeTagText: {
+    fontSize: 12,
+    color: colors.BLUE_600,
+    marginLeft: 4,
   },
 });

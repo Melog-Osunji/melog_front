@@ -50,12 +50,14 @@ export default function RecommendTags({
               selectedTags.includes(tag) && styles.selectedTagItem,
             ]}
             onPress={() => onTagSelect(tag)}>
+            <Text style={{color: colors.BLUE_600}}>#</Text>
             <Text
               style={[
                 styles.tagText,
+                {color: colors.BLACK},
                 selectedTags.includes(tag) && styles.selectedTagText,
               ]}>
-              #{tag}
+              {tag}
             </Text>
           </TouchableOpacity>
         ))}
@@ -68,7 +70,7 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 10,
     marginBottom: 10,
-    backgroundColor: colors.BLUE_200,
+    backgroundColor: colors.WHITE,
     borderBottomWidth: 1,
     borderBottomColor: colors.GRAY_200,
   },
@@ -79,6 +81,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 10,
     gap: 10,
   },
   tagItem: {
@@ -89,12 +92,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     gap: 6,
-    borderWidth: 1,
-    borderColor: '#E9ECEF',
   },
   selectedTagItem: {
-    backgroundColor: '#E8F4F8',
-    borderColor: '#155B7E',
+    backgroundColor: colors.BLUE_300,
   },
   tagText: {
     fontSize: 14,
@@ -102,6 +102,6 @@ const styles = StyleSheet.create({
     color: '#8C9CAA',
   },
   selectedTagText: {
-    color: '#155B7E',
+    color: colors.BLACK,
   },
 });

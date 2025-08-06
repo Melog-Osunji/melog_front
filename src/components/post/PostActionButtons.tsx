@@ -15,10 +15,12 @@ import {YouTubeVideo} from '@/constants/types';
 
 interface PostActionButtonsProps {
   onVideoSelect?: (video: YouTubeVideo) => void;
+  onTagSelect?: (tag: string) => void;
 }
 
 export default function PostActionButtons({
   onVideoSelect,
+  onTagSelect,
 }: PostActionButtonsProps) {
   const [activeButton, setActiveButton] = useState<'music' | 'photo' | 'tag'>(
     'music',
@@ -52,6 +54,10 @@ export default function PostActionButtons({
 
   const handleTagSelect = (tag: string) => {
     console.log('선택된 태그:', tag);
+    // 상위 컴포넌트의 onTagSelect 호출
+    onTagSelect?.(tag);
+
+    // 로컬 상태도 업데이트 (UI 표시용)
     if (selectedTags.includes(tag)) {
       // 이미 선택된 태그면 제거
       setSelectedTags(prev => prev.filter(t => t !== tag));
