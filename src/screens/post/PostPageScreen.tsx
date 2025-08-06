@@ -11,7 +11,8 @@ import {
 import {RouteProp, useRoute, useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PostStats from '@/components/post/PostStats';
-import {colors, Post, mockPosts, mockComments} from '@/constants';
+import {colors, Post} from '@/constants';
+import {mockPosts, mockComments} from '@/constants/dummyData';
 import axiosInstance from '@/api/axiosInstance';
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 import LikeAndComment from '@/components/post/CommentBar';
@@ -21,6 +22,7 @@ import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
 import CommentList from '@/components/post/CommentList';
 import CustomButton from '@/components/common/CustomButton';
 import IconButton from '@/components/common/IconButton';
+import PostCard from '@/components/post/PostCard';
 
 // 네비게이션 param 타입 정의
 type PostPageScreenRouteProp = RouteProp<
@@ -94,7 +96,9 @@ function PostPageScreen() {
     }
 
     // 더미데이터에서 postId에 해당하는 포스트 찾기
-    const foundPost = mockPosts.find(mockPost => mockPost.id === postId);
+    const foundPost = (mockPosts || []).find(
+      (mockPost: Post) => mockPost.id === postId,
+    );
 
     if (foundPost) {
       // 더미데이터를 사용
@@ -200,6 +204,17 @@ function PostPageScreen() {
           comments={comments}
           totalCommentCount={post.commentCount}
         />
+
+        {/* 관련 포스트 섹션 */}
+        <View style={styles.relatedPostsSection}>
+          <Text style={styles.sectionTitle}>관련이 높은 포스팅</Text>
+          {(mockPosts || [])
+            .filter((p: Post) => p.id !== post.id)
+            .slice(0, 1)
+            .map((dummyPost: Post) => (
+              <PostCard key={dummyPost.id} {...dummyPost} />
+            ))}
+        </View>
       </ScrollView>
 
       <LikeAndComment onSend={handleAddComment} />
@@ -275,6 +290,19 @@ const styles = StyleSheet.create({
   fullWidthImage: {
     width: '100%',
     height: 200,
+  },
+  relatedPostsSection: {
+    backgroundColor: colors.WHITE,
+    // paddingHorizontal: 12,
+    paddingVertical: 20,
+    gap: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.BLACK,
+    marginBottom: 8,
+    paddingHorizontal: 20,
   },
 });
 
