@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import axiosInstance from '@/api/axiosInstance';
-import {Post, FeedType, feedTypes} from '@/constants/types';
+import {Post, FeedType, createFeedTypes} from '@/constants/types';
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 import IconButton from '@/components/common/IconButton';
@@ -19,6 +19,7 @@ type IntroScreenProps = StackScreenProps<
 
 function PostHomeScreen({navigation}: IntroScreenProps) {
   const {posts: newPosts} = usePostContext();
+  const feedTypes = createFeedTypes(newPosts);
   const [selectedFeed, setSelectedFeed] = useState<FeedType>(feedTypes[0]);
 
   // 선택된 피드의 포스트를 표시, 없으면 새 포스트 표시
@@ -48,6 +49,7 @@ function PostHomeScreen({navigation}: IntroScreenProps) {
         <FeedSelector
           selectedFeed={selectedFeed}
           onFeedSelect={handleFeedSelect}
+          feedTypes={feedTypes}
         />
         <View style={styles.headerIconRow}>
           <IconButton<PostStackParamList>

@@ -2,16 +2,18 @@ import React, {useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import {colors} from '@/constants';
-import {FeedType, feedTypes} from '@/constants/types';
+import {FeedType} from '@/constants/types';
 
 interface FeedSelectorProps {
   selectedFeed: FeedType;
   onFeedSelect: (feed: FeedType) => void;
+  feedTypes: FeedType[];
 }
 
 const FeedSelector: React.FC<FeedSelectorProps> = ({
   selectedFeed,
   onFeedSelect,
+  feedTypes,
 }) => {
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 

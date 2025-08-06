@@ -5,7 +5,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   SafeAreaView,
   StatusBar,
   KeyboardAvoidingView,
@@ -19,6 +18,7 @@ import {postNavigations} from '@/constants';
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 import PostActionButtons from '@/components/post/PostActionButtons';
 import CustomButton from '@/components/common/CustomButton';
+import Toast from '@/components/common/Toast';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 import {YouTubeVideo, Post} from '@/constants/types';
 import {usePostContext} from '@/contexts/PostContext';
@@ -28,8 +28,19 @@ export default function PostCreateScreen() {
   const {addPost} = usePostContext();
   const [content, setContent] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   useHideTabBarOnFocus();
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setToastVisible(true);
+  };
+
+  const hideToast = () => {
+    setToastVisible(false);
+  };
 
   const handleCancel = () => {
     navigation.goBack();
@@ -37,7 +48,7 @@ export default function PostCreateScreen() {
 
   const handlePost = () => {
     if (!content.trim()) {
-      Alert.alert('알림', '내용을 입력해주세요.');
+      showToast('내용을 입력해주세요.');
       return;
     }
 
@@ -70,8 +81,9 @@ export default function PostCreateScreen() {
     console.log('선택된 비디오:', selectedVideo);
     console.log('생성된 포스트:', newPost);
 
-    Alert.alert('성공', '게시되었습니다.');
     navigation.goBack();
+
+    showToast('게시되었습니다.');
   };
 
   const handleVideoSelect = (video: YouTubeVideo) => {
@@ -151,6 +163,9 @@ export default function PostCreateScreen() {
         {/* Action Buttons */}
         <PostActionButtons onVideoSelect={handleVideoSelect} />
       </KeyboardAvoidingView>
+
+      {/* Toast */}
+      <Toast message={toastMessage} visible={toastVisible} onHide={hideToast} />
     </SafeAreaView>
   );
 }

@@ -43,7 +43,7 @@ export const mockPosts: Post[] = [
       content:
         '바흐의 첼로 모음곡은 정말 영혼을 정화시켜주는 것 같아요. 특히 요요마의 연주로 들으면 눈물이 날 정도로 감동적입니다.',
       profileImg:
-        'https://images.pexels.com/photos/1370750/pexels-photo-1370750.jpeg',
+        'https://images.pexels.com/photos/3052361/pexels-photo-3052361.jpeg',
     },
     user: {
       nickName: '바흐흑',

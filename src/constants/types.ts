@@ -66,12 +66,12 @@ export interface PopularMedia {
   createdAgo: string;
 }
 
-// 피드 타입 데이터
-export const feedTypes: FeedType[] = [
+// 피드 타입 데이터 생성 함수
+export const createFeedTypes = (contextPosts: Post[]): FeedType[] => [
   {
     id: 'recommended',
     name: '추천 피드',
-    posts: mockPosts,
+    posts: [...contextPosts, ...mockPosts], // Context 포스트 + Mock 포스트
   },
   {
     id: 'popular',
@@ -84,3 +84,6 @@ export const feedTypes: FeedType[] = [
     posts: mockPosts.slice(3, 4), // 다른 일부 표시
   },
 ];
+
+// 기본 피드 타입 (호환성을 위해 유지)
+export const feedTypes: FeedType[] = createFeedTypes([]);
