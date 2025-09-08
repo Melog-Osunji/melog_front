@@ -1,6 +1,17 @@
 import React, {useState, useEffect} from 'react';
 import {StackScreenProps} from '@react-navigation/stack';
-import styled from 'styled-components/native';
+import {
+  ScrollView,
+  Text,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 import {colors, postNavigations} from '@/constants';
 import IconButton from '@/components/common/IconButton';
@@ -10,15 +21,6 @@ import SearchPerformerTab from '@/components/search/SearchPerformerTab';
 import SearchGenreTab from '@/components/search/SearchGenreTab';
 import SearchPeriodTab from '@/components/search/SearchPeriodTab';
 import SearchInstrumentTab from '@/components/search/SearchInstrumentTab';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {
-  ScrollView,
-  Text,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-} from 'react-native';
 import SearchInputField from '@/components/search/SearchInputField';
 import RecentSearchList from '@/components/search/RecentSearchList';
 import AutoCompleteList from '@/components/search/AutoCompleteList';
@@ -54,12 +56,9 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
 
   useEffect(() => {
     const hideSub = Keyboard.addListener('keyboardDidHide', () => {
-      //          setShowRecent(false);
+      // setShowRecent(false);
     });
-
-    return () => {
-      hideSub.remove();
-    };
+    return () => hideSub.remove();
   }, []);
 
   return (
@@ -67,8 +66,9 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{flex: 1}}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <Container>
-          <Header>
+        <SafeAreaView style={styles.container}>
+          {/* Header */}
+          <View style={styles.header}>
             <IconButton<PostStackParamList>
               imageSource={require('@/assets/icons/post/BackArrow.png')}
               target={[postNavigations.POST_HOME]}
@@ -88,158 +88,205 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
                 }
               }}
             />
-          </Header>
+          </View>
+
+          {/* 최근검색/자동완성 (포커스 상태) */}
           {showRecent ? (
-            <FocusContent>
-              {/* 입력 중일 때 보여줄 화면 */}
+            <View style={styles.focusContent}>
               {searchText.trim() === '' ? (
-                <>
-                  <RecentSearchList
-                    keywords={recentKeywords}
-                    onClearOne={handleClearOne}
-                    onClearAll={handleClearAll}
-                  />
-                </>
+                <RecentSearchList
+                  keywords={recentKeywords}
+                  onClearOne={handleClearOne}
+                  onClearAll={handleClearAll}
+                />
               ) : (
-                <>
-                  <AutoCompleteList
-                    suggestions={['Bach', 'Bach Classic', 'Beethoven']}
-                    searchText={searchText}
-                    onSelect={text => {
-                      setSearchText(text);
-                      Keyboard.dismiss();
-                    }}
-                  />
-                </>
+                <AutoCompleteList
+                  suggestions={['Bach', 'Bach Classic', 'Beethoven']}
+                  searchText={searchText}
+                  onSelect={text => {
+                    setSearchText(text);
+                    Keyboard.dismiss();
+                  }}
+                />
               )}
-            </FocusContent>
+            </View>
           ) : (
             <>
-              <TabRowScroll>
-                <TabScrollContent>
-                  <TabButton
-                    isActive={selectedTab === 'all'}
+              {/* 탭 스크롤 바 */}
+              <View style={styles.tabRowScroll}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.tabScrollContent}>
+                  <TouchableOpacity
+                    style={[
+                      styles.tabButton,
+                      selectedTab === 'all' && styles.tabButtonActive,
+                    ]}
                     onPress={() => setSelectedTab('all')}>
-                    <TabText isActive={selectedTab === 'all'}>통합</TabText>
-                  </TabButton>
-                  <TabButton
-                    isActive={selectedTab === 'composer'}
-                    onPress={() => setSelectedTab('composer')}>
-                    <TabText isActive={selectedTab === 'composer'}>
-                      작곡가
-                    </TabText>
-                  </TabButton>
-                  <TabButton
-                    isActive={selectedTab === 'performer'}
-                    onPress={() => setSelectedTab('performer')}>
-                    <TabText isActive={selectedTab === 'performer'}>
-                      연주가
-                    </TabText>
-                  </TabButton>
-                  <TabButton
-                    isActive={selectedTab === 'genre'}
-                    onPress={() => setSelectedTab('genre')}>
-                    <TabText isActive={selectedTab === 'genre'}>장르</TabText>
-                  </TabButton>
-                  <TabButton
-                    isActive={selectedTab === 'period'}
-                    onPress={() => setSelectedTab('period')}>
-                    <TabText isActive={selectedTab === 'period'}>시대</TabText>
-                  </TabButton>
-                  <TabButton
-                    isActive={selectedTab === 'instrument'}
-                    onPress={() => setSelectedTab('instrument')}>
-                    <TabText isActive={selectedTab === 'instrument'}>
-                      악기
-                    </TabText>
-                  </TabButton>
-                </TabScrollContent>
-              </TabRowScroll>
+                    <Text
+                      style={[
+                        styles.tabText,
+                        selectedTab === 'all' && styles.tabTextActive,
+                      ]}>
+                      통합
+                    </Text>
+                  </TouchableOpacity>
 
-              <TabContent>
+                  <TouchableOpacity
+                    style={[
+                      styles.tabButton,
+                      selectedTab === 'composer' && styles.tabButtonActive,
+                    ]}
+                    onPress={() => setSelectedTab('composer')}>
+                    <Text
+                      style={[
+                        styles.tabText,
+                        selectedTab === 'composer' && styles.tabTextActive,
+                      ]}>
+                      작곡가
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.tabButton,
+                      selectedTab === 'performer' && styles.tabButtonActive,
+                    ]}
+                    onPress={() => setSelectedTab('performer')}>
+                    <Text
+                      style={[
+                        styles.tabText,
+                        selectedTab === 'performer' && styles.tabTextActive,
+                      ]}>
+                      연주가
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.tabButton,
+                      selectedTab === 'genre' && styles.tabButtonActive,
+                    ]}
+                    onPress={() => setSelectedTab('genre')}>
+                    <Text
+                      style={[
+                        styles.tabText,
+                        selectedTab === 'genre' && styles.tabTextActive,
+                      ]}>
+                      장르
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.tabButton,
+                      selectedTab === 'period' && styles.tabButtonActive,
+                    ]}
+                    onPress={() => setSelectedTab('period')}>
+                    <Text
+                      style={[
+                        styles.tabText,
+                        selectedTab === 'period' && styles.tabTextActive,
+                      ]}>
+                      시대
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.tabButton,
+                      selectedTab === 'instrument' && styles.tabButtonActive,
+                    ]}
+                    onPress={() => setSelectedTab('instrument')}>
+                    <Text
+                      style={[
+                        styles.tabText,
+                        selectedTab === 'instrument' && styles.tabTextActive,
+                      ]}>
+                      악기
+                    </Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
+
+              {/* 탭 콘텐츠 */}
+              <View style={styles.tabContent}>
                 {selectedTab === 'all' && <SearchAllTab />}
                 {selectedTab === 'composer' && <SearchComposerTab />}
                 {selectedTab === 'performer' && <SearchPerformerTab />}
                 {selectedTab === 'genre' && <SearchGenreTab />}
                 {selectedTab === 'period' && <SearchPeriodTab />}
                 {selectedTab === 'instrument' && <SearchInstrumentTab />}
-              </TabContent>
+              </View>
             </>
           )}
-        </Container>
+        </SafeAreaView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }
 
-// styledComponent
-const Header = styled.View`
-  width: 100%;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding-horizontal: 20px;
-  padding-vertical: 16px;
-  border-bottom-width: 1px;
-  border-bottom-color: ${colors.GRAY_100};
-`;
-
-const Container = styled(SafeAreaView)`
-  flex: 1;
-  background-color: ${colors.WHITE};
-  position: relative;
-`;
-
-const TabRowScroll = styled.View`
-  width: 100%;
-  border-bottom-width: 1px;
-  border-bottom-color: transparent;
-`;
-
-const TabScrollContent = styled(ScrollView).attrs({
-  horizontal: true,
-  showsHorizontalScrollIndicator: false,
-  contentContainerStyle: {
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.WHITE,
+    position: 'relative',
+  },
+  header: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.GRAY_100,
+  },
+  tabRowScroll: {
+    width: '100%',
+    borderBottomWidth: 1,
+    borderBottomColor: 'transparent',
+  },
+  tabScrollContent: {
     alignItems: 'center',
     paddingHorizontal: 0,
   },
-})``;
-
-const TabButton = styled.TouchableOpacity<{isActive: boolean}>`
-  padding: 12px 18px;
-  border-bottom-width: ${({isActive}) => (isActive ? 2 : 0)}px;
-  border-bottom-color: ${({isActive}) =>
-    isActive ? colors.LINE_BLUE : 'transparent'};
-  align-items: center;
-  height: 100%;
-`;
-
-const TabText = styled.Text<{isActive: boolean}>`
-  font-size: 16px;
-  color: ${({isActive}) => (isActive ? colors.LINE_BLUE : colors.GRAY_500)};
-  font-weight: ${({isActive}) => (isActive ? 'bold' : 'normal')};
-`;
-
-const TabContent = styled.View`
-    flex: 1;
-    width: 100%;
-`;
-
-const FocusContent = styled.View`
-  position: absolute;
-  top: 84px; /* Header 높이 + margin 고려 */
-  left: 0;
-  right: 0;
-  background-color: ${colors.WHITE};
-  z-index: 999;
-  padding: 16px 20px;
-`;
-
-const FocusTitle = styled.Text`
-  font-size: 17px;
-  font-weight: bold;
-  margin-bottom: 12px;
-  color: ${colors.GRAY_600};
-`;
+  tabButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+    height: '100%',
+    borderBottomWidth: 0,
+    borderBottomColor: 'transparent',
+  },
+  tabButtonActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: colors.LINE_BLUE,
+  },
+  tabText: {
+    fontSize: 16,
+    color: colors.GRAY_500,
+    fontWeight: 'normal',
+  },
+  tabTextActive: {
+    color: colors.LINE_BLUE,
+    fontWeight: 'bold',
+  },
+  tabContent: {
+    flex: 1,
+    width: '100%',
+  },
+  focusContent: {
+    position: 'absolute',
+    top: 84, // 헤더 높이 고려
+    left: 0,
+    right: 0,
+    backgroundColor: colors.WHITE,
+    zIndex: 999,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
+});
 
 export default PostSearchScreen;

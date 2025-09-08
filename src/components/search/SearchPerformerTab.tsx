@@ -1,72 +1,63 @@
 import React from 'react';
-import { ScrollView, Dimensions } from 'react-native';
-import styled from 'styled-components/native';
-import {colors} from '@/constants';
+import { ScrollView, View, Text, Dimensions, StyleSheet } from 'react-native';
+import { colors } from '@/constants';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
-
-
 const performers = Array.from({ length: 6 }).map((_, i) => `이름 ${i}`);
 
 const SearchPerformerTab = () => {
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16}}>
-      <SectionTitle>인기 검색어</SectionTitle>
-        <Container>
-          {performers.map((name, i) => (
-            <PerformerItem key={i}>
-              <Name>{name}</Name>
-              <KeywordRow>
-                <Keyword>#관련 키워드</Keyword>
-                <Keyword>#관련 키워드</Keyword>
-              </KeywordRow>
-            </PerformerItem>
-          ))}
-        </Container>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16 }}>
+      <Text style={styles.sectionTitle}>인기 검색어</Text>
+      <View style={styles.container}>
+        {performers.map((name, i) => (
+          <View key={i} style={styles.performerItem}>
+            <Text style={styles.name}>{name}</Text>
+            <View style={styles.keywordRow}>
+              <Text style={styles.keyword}>#관련 키워드</Text>
+              <Text style={styles.keyword}>#관련 키워드</Text>
+            </View>
+          </View>
+        ))}
+      </View>
     </ScrollView>
   );
 };
 
-
-
-const SectionTitle = styled.Text`
-  font-size: 17px;
-  font-weight: 700;
-  margin-bottom: 28px;
-  color: ${colors.GRAY_600};
-`;
-
-const Container = styled.View`
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  width: ${DEVICE_WIDTH}px;
-`;
-
-
-const PerformerItem = styled.View`
-  padding-vertical:12px;
-  width:100%;
-  flex-direction:column;
-  gap:12px;
-`;
-
-const Name = styled.Text`
-  font-size: 15px;
-  font-weight: 700;
-  line-height:22px;
-  color: ${colors.GRAY_600};
-`;
-
-const KeywordRow = styled.View`
-  flex-direction: row;
-  gap: 8px;
-`;
-
-const Keyword = styled.Text`
-  font-size: 14px;
-  font-weight: 500;
-  color:${colors.BLUE_500};
-`;
+const styles = StyleSheet.create({
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 28,
+    color: colors.GRAY_600,
+  },
+  container: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 12,
+    width: DEVICE_WIDTH,
+  },
+  performerItem: {
+    paddingVertical: 12,
+    width: '100%',
+    flexDirection: 'column',
+    gap: 12,
+  },
+  name: {
+    fontSize: 15,
+    fontWeight: '700',
+    lineHeight: 22,
+    color: colors.GRAY_600,
+  },
+  keywordRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  keyword: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.BLUE_500,
+  },
+});
 
 export default SearchPerformerTab;

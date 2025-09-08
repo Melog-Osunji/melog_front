@@ -1,58 +1,54 @@
 import React from 'react';
-import { ScrollView, Text } from 'react-native';
-import styled from 'styled-components/native';
-import {colors} from '@/constants';
-
+import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { colors } from '@/constants';
 
 const SearchGenreTab = () => {
   return (
-    <ScrollView contentContainerStyle={{ paddingHorizontal: 20}}>
+    <ScrollView contentContainerStyle={{ paddingHorizontal: 20 }}>
       {Array.from({ length: 3 }).map((_, sectionIdx) => (
-        <GenreSection key={sectionIdx}>
-          <SectionTitle>장르</SectionTitle>
-          <KeywordWrap>
+        <View key={sectionIdx} style={styles.genreSection}>
+          <Text style={styles.sectionTitle}>장르</Text>
+          <View style={styles.keywordWrap}>
             {Array.from({ length: 4 }).map((_, i) => (
-              <Keyword key={i}><KeywordText>해당 장르 키워드</KeywordText></Keyword>
+              <View key={i} style={styles.keyword}>
+                <Text style={styles.keywordText}>해당 장르 키워드</Text>
+              </View>
             ))}
-          </KeywordWrap>
-        </GenreSection>
+          </View>
+        </View>
       ))}
     </ScrollView>
   );
 };
 
-
-const SectionTitle = styled.Text`
-  font-size: 17px;
-  font-weight: 700;
-  margin-bottom: 28px;
-  color: ${colors.GRAY_600};
-`;
-
-
-const GenreSection = styled.View`
-  margin-vertical: 16px;
-`;
-
-const KeywordWrap = styled.View`
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 18px;
-`;
-
-const Keyword = styled.View`
-  height: 48px;
-  padding-horizontal: 16px;
-  padding-vertical: 8px;
-  background-color: ${colors.GRAY_100};
-  border-radius: 60px;
-  justify-content: center;
-  align-items: center;
-`;
-
-const KeywordText = styled.Text`
-  font-size: 14px;
-  color: ${colors.GRAY_400};
-`;
+const styles = StyleSheet.create({
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 28,
+    color: colors.GRAY_600,
+  },
+  genreSection: {
+    marginVertical: 16,
+  },
+  keywordWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 18,
+  },
+  keyword: {
+    height: 48,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: colors.GRAY_100,
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  keywordText: {
+    fontSize: 14,
+    color: colors.GRAY_400,
+  },
+});
 
 export default SearchGenreTab;
