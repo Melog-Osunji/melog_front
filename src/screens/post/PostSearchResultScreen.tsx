@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {StackScreenProps} from '@react-navigation/stack';
 import {
   ScrollView,
@@ -27,17 +27,31 @@ type IntroScreenProps = StackScreenProps<
 const DEVICE_WIDTH = Dimensions.get('window').width;
 const TAB_WIDTH = DEVICE_WIDTH / 4;
 
-function PostSearchResultScreen({navigation}: IntroScreenProps) {
+function PostSearchResultScreen({navigation, route}: IntroScreenProps) {
   useHideTabBarOnFocus();
 
   const [selectedTab, setSelectedTab] = useState<
     'all' | 'profile' | 'feed' | 'harmony'
   >('all');
-  const [keyword, setKeyword] = useState('Bach');
+  const initial = route.params?.searchKeyword ?? '';
+  const [text, setText] = useState(initial);
+
+  const [keyword, setKeyword] = useState(initial);
+
+  // 다른 화면에서 새 키워드로 다시 진입했을 때 반영
+  useEffect(() => {
+      if (route.params?.searchKeyword && route.params.searchKeyword !== keyword) {
+        setText(route.params.searchKeyword);
+        setKeyword(route.params.searchKeyword);
+      }
+    }, [route.params?.searchKeyword]);
+
 
   const handleSearchSubmit = () => {
-    console.log('검색어:', keyword);
-    // TODO: 필터링 또는 API 호출 로직
+    const q = text.trim();
+    if (!q) return;
+    setKeyword(q);
+    Keyboard.dismiss();
   };
 
   return (
@@ -129,10 +143,10 @@ function PostSearchResultScreen({navigation}: IntroScreenProps) {
 
       {/* Tab Content */}
       <View style={styles.tabContent}>
-        {selectedTab === 'all' && <SearchResultAllTab />}
-        {selectedTab === 'profile' && <SearchResultProfileTab />}
-        {selectedTab === 'feed' && <SearchResultFeedTab />}
-        {selectedTab === 'harmony' && <SearchResultHarmonyTab />}
+        {selectedTab === 'all' && <SearchResultAllTab keyword={keyword}/>}
+        {selectedTab === 'profile' && <SearchResultProfileTab keyword={keyword}/>}
+        {selectedTab === 'feed' && <SearchResultFeedTab keyword={keyword}/>}
+        {selectedTab === 'harmony' && <SearchResultHarmonyTab keyword={keyword}/>}
       </View>
     </SafeAreaView>
   );
