@@ -17,11 +17,12 @@ import {InitProfileNavigations} from '@/constants';
 
 type InitProfileScreenProps = StackScreenProps<
   InitProfileNavigatorParamList,
-  typeof InitProfileNavigations.INIT_PROFILE_NICKNAME
+  typeof InitProfileNavigations.INIT_PROFILE_INTRODUCTION
 >;
 
 function InitProfileNickname({navigation}: InitProfileScreenProps) {
   const [nickname, setNickname] = useState('');
+  const [checked, setChecked] = useState(false);
 
   // 에러 조건 변수화
   const isInvalidChar =
@@ -35,23 +36,35 @@ function InitProfileNickname({navigation}: InitProfileScreenProps) {
       <View style={{gap: 40, width: '100%', alignItems: 'center'}}>
         <Image
           source={require('@/assets/icons/intro/basic_profile.png')}
-          style={{
-            width: 120,
-            height: 120,
-          }}
+          style={{width: 120, height: 120}}
           resizeMode="cover"
         />
-        {/* 나중에 선택된 이미지로 변경되는 로직 추가 */}
+        {/* ++ 나중에 선택된 이미지로 변경되는 로직 추가해야함 */}
 
         <View style={{width: '100%', gap: 12, marginBottom: 40}}>
-          <Text
+          <View
             style={{
-              fontSize: 16,
-              color: colors.BLACK,
-              fontWeight: 'bold',
+              flexDirection: 'row',
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+              gap: 8,
             }}>
-            닉네임
-          </Text>
+            <Text
+              style={{
+                fontSize: 16,
+                color: colors.BLACK,
+                fontWeight: 'bold',
+              }}>
+              닉네임
+            </Text>
+            {!hasError && checked && (
+              <Image
+                source={require('@/assets/icons/intro/check_icon.png')}
+                style={{width: 12, height: 12}}
+                resizeMode="contain"
+              />
+            )}
+          </View>
           <View style={{position: 'relative'}}>
             <TextInput
               value={nickname}
@@ -73,8 +86,16 @@ function InitProfileNickname({navigation}: InitProfileScreenProps) {
                 {opacity: nickname ? 1 : 0, top: hasError ? 8 : 6},
               ]}
               activeOpacity={0.7}
-              disabled={!nickname}>
+              disabled={!nickname}
+              onPress={() => {
+                if (!hasError && nickname) {
+                  setChecked(true);
+                } else {
+                  setChecked(false);
+                }
+              }}>
               <Text style={styles.duplicate_btn_text}>중복확인</Text>
+              {/* ++ 나중에  중복확인요청 로직 작성 */}
             </TouchableOpacity>
           </View>
           {isInvalidChar && (
@@ -90,7 +111,7 @@ function InitProfileNickname({navigation}: InitProfileScreenProps) {
       <CustomButton
         label="다음"
         onPress={() => {
-          navigation.navigate(InitProfileNavigations.INIT_PROFILE_NICKNAME);
+          navigation.navigate(InitProfileNavigations.INIT_PROFILE_INTRODUCTION);
         }}
       />
     </View>
