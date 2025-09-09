@@ -13,7 +13,7 @@ type InitProfileScreenProps = StackScreenProps<
   typeof InitProfileNavigations.INIT_PROFILE_NICKNAME
 >;
 
-function InitProfile({navigation}: InitProfileScreenProps) {
+function InitProfileImg({navigation}: InitProfileScreenProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const handleSelectImage = () => {
@@ -68,7 +68,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: colors.BLACK,
     fontWeight: 'bold',
-    textAlign: 'left',
     alignSelf: 'flex-start',
   },
   buttonwrapper: {
@@ -81,4 +80,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default InitProfile;
+export default InitProfileImg;
