@@ -1,6 +1,5 @@
 import React from 'react';
 import {View, StyleSheet, Image, TouchableOpacity, Text} from 'react-native';
-import WelcomeScreen from '@/screens/intro/WelcomeScreen';
 import {StackScreenProps} from '@react-navigation/stack';
 
 import {IntroStackParamList} from '@/navigations/stack/IntroStackNavigator';
@@ -8,7 +7,8 @@ import {introNavigations} from '@/constants';
 
 type IntroScreenProps = StackScreenProps<
   IntroStackParamList,
-  typeof introNavigations.INTRO_WELCOME
+  typeof introNavigations.INTRO_WELCOME,
+  typeof introNavigations.INTRO_PROFILE
 >;
 
 const LoginScreen = ({navigation}: IntroScreenProps) => {
@@ -47,6 +47,10 @@ const LoginScreen = ({navigation}: IntroScreenProps) => {
             text: '구글로 로그인하기',
             style: styles.google,
             textColor: '#444',
+            onPress: () => {
+              console.log('구글 로그인 버튼 클릭');
+              navigation.navigate(introNavigations.INTRO_PROFILE);
+            },
           },
           {
             key: 'kakao',
@@ -54,6 +58,9 @@ const LoginScreen = ({navigation}: IntroScreenProps) => {
             text: '카카오톡으로 로그인하기',
             style: styles.kakao,
             textColor: '#191600',
+            onPress: () => {
+              console.log('카카오 로그인 버튼 클릭');
+            },
           },
           {
             key: 'naver',
@@ -61,11 +68,14 @@ const LoginScreen = ({navigation}: IntroScreenProps) => {
             text: '네이버로 로그인하기',
             style: styles.naver,
             textColor: '#fff',
+            onPress: () => {
+              console.log('네이버 로그인 버튼 클릭');
+            },
           },
-        ].map(({key, icon, text, style, textColor}) => (
+        ].map(({key, icon, text, style, textColor, onPress}) => (
           <TouchableOpacity
             key={key}
-            onPress={() => {}}
+            onPress={onPress}
             activeOpacity={0.7}
             style={[styles.button, style]}>
             <Image source={icon} style={styles.icon} />

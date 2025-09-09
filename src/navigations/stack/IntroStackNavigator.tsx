@@ -1,14 +1,14 @@
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
+import {introNavigations} from '@/constants';
 
 import WelcomeScreen from '@/screens/intro/WelcomeScreen';
 import LoginScreen from '@/screens/intro/LoginSreen';
-import Onboarding1Screen from '@/screens/intro/Onboarding1Screen';
-import Onboarding2Screen from '@/screens/intro/Onboarding2Screen';
-import Onboarding3Screen from '@/screens/intro/Onboarding3Screen';
-
-import {introNavigations} from '@/constants';
+import Onboarding1Screen from '@/screens/intro/Onboarding/Onboarding1Screen';
+import Onboarding2Screen from '@/screens/intro/Onboarding/Onboarding2Screen';
+import Onboarding3Screen from '@/screens/intro/Onboarding/Onboarding3Screen';
+import InitProfileStackNavigator from '@/navigations/stack/InitProfileStackNavigator';
 
 export type IntroStackParamList = {
   [introNavigations.INTRO_LOGIN]: undefined;
@@ -16,6 +16,7 @@ export type IntroStackParamList = {
   [introNavigations.INTRO_ONBOARDING_1]: undefined;
   [introNavigations.INTRO_ONBOARDING_2]: undefined;
   [introNavigations.INTRO_ONBOARDING_3]: undefined;
+  [introNavigations.INTRO_PROFILE]: undefined;
 };
 
 const Stack = createStackNavigator<IntroStackParamList>();
@@ -61,6 +62,13 @@ function AuthStackNavigator() {
         component={Onboarding3Screen}
         options={{
           headerTitle: '',
+        }}
+      />
+      <Stack.Screen
+        name={introNavigations.INTRO_PROFILE}
+        component={InitProfileStackNavigator}
+        options={{
+          headerShown: false,
         }}
       />
     </Stack.Navigator>

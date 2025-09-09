@@ -2,8 +2,7 @@ import React from 'react';
 
 import {StyleSheet, Text, View, Image} from 'react-native';
 
-
-function AuthHomeScreen() {
+function WelcomeScreen() {
   return (
     <View style={styles.container}>
       <Image
@@ -40,4 +39,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AuthHomeScreen;
+export default WelcomeScreen;
