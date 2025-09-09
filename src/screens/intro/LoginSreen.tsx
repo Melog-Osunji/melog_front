@@ -7,8 +7,7 @@ import {introNavigations} from '@/constants';
 
 type IntroScreenProps = StackScreenProps<
   IntroStackParamList,
-  typeof introNavigations.INTRO_WELCOME,
-  typeof introNavigations.INTRO_PROFILE
+  typeof introNavigations.TOS_CONSENTLIST,
 >;
 
 const LoginScreen = ({navigation}: IntroScreenProps) => {
@@ -49,7 +48,7 @@ const LoginScreen = ({navigation}: IntroScreenProps) => {
             textColor: '#444',
             onPress: () => {
               console.log('구글 로그인 버튼 클릭');
-              navigation.navigate(introNavigations.INTRO_PROFILE);
+              navigation.navigate(introNavigations.TOS_CONSENTLIST);
             },
           },
           {

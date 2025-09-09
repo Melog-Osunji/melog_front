@@ -89,7 +89,7 @@ function InitProfileIntroduction({navigation}: InitProfileScreenProps) {
       </View>
 
       <CustomButton
-        label="다음"
+        label="시작하기"
         onPress={() => {
           navigation.navigate(InitProfileNavigations.INIT_PROFILE_NICKNAME);
         }}
