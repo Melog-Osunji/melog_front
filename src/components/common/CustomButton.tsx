@@ -49,6 +49,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'center',
+    borderRadius: 60,
   },
   inValid: {
     opacity: 0.5,
@@ -71,23 +72,22 @@ const styles = StyleSheet.create({
   },
 
   large: {
-    borderRadius: 4,
     width: '100%',
-    paddingVertical: deviceHeight > 700 ? 18 : 15,
+    paddingVertical: deviceHeight > 700 ? 15 : 10,
+    paddingHorizontal: 16,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
   },
   medium: {
-    borderRadius: 4,
     width: '50%',
-    paddingVertical: deviceHeight > 700 ? 12 : 8,
+    paddingVertical: deviceHeight > 700 ? 10 : 8,
+    paddingHorizontal: 16,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
   },
   small: {
-    borderRadius: 60,
     paddingVertical: 6,
     paddingHorizontal: 16,
     width: 72,
@@ -97,6 +97,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 15,
+    lineHeight: 22,
     fontWeight: '500',
     textAlignVertical: 'center',
     includeFontPadding: false,
@@ -107,6 +108,7 @@ const styles = StyleSheet.create({
   },
   mediumText: {
     fontSize: 14,
+
     fontWeight: '500',
   },
   smallText: {

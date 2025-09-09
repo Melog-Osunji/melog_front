@@ -2,17 +2,9 @@ import React from 'react';
 
 import {StyleSheet, Text, View, Image} from 'react-native';
 
-function InitProfile() {
+function InitProfile({navigation}: any) {
   return (
     <View style={styles.container}>
-      <Image
-        source={require('@/assets/common/bg.png')}
-        style={{
-          ...StyleSheet.absoluteFillObject,
-          width: '100%',
-          height: '100%',
-        }}
-      />
       <Image
         source={require('@/assets/common/app_name.png')}
         style={{
@@ -22,6 +14,28 @@ function InitProfile() {
         }}
       />
       <Text style={styles.text}>asdfasdf</Text>
+      <View style={{marginTop: 24}}>
+        <Text
+          onPress={() => {
+            // @ts-ignore
+            if (typeof navigation !== 'undefined' && navigation.goBack) {
+              navigation.goBack();
+            }
+          }}
+          style={{
+            backgroundColor: '#000',
+            color: '#fff',
+            paddingVertical: 12,
+            paddingHorizontal: 32,
+            borderRadius: 8,
+            textAlign: 'center',
+            fontSize: 16,
+            fontWeight: 'bold',
+            overflow: 'hidden',
+          }}>
+          뒤로가기
+        </Text>
+      </View>
     </View>
   );
 }

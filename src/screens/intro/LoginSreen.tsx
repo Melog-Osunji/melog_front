@@ -43,7 +43,7 @@ const LoginScreen = ({navigation}: IntroScreenProps) => {
         {[
           {
             key: 'google',
-            icon: require('@/assets/icons/login/google_icon.png'),
+            icon: require('@/assets/icons/intro/google_icon.png'),
             text: '구글로 로그인하기',
             style: styles.google,
             textColor: '#444',
@@ -54,7 +54,7 @@ const LoginScreen = ({navigation}: IntroScreenProps) => {
           },
           {
             key: 'kakao',
-            icon: require('@/assets/icons/login/kakao_icon.png'),
+            icon: require('@/assets/icons/intro/kakao_icon.png'),
             text: '카카오톡으로 로그인하기',
             style: styles.kakao,
             textColor: '#191600',
@@ -64,7 +64,7 @@ const LoginScreen = ({navigation}: IntroScreenProps) => {
           },
           {
             key: 'naver',
-            icon: require('@/assets/icons/login/naver_icon.png'),
+            icon: require('@/assets/icons/intro/naver_icon.png'),
             text: '네이버로 로그인하기',
             style: styles.naver,
             textColor: '#fff',
