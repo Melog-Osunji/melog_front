@@ -3,22 +3,25 @@ import {StyleSheet} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
 
 import WelcomeScreen from '@/screens/intro/WelcomeScreen';
-import Onboarding1Screen from '@/screens/intro/Onboarding1Screen';
-import Onboarding2Screen from '@/screens/intro/Onboarding2Screen';
-import Onboarding3Screen from '@/screens/intro/Onboarding3Screen';
+import PreOnboardingScreen from '@/screens/intro/PreOnboardingScreen';
+// import Onboarding2Screen from '@/screens/intro/Onboarding2Screen';
+// import Onboarding3Screen from '@/screens/intro/Onboarding3Screen';
 
 import {introNavigations} from '@/constants';
 
 export type IntroStackParamList = {
   [introNavigations.INTRO_WELCOME]: undefined;
-  [introNavigations.INTRO_ONBOARDING_1]: undefined;
-  [introNavigations.INTRO_ONBOARDING_2]: undefined;
-  [introNavigations.INTRO_ONBOARDING_3]: undefined;
+  [introNavigations.PRE_ONBOARDING]: {onDone?: () => void } | undefined;
+//   [introNavigations.INTRO_ONBOARDING_2]: undefined;
+//   [introNavigations.INTRO_ONBOARDING_3]: undefined;
 };
 
 const Stack = createStackNavigator<IntroStackParamList>();
 
-function AuthStackNavigator() {
+type Props = { onDone?: () => void };
+
+
+function AuthStackNavigator({onDone}:Props) {
   return (
     <Stack.Navigator
       screenOptions={{
@@ -33,25 +36,12 @@ function AuthStackNavigator() {
         }}
       />
       <Stack.Screen
-        name={introNavigations.INTRO_ONBOARDING_1}
-        component={Onboarding1Screen}
+        name={introNavigations.PRE_ONBOARDING}
+        component={PreOnboardingScreen}
         options={{
           headerTitle: '',
         }}
-      />
-      <Stack.Screen
-        name={introNavigations.INTRO_ONBOARDING_2}
-        component={Onboarding2Screen}
-        options={{
-          headerTitle: '',
-        }}
-      />
-      <Stack.Screen
-        name={introNavigations.INTRO_ONBOARDING_3}
-        component={Onboarding3Screen}
-        options={{
-          headerTitle: '',
-        }}
+        initialParams = {{onDone}}
       />
     </Stack.Navigator>
   );

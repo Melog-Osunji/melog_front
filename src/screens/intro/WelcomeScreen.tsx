@@ -17,7 +17,7 @@ function AuthHomeScreen({navigation}: IntroScreenProps) {
       <Text>welcome page</Text>
       <CustomButton
         label="다음"
-        onPress={() => navigation.navigate(introNavigations.INTRO_ONBOARDING_1)}
+        onPress={() => navigation.navigate(introNavigations.PRE_ONBOARDING)}
         size="medium"
       />
     </View>
