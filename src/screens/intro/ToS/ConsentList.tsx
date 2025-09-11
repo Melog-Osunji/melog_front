@@ -57,7 +57,10 @@ export default function ConsentList({navigation}: ConsentListProps) {
           <View key={item.id} style={styles.tos_item}>
             <TouchableOpacity
               onPress={() => {
-                navigation.navigate(introNavigations.TOS_AGREEMENT_VIEWER);
+                navigation.navigate(introNavigations.TOS_AGREEMENT_VIEWER, {
+                  docId: item.id,
+                });
+                console.log(item.id);
               }}>
               <Text>
                 {item.required ? (

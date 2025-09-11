@@ -16,7 +16,7 @@ export type IntroStackParamList = {
   [introNavigations.INTRO_LOGIN]: undefined;
   [introNavigations.INTRO_WELCOME]: undefined;
   [introNavigations.TOS_CONSENTLIST]: undefined;
-  [introNavigations.TOS_AGREEMENT_VIEWER]: undefined;
+  [introNavigations.TOS_AGREEMENT_VIEWER]: {docId: string};
   [introNavigations.INTRO_ONBOARDING_1]: undefined;
   [introNavigations.INTRO_ONBOARDING_2]: undefined;
   [introNavigations.INTRO_ONBOARDING_3]: undefined;
