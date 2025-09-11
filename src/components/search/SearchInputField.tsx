@@ -1,12 +1,8 @@
-import React, { useState } from 'react';
-import { TextInput, View, TouchableOpacity } from 'react-native';
-import styled from 'styled-components/native';
+import React from 'react';
+import { TextInput, View, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { colors } from '@/constants';
 import SearchIcon from '@/assets/icons/post/Search.png';
 import DeletIcon from '@/assets/icons/post/Delet.png';
-import { Image } from 'react-native';
-import IconButton from '@/components/IconButton';
-
 
 interface InputFieldProps {
   value: string;
@@ -15,17 +11,21 @@ interface InputFieldProps {
   onFocus?: () => void;
   onBlur?: () => void;
   onSubmitEditing?: () => void;
-
 }
 
-const SearchInputField: React.FC<InputFieldProps> = ({ value, onChangeText, placeholder,onFocus, onBlur, onSubmitEditing}) => {
-  const [isFocused, setIsFocused] = useState(false);
-
+const SearchInputField: React.FC<InputFieldProps> = ({
+  value,
+  onChangeText,
+  placeholder,
+  onFocus,
+  onBlur,
+  onSubmitEditing,
+}) => {
   return (
-    <Container>
-      <SearchImage source={SearchIcon} />
-
-      <StyledInput
+    <View style={styles.container}>
+      <Image source={SearchIcon} style={styles.searchImage} />
+      <TextInput
+        style={styles.input}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -33,42 +33,39 @@ const SearchInputField: React.FC<InputFieldProps> = ({ value, onChangeText, plac
         onFocus={onFocus}
         onBlur={onBlur}
         onSubmitEditing={onSubmitEditing}
+        returnKeyType="search"
       />
-
       {value.length > 0 && (
-        <ClearButton onPress={() => onChangeText('')}>
+        <TouchableOpacity style={styles.clearButton} onPress={() => onChangeText('')}>
           <Image source={DeletIcon} style={{ width: 24, height: 24 }} />
-        </ClearButton>
+        </TouchableOpacity>
       )}
-    </Container>
+    </View>
   );
 };
 
-const Container = styled.View`
-  flex: 1;
-  height:44px;
-  flex-direction: row;
-  align-items: center;
-  background-color: ${colors.GRAY_100};
-  border-radius: 12px;
-  padding: 0px 8px;
-  margin-left:8px;
-`;
-
-const StyledInput = styled.TextInput`
-  flex: 1;
-  font-size: 15px;
-  color: ${colors.GRAY_600};
-  padding-left: 8px;
-`;
-
-const SearchImage = styled.Image`
-  width: 24px;
-  height: 24px;
-`;
-
-const ClearButton = styled.TouchableOpacity`
-`;
-
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    height: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.GRAY_100,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    marginLeft: 8,
+  },
+  searchImage: {
+    width: 24,
+    height: 24,
+  },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: colors.GRAY_600,
+    paddingLeft: 8,
+  },
+  clearButton: {},
+});
 
 export default SearchInputField;

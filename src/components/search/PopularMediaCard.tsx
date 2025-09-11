@@ -76,7 +76,7 @@ export default function PopularMediaCard({data}: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    width: 223,
+    width: 140,
   },
   thumbnailWrapper: {
     width: '100%',
