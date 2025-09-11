@@ -7,7 +7,7 @@ import {introNavigations} from '@/constants';
 
 type IntroScreenProps = StackScreenProps<
   IntroStackParamList,
-  typeof introNavigations.TOS_CONSENTLIST,
+  typeof introNavigations.TOS_CONSENTLIST
 >;
 
 const LoginScreen = ({navigation}: IntroScreenProps) => {

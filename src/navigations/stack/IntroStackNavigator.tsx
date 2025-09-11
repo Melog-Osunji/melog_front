@@ -5,7 +5,7 @@ import {introNavigations} from '@/constants';
 
 import WelcomeScreen from '@/screens/intro/WelcomeScreen';
 import LoginScreen from '@/screens/intro/LoginSreen';
-import ConsentList from '@/screens/intro/ToS/ConsentListScreen';
+import ConsentList from '@/screens/intro/ToS/ConsentList';
 import AgreementViewer from '@/screens/intro/ToS/AgreementViewer';
 import Onboarding1Screen from '@/screens/intro/Onboarding/Onboarding1Screen';
 import Onboarding2Screen from '@/screens/intro/Onboarding/Onboarding2Screen';
