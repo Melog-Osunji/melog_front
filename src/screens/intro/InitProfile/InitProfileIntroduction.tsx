@@ -3,6 +3,7 @@ import {View, Text, Image, TextInput, StyleSheet} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import CustomButton from '@/components/common/CustomButton';
 import {colors} from '@/constants';
+import {useAuthContext} from '@/contexts/AuthContext';
 
 import {StackScreenProps} from '@react-navigation/stack';
 import {InitProfileNavigatorParamList} from '@/navigations/stack/InitProfileStackNavigator';
@@ -15,6 +16,7 @@ type InitProfileScreenProps = StackScreenProps<
 
 function InitProfileIntroduction({navigation}: InitProfileScreenProps) {
   const [inrtoduction, setInrtoduction] = useState('');
+  const {setIsLogin} = useAuthContext();
 
   return (
     <View style={styles.container}>
@@ -91,7 +93,7 @@ function InitProfileIntroduction({navigation}: InitProfileScreenProps) {
       <CustomButton
         label="시작하기"
         onPress={() => {
-          navigation.navigate(InitProfileNavigations.INIT_PROFILE_NICKNAME);
+          setIsLogin(true);
         }}
       />
     </View>
