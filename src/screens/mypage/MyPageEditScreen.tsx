@@ -2,9 +2,8 @@ import React from 'react';
 import {StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colors} from '@/constants';
-import CustomHeader from '@/components/CustomHeader';
 
-function CalendarHomeScreen() {
+function MyPageEditScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Text>mypage</Text>
@@ -20,4 +19,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CalendarHomeScreen;
+export default MyPageEditScreen;
