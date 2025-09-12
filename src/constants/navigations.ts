@@ -1,6 +1,13 @@
 const introNavigations = {
   //첫화면
   INTRO_WELCOME: 'IntroWelcome',
+  //로그인
+  INTRO_LOGIN: 'IntroLogin',
+  //이용약관
+  TOS_CONSENTLIST: 'ConsentList',
+  TOS_AGREEMENT_VIEWER: 'AgreementViewer',
+  //프로필설정
+  INTRO_PROFILE: 'IntroProfile',
   //온보딩
   INTRO_ONBOARDING_1: 'IntroOnboarding1',
   INTRO_ONBOARDING_2: 'IntroOnboarding2',
@@ -21,6 +28,14 @@ const harmonyNavigations = {
   HARMONY_CREATE: 'HarmonyCreate',
 } as const;
 
+//프로필설정
+const InitProfileNavigations = {
+  INIT_PROFILE_IMG: 'InitProfileImg',
+  INIT_PROFILE_NICKNAME: 'InitProfileNickname',
+  INIT_PROFILE_INTRODUCTION: 'InitProfileIntroduction',
+} as const;
+
 export {introNavigations};
 export {postNavigations};
 export {harmonyNavigations};
+export {InitProfileNavigations};

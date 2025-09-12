@@ -1,3 +1,4 @@
+// components/common/CustomButton.tsx
 import React from 'react';
 import {
   Pressable,
@@ -5,9 +6,9 @@ import {
   Text,
   PressableProps,
   Dimensions,
-  View,
+  StyleProp,
+  ViewStyle,
 } from 'react-native';
-
 import {colors} from '@/constants';
 
 interface CustomButtonProps extends PressableProps {
@@ -15,27 +16,40 @@ interface CustomButtonProps extends PressableProps {
   variant?: 'filled' | 'outlined';
   size?: 'large' | 'medium' | 'small';
   inValid?: boolean;
-  onPress?: () => void;
+  style?:
+    | StyleProp<ViewStyle>
+    | ((state: {pressed: boolean}) => StyleProp<ViewStyle>); // 명시적으로 View 스타일만, 함수 타입도 허용
 }
 
 const deviceHeight = Dimensions.get('screen').height;
 
-function CustomButton({
+export default function CustomButton({
   label,
   variant = 'filled',
   size = 'large',
   inValid = false,
+  style: externalStyle,
   ...props
 }: CustomButtonProps) {
   return (
     <Pressable
       disabled={inValid}
-      style={({pressed}) => [
-        styles.container,
-        styles[size],
-        pressed ? styles[`${variant}Pressed`] : styles[variant],
-        inValid && styles.inValid,
-      ]}
+      // 내부 스타일 + 외부 스타일 병합
+      style={state => {
+        const base = [
+          styles.container,
+          styles[size],
+          state.pressed ? styles[`${variant}Pressed`] : styles[variant],
+          inValid && styles.inValid,
+        ];
+        // 부모가 style을 함수로 준 경우 pressed 상태를 전달해서 결과를 병합
+        const ext =
+          typeof externalStyle === 'function'
+            ? externalStyle(state)
+            : externalStyle;
+
+        return [base, ext];
+      }}
       {...props}>
       <Text
         style={[styles.text, styles[`${variant}Text`], styles[`${size}Text`]]}>
@@ -49,45 +63,36 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'center',
+    borderRadius: 60,
   },
-  inValid: {
-    opacity: 0.5,
-  },
-  filled: {
-    backgroundColor: colors.BLUE_400,
-  },
-  outlined: {
-    borderColor: colors.BLUE_400,
-    borderWidth: 1,
-  },
+  inValid: {opacity: 0.5},
 
-  filledPressed: {
-    backgroundColor: colors.WHITE,
-  },
-  outlinedPressed: {
-    borderColor: colors.WHITE,
-    borderWidth: 1,
-    opacity: 0.5,
-  },
+  // variant
+  filled: {backgroundColor: colors.BLUE_400},
+  outlined: {borderColor: colors.BLUE_400, borderWidth: 1},
 
+  // pressed
+  filledPressed: {backgroundColor: colors.WHITE},
+  outlinedPressed: {borderColor: colors.WHITE, borderWidth: 1, opacity: 0.5},
+
+  // size
   large: {
-    borderRadius: 4,
     width: '100%',
-    paddingVertical: deviceHeight > 700 ? 18 : 15,
+    paddingVertical: deviceHeight > 700 ? 15 : 10,
+    paddingHorizontal: 16,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
   },
   medium: {
-    borderRadius: 4,
     width: '50%',
-    paddingVertical: deviceHeight > 700 ? 12 : 8,
+    paddingVertical: deviceHeight > 700 ? 10 : 8,
+    paddingHorizontal: 16,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
   },
   small: {
-    borderRadius: 60,
     paddingVertical: 6,
     paddingHorizontal: 16,
     width: 72,
@@ -95,30 +100,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
   },
+
+  // text
   text: {
     fontSize: 15,
+    lineHeight: 22,
     fontWeight: '500',
-    textAlignVertical: 'center',
     includeFontPadding: false,
+    textAlignVertical: 'center',
   },
-  largeText: {
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  mediumText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  smallText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  filledText: {
-    color: colors.WHITE,
-  },
-  outlinedText: {
-    color: colors.BLUE_400,
-  },
+  largeText: {fontSize: 15, fontWeight: '500'},
+  mediumText: {fontSize: 14, fontWeight: '500'},
+  smallText: {fontSize: 14, fontWeight: '500'},
+  filledText: {color: colors.WHITE},
+  outlinedText: {color: colors.BLUE_400},
 });
-
-export default CustomButton;
