@@ -10,6 +10,10 @@ const introNavigations = {
   TOS_AGREEMENT_VIEWER: 'AgreementViewer',
   //프로필설정
   INTRO_PROFILE: 'IntroProfile',
+  //온보딩
+  INTRO_ONBOARDING_1: 'IntroOnboarding1',
+  INTRO_ONBOARDING_2: 'IntroOnboarding2',
+  INTRO_ONBOARDING_3: 'IntroOnboarding3',
 } as const;
 
 const postNavigations = {
