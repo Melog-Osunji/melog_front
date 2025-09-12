@@ -23,6 +23,7 @@ const colors = {
   PINK_700: '#C63B64',
   RED_300: '#FFB4B4',
   RED_500: '#FF5F5F',
+  ERROR_RED: '#F04438',
 
   LINE_BLUE: '#2F8EB6',
 
