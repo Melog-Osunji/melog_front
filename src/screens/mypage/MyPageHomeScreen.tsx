@@ -73,7 +73,7 @@ function MyPageHomeScreen() {
                     </View>
                 </View>
                 <View style={styles.buttonWrap}>
-                    <TouchableOpacity style={styles.button}>
+                    <TouchableOpacity style={styles.button} onPress={() => navigation.navigate(myPageNavigations.MYPAGE_EDIT)}>
                         <Text style={[styles.followText, { color: colors.GRAY_500 }]}>프로필 편집</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.button}>
@@ -306,6 +306,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
+
 });
 
 export default MyPageHomeScreen;
