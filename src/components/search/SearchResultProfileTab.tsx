@@ -1,45 +1,106 @@
 import React from 'react';
-import { ScrollView, Text } from 'react-native';
+import { ScrollView, Text, StyleSheet, Pressable, View } from 'react-native';
 import styled from 'styled-components/native';
 import {colors} from '@/constants';
+import EmptyTab from '@/components/search/EmptyTab'
+import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 
-const SearchResultProfileTab = () => {
-  return (
-    <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16, }}>
-      <FirstView>
-          <SectionTitle>인기 미디어</SectionTitle>
-      </FirstView>
+type Props = { keyword?: string };
 
-      <SecondView>
-          <SectionTitle>실시간 인기 피드</SectionTitle>
-      </SecondView>
+const mock: any[] = []; // ← 비었을 때 EmptyState가 보이도록 가정
+
+const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
+    useHideTabBarOnFocus();
+    const data = mock ?? [];
+
+    if (data.length === 0) {
+        return (
+          <EmptyTab
+            keyword={keyword}
+            fullScreen
+          />
+        );
+      }
+
+    return (
+    <ScrollView contentContainerStyle={styles.content}>
+    {mock.map((id, idx) => (
+      <View
+        key={id}
+        style={[styles.item, idx === mock.length - 1 && styles.itemLast, idx === 0 && styles.itemFirst]}
+      >
+        <View style={styles.avatar} />
+        <View style={styles.textWrap}>
+          <Text style={styles.name}>아이디</Text>
+          <Text style={styles.bio}>자기소개하는 글입니다.</Text>
+        </View>
+
+        <Pressable style={styles.followBtn}>
+          <Text style={styles.followLabel}>팔로우</Text>
+        </Pressable>
+      </View>
+    ))}
     </ScrollView>
-  );
+    );
 };
 
-const FirstView = styled.View`
-  padding : 0px 0px 24px 0px;
-  flex-direction: column;
-  gap:16px;
-`;
-
-const SectionTitle = styled.Text`
-  font-size: 17px;
-  font-weight: 700;
-  margin-bottom: 10px;
-  color: ${colors.GRAY_600};
-`;
-
-const SecondView = styled.View`
-  padding : 16px 0px 0px 0px;
-  flex-direction: column;
-  gap:24px;
-`;
-
-const RowBetween = styled.View`
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-`;
+const styles = StyleSheet.create({
+  content: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+  },
+  item: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+  },
+  itemFirst: {
+    paddingTop:0,
+  },
+  itemLast:{
+    paddingBottom:0,
+  },
+// 왼쪽 아바타(회색 동그라미)
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 22,
+    backgroundColor: colors.GRAY_300,
+    marginRight: 12,
+  },
+  // 텍스트 영역
+  textWrap: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 15,
+    fontWeight: '500',
+    lineHeight: 22,
+    letterSpacing: 0.15,
+    color: colors.GRAY_600,
+  },
+  bio: {
+    fontSize: 14,
+    fontWeight: '400',
+    lineHeight: 20,
+    letterSpacing: 0.2,
+    color: colors.GRAY_500,
+  },
+  // 팔로우 버튼
+  followBtn: {
+    height:36,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    backgroundColor: colors.BLUE_400,
+    borderRadius: 18,
+  },
+  followLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+    letterSpacing: 0.2,
+    color: colors.WHITE,
+  },
+})
 
 export default SearchResultProfileTab;

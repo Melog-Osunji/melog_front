@@ -26,6 +26,9 @@ const colors = {
   ERROR_RED: '#F04438',
 
   LINE_BLUE: '#2F8EB6',
+
+  DOT_ACTIVE: '#888888',
+  DOT_DEFAULT: '#D9D9D9'
 };
 
 export {colors};

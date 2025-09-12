@@ -1,27 +1,25 @@
 import React from 'react';
+import {StackScreenProps} from '@react-navigation/stack';
+import {StyleSheet, Text, View} from 'react-native';
 
-import {StyleSheet, Text, View, Image} from 'react-native';
+import {IntroStackParamList} from '@/navigations/stack/IntroStackNavigator';
+import {introNavigations} from '@/constants';
+import CustomButton from '@/components/common/CustomButton';
 
-function WelcomeScreen() {
+type IntroScreenProps = StackScreenProps<
+  IntroStackParamList,
+  typeof introNavigations.INTRO_WELCOME
+>;
+
+function AuthHomeScreen({navigation}: IntroScreenProps) {
   return (
     <View style={styles.container}>
-      <Image
-        source={require('@/assets/common/bg.png')}
-        style={{
-          ...StyleSheet.absoluteFillObject,
-          width: '100%',
-          height: '100%',
-        }}
+      <Text>welcome page</Text>
+      <CustomButton
+        label="다음"
+        onPress={() => navigation.navigate(introNavigations.PRE_ONBOARDING)}
+        size="medium"
       />
-      <Image
-        source={require('@/assets/common/app_name.png')}
-        style={{
-          width: 170,
-          height: 80,
-          resizeMode: 'contain',
-        }}
-      />
-      <Text style={styles.text}>클래식을 감상하고 기록할 수 있는 공간</Text>
     </View>
   );
 }
@@ -32,11 +30,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  text: {
-    fontFamily: 'NotoSansKR',
-    fontSize: 16,
-    color: '#2F8EB6',
-  },
 });
 
-export default WelcomeScreen;
+export default AuthHomeScreen;

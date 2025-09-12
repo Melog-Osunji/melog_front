@@ -1,6 +1,5 @@
 import React from 'react';
-import styled from 'styled-components/native';
-import { TouchableOpacity, FlatList } from 'react-native';
+import { TouchableOpacity, FlatList, Text, View, StyleSheet } from 'react-native';
 import { colors } from '@/constants';
 
 interface Props {
@@ -9,64 +8,60 @@ interface Props {
   onSelect: (text: string) => void;
 }
 
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const AutoCompleteList: React.FC<Props> = ({ suggestions, searchText, onSelect }) => {
-    const renderHighlightedText = (text: string) => {
-        if (!searchText) return <SuggestionText>{text}</SuggestionText>;
+  const renderHighlightedText = (text: string) => {
+    if (!searchText) return <Text style={styles.suggestionText}>{text}</Text>;
 
-        const regex = new RegExp(`(${searchText})`, 'i');
-        const parts = text.split(regex);
+    const pattern = new RegExp(`(${escapeRegExp(searchText)})`, 'i');
+    const parts = text.split(pattern);
 
-        return (
-          <SuggestionText>
-            {parts.map((part, index) => (
-              regex.test(part) ? (
-                <HighlightText key={index}>{part}</HighlightText>
-              ) : (
-                <NormalText key={index}>{part}</NormalText>
-              )
-            ))}
-          </SuggestionText>
-        );
-      };
+    return (
+      <Text style={styles.suggestionText}>
+        {parts.map((part, idx) => (
+          <Text key={`${part}-${idx}`} style={pattern.test(part) ? styles.highlightText : styles.normalText}>
+            {part}
+          </Text>
+        ))}
+      </Text>
+    );
+  };
 
   return (
-      <ListContainer>
-        <FlatList
-          data={suggestions}
-          keyExtractor={(item, index) => `${item}-${index}`}
-          renderItem={({ item }) => (
-            <SuggestionItem onPress={() => onSelect(item)}>
-              {renderHighlightedText(item)}
-            </SuggestionItem>
-          )}
-          keyboardShouldPersistTaps="handled"
-        />
-      </ListContainer>
-    );
+    <View style={styles.listContainer}>
+      <FlatList
+        data={suggestions}
+        keyExtractor={(item, index) => `${item}-${index}`}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.suggestionItem} onPress={() => onSelect(item)}>
+            {renderHighlightedText(item)}
+          </TouchableOpacity>
+        )}
+        keyboardShouldPersistTaps="handled"
+      />
+    </View>
+  );
 };
 
-const ListContainer = styled.View`
-  width: 100%;
-`;
+const styles = StyleSheet.create({
+  listContainer: {
+    width: '100%',
+  },
+  suggestionItem: {
+    paddingVertical: 12,
+  },
+  suggestionText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: colors.GRAY_600,
+  },
+  normalText: {
+    color: colors.GRAY_600,
+  },
+  highlightText: {
+    color: colors.BLUE_500,
+  },
+});
 
-const SuggestionItem = styled(TouchableOpacity)`
-  padding: 12px 0px;
-`;
-
-
-const SuggestionText = styled.Text`
-  font-size: 15px;
-  line-height:22px;
-  color: ${colors.GRAY_600};
-  flex-direction: row;
-  flex-wrap: wrap;
-`;
-
-const NormalText = styled.Text`
-  color: ${colors.GRAY_600};
-`;
-
-const HighlightText = styled.Text`
-  color: ${colors.BLUE_500};
-`;
 export default AutoCompleteList;

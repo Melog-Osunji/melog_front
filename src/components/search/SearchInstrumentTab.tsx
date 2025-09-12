@@ -1,58 +1,57 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
-import styled from 'styled-components/native';
-import {colors} from '@/constants';
-
+import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { colors } from '@/constants';
 
 const SearchInstrumentTab = () => {
   return (
     <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16 }}>
-      <SectionTitle>인기 검색어</SectionTitle>
-      <KeywordWrap>
+      <Text style={styles.sectionTitle}>인기 검색어</Text>
+      <View style={styles.keywordWrap}>
         {Array.from({ length: 7 }).map((_, i) => (
-          <Keyword key={i}>
-            <Circle />
-            <KeywordText>악기</KeywordText>
-          </Keyword>
+          <View key={i} style={styles.keyword}>
+            <View style={styles.circle} />
+            <Text style={styles.keywordText}>악기</Text>
+          </View>
         ))}
-      </KeywordWrap>
+      </View>
     </ScrollView>
   );
 };
 
-const SectionTitle = styled.Text`
-  font-size: 17px;
-  font-weight: 700;
-  margin-bottom: 28px;
-  color: ${colors.GRAY_600};
-`;
-
-const KeywordWrap = styled.View`
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 16px;
-`;
-
-const Keyword = styled.View`
-  padding: 8px 16px 8px 8px;
-  background-color: ${colors.GRAY_100};
-  border-radius: 60px;
-  flex-direction: row;
-  gap:10px;
-  justify-content: center;
-  align-items: center;
-`;
-
-const KeywordText = styled.Text`
-  font-size: 15px;
-  color: ${colors.GRAY_400};
-`;
-
-const Circle = styled.View`
-  width: 32px;
-  height: 32px;
-  background-color: #cfcfcf;
-  border-radius: 100px;
-`;
+const styles = StyleSheet.create({
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 28,
+    color: colors.GRAY_600,
+  },
+  keywordWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  keyword: {
+    paddingTop: 8,
+    paddingRight: 16,
+    paddingBottom: 8,
+    paddingLeft: 8,
+    backgroundColor: colors.GRAY_100,
+    borderRadius: 60,
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  keywordText: {
+    fontSize: 15,
+    color: colors.GRAY_400,
+  },
+  circle: {
+    width: 32,
+    height: 32,
+    backgroundColor: '#cfcfcf',
+    borderRadius: 100,
+  },
+});
 
 export default SearchInstrumentTab;

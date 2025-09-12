@@ -1,6 +1,8 @@
 const introNavigations = {
   //첫화면
   INTRO_WELCOME: 'IntroWelcome',
+  //시작 전 온보딩
+  PRE_ONBOARDING: 'PreOnboarding',
   //로그인
   INTRO_LOGIN: 'IntroLogin',
   //이용약관

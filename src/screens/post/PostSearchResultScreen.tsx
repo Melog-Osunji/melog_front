@@ -1,18 +1,23 @@
 import React, {useState, useEffect} from 'react';
 import {StackScreenProps} from '@react-navigation/stack';
-import styled from 'styled-components/native';
+import {
+  ScrollView,
+  Text,
+  Dimensions,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 import {colors, postNavigations} from '@/constants';
 import IconButton from '@/components/common/IconButton';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {ScrollView, Text, Dimensions} from 'react-native';
 import SearchResultAllTab from '@/components/search/SearchResultAllTab';
 import SearchResultProfileTab from '@/components/search/SearchResultProfileTab';
 import SearchResultFeedTab from '@/components/search/SearchResultFeedTab';
 import SearchResultHarmonyTab from '@/components/search/SearchResultHarmonyTab';
 import SearchInputField from '@/components/search/SearchInputField';
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
-
 
 type IntroScreenProps = StackScreenProps<
   PostStackParamList,
@@ -22,22 +27,37 @@ type IntroScreenProps = StackScreenProps<
 const DEVICE_WIDTH = Dimensions.get('window').width;
 const TAB_WIDTH = DEVICE_WIDTH / 4;
 
-function PostSearchResultScreen({navigation}: IntroScreenProps) {
+function PostSearchResultScreen({navigation, route}: IntroScreenProps) {
+  useHideTabBarOnFocus();
 
-    useHideTabBarOnFocus();
   const [selectedTab, setSelectedTab] = useState<
     'all' | 'profile' | 'feed' | 'harmony'
   >('all');
-  const [keyword, setKeyword] = useState('Bach');
+  const initial = route.params?.searchKeyword ?? '';
+  const [text, setText] = useState(initial);
+
+  const [keyword, setKeyword] = useState(initial);
+
+  // 다른 화면에서 새 키워드로 다시 진입했을 때 반영
+  useEffect(() => {
+      if (route.params?.searchKeyword && route.params.searchKeyword !== keyword) {
+        setText(route.params.searchKeyword);
+        setKeyword(route.params.searchKeyword);
+      }
+    }, [route.params?.searchKeyword]);
+
 
   const handleSearchSubmit = () => {
-    console.log('검색어:', keyword);
-    // 필터링 또는 API 호출 로직 넣기
+    const q = text.trim();
+    if (!q) return;
+    setKeyword(q);
+    Keyboard.dismiss();
   };
 
   return (
-    <Container>
-      <Header>
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
         <IconButton<PostStackParamList>
           imageSource={require('@/assets/icons/post/BackArrow.png')}
           target={'goBack'}
@@ -49,101 +69,147 @@ function PostSearchResultScreen({navigation}: IntroScreenProps) {
           placeholder="작곡가, 연주가, 장르, 시대 등"
           onSubmitEditing={handleSearchSubmit}
         />
-        <CancelButton
+        <TouchableOpacity
+          style={styles.cancelButton}
           onPress={() => navigation.navigate(postNavigations.POST_SEARCH)}>
-          <CancelText>취소</CancelText>
-        </CancelButton>
-      </Header>
-      <TabRowScroll>
-        <TabScrollContent>
-          <TabButton
-            isActive={selectedTab === 'all'}
-            onPress={() => setSelectedTab('all')}>
-            <TabText isActive={selectedTab === 'all'}>전체</TabText>
-          </TabButton>
-          <TabButton
-            isActive={selectedTab === 'profile'}
-            onPress={() => setSelectedTab('profile')}>
-            <TabText isActive={selectedTab === 'profile'}>프로필</TabText>
-          </TabButton>
-          <TabButton
-            isActive={selectedTab === 'feed'}
-            onPress={() => setSelectedTab('feed')}>
-            <TabText isActive={selectedTab === 'feed'}>피드</TabText>
-          </TabButton>
-          <TabButton
-            isActive={selectedTab === 'harmony'}
-            onPress={() => setSelectedTab('harmony')}>
-            <TabText isActive={selectedTab === 'harmony'}>하모니룸</TabText>
-          </TabButton>
-        </TabScrollContent>
-      </TabRowScroll>
+          <Text style={styles.cancelText}>취소</Text>
+        </TouchableOpacity>
+      </View>
 
-      <TabContent>
-        {selectedTab === 'all' && <SearchResultAllTab />}
-        {selectedTab === 'profile' && <SearchResultProfileTab />}
-        {selectedTab === 'feed' && <SearchResultFeedTab />}
-        {selectedTab === 'harmony' && <SearchResultHarmonyTab />}
-      </TabContent>
-    </Container>
+      {/* Tabs */}
+      <View style={styles.tabRowScroll}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabScrollContent}>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              selectedTab === 'all' && styles.tabButtonActive,
+            ]}
+            onPress={() => setSelectedTab('all')}>
+            <Text
+              style={[styles.tabText, selectedTab === 'all' && styles.tabTextActive]}>
+              전체
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              selectedTab === 'profile' && styles.tabButtonActive,
+            ]}
+            onPress={() => setSelectedTab('profile')}>
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === 'profile' && styles.tabTextActive,
+              ]}>
+              프로필
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              selectedTab === 'feed' && styles.tabButtonActive,
+            ]}
+            onPress={() => setSelectedTab('feed')}>
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === 'feed' && styles.tabTextActive,
+              ]}>
+              피드
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              selectedTab === 'harmony' && styles.tabButtonActive,
+            ]}
+            onPress={() => setSelectedTab('harmony')}>
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === 'harmony' && styles.tabTextActive,
+              ]}>
+              하모니룸
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+
+      {/* Tab Content */}
+      <View style={styles.tabContent}>
+        {selectedTab === 'all' && <SearchResultAllTab keyword={keyword}/>}
+        {selectedTab === 'profile' && <SearchResultProfileTab keyword={keyword}/>}
+        {selectedTab === 'feed' && <SearchResultFeedTab keyword={keyword}/>}
+        {selectedTab === 'harmony' && <SearchResultHarmonyTab keyword={keyword}/>}
+      </View>
+    </SafeAreaView>
   );
 }
 
-// styledComponent
-const Header = styled.View`
-  width: 100%;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom-width: 1px;
-  border-bottom-color: ${colors.GRAY_100};
-`;
-
-const Container = styled(SafeAreaView)`
-  flex: 1;
-  align-items: center;
-  background-color: ${colors.WHITE};
-`;
-const TabRowScroll = styled.View`
-  width: 100%;
-  border-bottom-width: 1px;
-  border-bottom-color: transparent;
-`;
-const TabScrollContent = styled(ScrollView).attrs({
-  horizontal: true,
-  showsHorizontalScrollIndicator: false,
-  contentContainerStyle: {
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center', // 기존 styled(Container)와 동일
+    backgroundColor: colors.WHITE,
+  },
+  header: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.GRAY_100,
+  },
+  tabRowScroll: {
+    width: '100%',
+    borderBottomWidth: 1,
+    borderBottomColor: 'transparent',
+  },
+  tabScrollContent: {
     alignItems: 'center',
     paddingHorizontal: 0,
   },
-})``;
-const TabButton = styled.TouchableOpacity<{isActive: boolean}>`
-  padding: 12px 18px;
-  width: ${TAB_WIDTH}px;
-  border-bottom-width: ${({isActive}) => (isActive ? 2 : 0)}px;
-  border-bottom-color: ${({isActive}) =>
-    isActive ? colors.LINE_BLUE : 'transparent'};
-  align-items: center;
-  height: 100%;
-`;
-const TabText = styled.Text<{isActive: boolean}>`
-  font-size: 16px;
-  color: ${({isActive}) => (isActive ? colors.LINE_BLUE : colors.GRAY_500)};
-  font-weight: ${({isActive}) => (isActive ? 'bold' : 'normal')};
-`;
-
-const TabContent = styled.View`
-  flex: 1;
-`;
-
-const CancelButton = styled.TouchableOpacity`
-  margin-left: 8px;
-`;
-
-const CancelText = styled.Text`
-  font-size: 12px;
-  color: ${colors.GRAY_600};
-`;
+  tabButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    width: TAB_WIDTH,
+    alignItems: 'center',
+    height: '100%',
+    borderBottomWidth: 0,
+    borderBottomColor: 'transparent',
+  },
+  tabButtonActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: colors.LINE_BLUE,
+  },
+  tabText: {
+    fontSize: 16,
+    color: colors.GRAY_500,
+    fontWeight: 'normal',
+  },
+  tabTextActive: {
+    color: colors.LINE_BLUE,
+    fontWeight: 'bold',
+  },
+  tabContent: {
+    flex: 1,
+    width: '100%',
+  },
+  cancelButton: {
+    marginLeft: 8,
+  },
+  cancelText: {
+    fontSize: 12,
+    color: colors.GRAY_600,
+  },
+});
 
 export default PostSearchResultScreen;
