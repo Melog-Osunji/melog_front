@@ -10,15 +10,14 @@ import Toast from '@/components/common/Toast';
 
 type IntroScreenProps = StackScreenProps<
   IntroStackParamList,
-  typeof introNavigations.INTRO_ONBOARDING_3
+  typeof introNavigations.INTRO_ONBOARDING_1
 >;
 
 const MAX = 3;
-const DATA = ['텍스트1','텍스트2','텍스트3','텍스트4','텍스트5','텍스트6','텍스트7','텍스트8', '텍스트9' ];
-
+const DATA = ['바흐','모차르트','베토벤','브람스','슈만','멘델스존','차이콥스키','비발디', '드뷔시', '김택수', '스트라빈스키', '사리아호'];
 const { width: SCREEN_W } = Dimensions.get('window');
 
-function Onboarding3Screen({navigation, route}: IntroScreenProps) {
+function Onboarding1Screen({navigation, route}: IntroScreenProps) {
     const [selected, setSelected] = useState<string[]>([]);
     const canNext = selected.length > 0;
 
@@ -34,8 +33,8 @@ function Onboarding3Screen({navigation, route}: IntroScreenProps) {
     const toggle = (name: string) => {
         const has = selected.includes(name);
         if (!has && selected.length >= MAX) {
-          showToast(`최대 ${MAX}개까지 선택할 수 있어요`);
-          return;
+            showToast(`최대 ${MAX}개까지 선택할 수 있어요`);
+            return;
         }
         setSelected(prev => has ? prev.filter(v => v !== name) : [...prev, name]);
     };
@@ -43,8 +42,8 @@ function Onboarding3Screen({navigation, route}: IntroScreenProps) {
     const renderItem = ({ item }: { item: string }) => {
         const on = selected.includes(item);
         return (
-          <TouchableOpacity onPress={() => toggle(item)} style={styles.chip}>
-            <View style={[styles.circle, on && styles.chipOn]} />
+          <TouchableOpacity onPress={() => toggle(item)} style={[styles.chip, on && styles.chipOn]}>
+            <View style={styles.circle} />
             <Text style={[styles.keywordText, on && styles.keywordTextActive]}>{item}</Text>
           </TouchableOpacity>
         );
@@ -58,35 +57,36 @@ function Onboarding3Screen({navigation, route}: IntroScreenProps) {
     return (
         <View style={styles.container}>
           <View style={styles.header}>
-            <IndicatorProgressBar step={3} total={3} />
+            <IndicatorProgressBar step={1} total={3} />
           </View>
-          <Text style={styles.title}>즐겨듣는{'\n'}<Text style={styles.activeText}>악기</Text>를 알려주세요.</Text>
+          <Text style={styles.title}>어떤 <Text style={styles.activeText}>작곡가</Text>의{'\n'}곡을 선호하시나요?</Text>
           <Text style={styles.caption}>최대 {MAX}개까지 선택할 수 있어요.</Text>
           <FlatList
               data={DATA}
               keyExtractor={(i) => i}
               renderItem={renderItem}
-              numColumns={3}
-              columnWrapperStyle={{ gap: 16 }}
-              contentContainerStyle={{ gap: 12, paddingBottom: 12, alignItems:'center' }}
+              numColumns={2}
+              columnWrapperStyle={{ gap: 12 }}
+              contentContainerStyle={{ gap: 12, paddingBottom: 12 }}
           />
           <View style={styles.bottom}>
               <TouchableOpacity
                 style={bottomBtnStyle}
                 disabled={!canNext}
-                onPress={() => navigation.navigate(introNavigations.INTRO_WELCOME)}
+                onPress={() => navigation.navigate(introNavigations.INTRO_ONBOARDING_2)}
                 activeOpacity={0.9}
               >
                 <Text style={styles.primaryTxt}>다음</Text>
               </TouchableOpacity>
-              <Text style={styles.skip} onPress={() => navigation.navigate(introNavigations.INTRO_WELCOME)}>건너뛰기</Text>
+              <Text style={styles.skip} onPress={() => navigation.navigate(introNavigations.INTRO_ONBOARDING_2)}>건너뛰기</Text>
           </View>
+
           <Toast
-                message={toastMessage}
-                visible={toastVisible}
-                onHide={() => setToastVisible(false)}
-                duration={2000}
-            />
+              message={toastMessage}
+              visible={toastVisible}
+              onHide={() => setToastVisible(false)}
+              duration={2000}
+          />
         </View>
     );
 }
@@ -123,22 +123,25 @@ const styles = StyleSheet.create({
   },
   // 선택 칩
   chip: {
-    flexDirection: 'column',
-    gap: 8,
+    paddingTop: 8,
+    paddingRight: 16,
+    paddingBottom: 8,
+    paddingLeft: 8,
+    backgroundColor: colors.GRAY_100,
+    borderRadius: 60,
+    flexDirection: 'row',
+    gap: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  circle: {
-      width: (SCREEN_W-80)/3,
-      height: (SCREEN_W-80)/3,
-      backgroundColor: colors.WHITE,
-      borderRadius: 100,
-      borderWidth: 1,
-      borderColor: colors.GRAY_200,
-  },
   chipOn: {
-    borderColor: colors.BLUE_400,
-    backgroundColor: colors.BLUE_200,
+    backgroundColor: colors.BLUE_300,
+  },
+  circle: {
+      width: 32,
+      height: 32,
+      backgroundColor: colors.DOT_DEFAULT,
+      borderRadius: 100,
   },
   keywordText: {
       fontSize: 15,
@@ -179,4 +182,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Onboarding3Screen;
+export default Onboarding1Screen;

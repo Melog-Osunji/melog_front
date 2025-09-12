@@ -3,8 +3,9 @@ const introNavigations = {
   INTRO_WELCOME: 'IntroWelcome',
   //시작 전 온보딩
   PRE_ONBOARDING: 'PreOnboarding',
-//   INTRO_ONBOARDING_2: 'IntroOnboarding2',
-//   INTRO_ONBOARDING_3: 'IntroOnboarding3',
+  INTRO_ONBOARDING_1: 'IntroOnboarding1',
+  INTRO_ONBOARDING_2: 'IntroOnboarding2',
+  INTRO_ONBOARDING_3: 'IntroOnboarding3',
 } as const;
 
 const postNavigations = {

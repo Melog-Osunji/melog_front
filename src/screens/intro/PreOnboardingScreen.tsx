@@ -56,6 +56,7 @@ function PreOnboardingScreen({navigation, route}: IntroScreenProps) {
         if(isLast) {
             if(onDone) return onDone();
             Alert.alert('완료', '여기서 로그인/다음 단계로 이동 처리하세요.');
+            navigation.navigate(introNavigations.INTRO_ONBOARDING_1);
             return;
         }
         const next = index + 1;
@@ -67,6 +68,7 @@ function PreOnboardingScreen({navigation, route}: IntroScreenProps) {
     const onSkip = () => {
         if (onDone) return onDone();
         Alert.alert('건너뛰기', '여기서 로그인/다음 단계로 이동 처리하세요.');
+        navigation.navigate(introNavigations.INTRO_ONBOARDING_1);
     };
 
     const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -143,13 +145,47 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    titleWrap: { marginTop: 24 },
-    title: { fontSize: 24, fontWeight: '800', color: colors.GRAY_600, lineHeight: 32, fontFamily: 'Noto Sans KR', textAlign:'center', },
-    captionWrap: { marginTop: 24, width:SCREEN_W*0.8,flex:1, alignItems: 'center', backgroundColor:colors.GRAY_100, marginBottom: 24,},
-    caption: { color: colors.GRAY_400, fontSize: 24, fontWeight: '800', lineHeight: 32, fontFamily: 'Noto Sans KR', },
-    bottom: { paddingHorizontal: 20, paddingBottom: 24 },
-    dots: { flexDirection: 'row', alignSelf: 'center', gap: 6, marginBottom: 36 },
-    dot: { width: 8, height: 8, borderRadius: 5 },
+    titleWrap: {
+        marginTop: 24
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: '800',
+        color: colors.GRAY_600,
+        lineHeight: 32,
+        fontFamily: 'Noto Sans KR',
+        textAlign:'center'
+    },
+    captionWrap: {
+        marginTop: 24,
+        width:SCREEN_W*0.8,
+        flex:1,
+        alignItems: 'center',
+        backgroundColor:colors.GRAY_100,
+        marginBottom: 24
+    },
+    caption: {
+        color: colors.GRAY_400,
+        fontSize: 24,
+        fontWeight: '800',
+        lineHeight: 32,
+        fontFamily: 'Noto Sans KR'
+    },
+    bottom: {
+        paddingHorizontal: 20,
+        paddingBottom: 24
+    },
+    dots: {
+        flexDirection: 'row',
+        alignSelf: 'center',
+        gap: 6,
+        marginBottom: 36
+    },
+    dot: {
+        width: 8,
+        height: 8,
+        borderRadius: 5
+    },
     primaryBtn: {
         width: SCREEN_W-40,
         height: 52,
@@ -158,8 +194,22 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    primaryTxt: { color: colors.WHITE, fontWeight: '700', fontSize: 15, lineHeight:32, letterSpacing: 0.25, fontFamily: 'Noto Sans KR', },
-    skip: { marginTop: 13, textAlign: 'center', color: colors.GRAY_400, fontSize: 12, lineHeight:16, letterSpacing:0.2, fontFamily: 'Noto Sans KR' },
+    primaryTxt: {
+        color: colors.WHITE,
+        fontWeight: '700',
+        fontSize: 15,
+        lineHeight:32,
+        letterSpacing: 0.25,
+        fontFamily: 'Noto Sans KR'
+    },
+    skip: {
+        marginTop: 13,
+        textAlign: 'center',
+        color: colors.GRAY_400,
+        fontSize: 12, lineHeight:16,
+        letterSpacing:0.2,
+        fontFamily: 'Noto Sans KR'
+    },
 });
 
 export default PreOnboardingScreen;
