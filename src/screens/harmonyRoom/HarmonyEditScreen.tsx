@@ -25,6 +25,7 @@ import TagInputBox from '@/components/harmonyRoom/TagInputBox';
 import MusicSearchBottomSheet from '@/components/post/MusicSearchBottomSheet';
 import { useHarmonyRoomContext } from '@/contexts/HarmonyRoomContext';
 import CustomButton from '@/components/common/CustomButton';
+import {launchImageLibrary} from 'react-native-image-picker';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
@@ -35,7 +36,7 @@ const ALL_KEYWORDS = [
   '집중','공부','아침','저녁','명상','수면','봄','여름','가을','겨울'
 ];
 
-function HarmonyCreateScreen() {
+function HarmonyEditScreen() {
     const navigation = useNavigation<NavigationProp>();
     const { addRoom } = useHarmonyRoomContext();
 
@@ -46,6 +47,15 @@ function HarmonyCreateScreen() {
     const [personCount, setPersonCount] = useState(0);
     const [tags, setTags] = useState([]);
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+    const handleSelectImage = () => {
+        launchImageLibrary({mediaType: 'photo', quality: 0.8}, response => {
+          if (response.assets && response.assets.length > 0) {
+            setSelectedImage(response.assets[0].uri || null);
+          }
+        });
+    };
 
     const handleMusicPress = () => {
         setIsMusicSearchVisible(true);
@@ -119,7 +129,14 @@ function HarmonyCreateScreen() {
                   target={'goBack'}
                   size={24}
                 />
-                <Text style={styles.sectionTitle}>하모니룸 제작하기</Text>
+                <Text style={styles.sectionTitle}>하모니룸 변경하기</Text>
+            </View>
+
+            {/* 이미지 수정 */}
+            <View style={styles.profileWrap}>
+                <TouchableOpacity style={styles.profile} onPress={() => {handleSelectImage();}}>
+                    <Image source={require('@/assets/icons/mypage/ProfileCamera.png')} style={styles.icon} />
+                </TouchableOpacity>
             </View>
 
             {/* 방 이름 */}
@@ -159,7 +176,6 @@ function HarmonyCreateScreen() {
                     maxTags={3}
                 />
             </View>
-
             {/* 방 설명 */}
             <View style={styles.section1}>
                 <Text style={styles.label}>하모니룸 소개</Text>
@@ -204,7 +220,7 @@ function HarmonyCreateScreen() {
             {!isKeyboardVisible && (
                 <View style={styles.bottom}>
                     <CustomButton
-                        label="제작하기"
+                        label="변경하기"
                         onPress={() => {
                           navigation.navigate(harmonyNavigations.HARMONY_HOME);
                         }}
@@ -352,6 +368,26 @@ const styles = StyleSheet.create({
         marginTop: 'auto',
         paddingTop: 6,
     },
+    profileWrap: {
+        width: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingTop: 20,
+    },
+    profile: {
+        width: 75,
+        height: 75,
+        borderRadius: 999,
+        backgroundColor: colors.GRAY_100,
+        position: 'relative',
+    },
+    icon: {
+        width: 22,
+        height: 22,
+        position:'absolute',
+        bottom:0,
+        right:0,
+    },
 });
 
-export default HarmonyCreateScreen;
+export default HarmonyEditScreen;
