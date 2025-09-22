@@ -15,7 +15,7 @@ const EmptyTab: React.FC<Props> = ({
       fullScreen = true,
       topInset = 0,
     }) => {
-    const title = keyword ? `"${keyword}"` + '와(과) 일치하는 검색 결과가 없어요' : '결과가 없어요';
+    const title = keyword ? `"${keyword}"` + '와(과) 일치하는 검색 결과가 없어요' : '아직 작성된 피드가 없어요.';
     return (
         <View
           style={[
