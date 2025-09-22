@@ -3,6 +3,9 @@ import {createStackNavigator} from '@react-navigation/stack';
 import HarmonyHomeScreen from '@/screens/harmonyRoom/HarmonyHomeScreen';
 import HarmonyPageScreen from '@/screens/harmonyRoom/HarmonyPageScreen';
 import HarmonyCreateScreen from '@/screens/harmonyRoom/HarmonyCreateScreen';
+import HarmonyEditScreen from '@/screens/harmonyRoom/HarmonyEditScreen';
+import HarmonyInfoScreen from '@/screens/harmonyRoom/HarmonyInfoScreen';
+import HarmonySettingScreen from '@/screens/harmonyRoom/HarmonySettingScreen';
 import {harmonyNavigations} from '@/constants';
 import {MAIN_TAB_SCREEN_OPTIONS} from '@/navigations/tab/MainTabNavigator';
 import {HarmonyRoomInfo} from '@/constants/types';
@@ -15,6 +18,9 @@ export type HarmonyStackParamList = {
     roomData?: HarmonyRoomInfo;
   };
   [harmonyNavigations.HARMONY_CREATE]: undefined;
+  [harmonyNavigations.HARMONY_INFO] : {roomID: string, roomData?: HarmonyRoomInfo};
+  [harmonyNavigations.HARMONY_EDIT]: {roomID: string};
+  [harmonyNavigations.HARMONY_SETTING] : {roomID: string};
 };
 
 const Stack = createStackNavigator<HarmonyStackParamList>();
@@ -36,6 +42,21 @@ function HarmonyStackNavigator() {
         <Stack.Screen
           name={harmonyNavigations.HARMONY_CREATE}
           component={HarmonyCreateScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name={harmonyNavigations.HARMONY_INFO}
+          component={HarmonyInfoScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name={harmonyNavigations.HARMONY_EDIT}
+          component={HarmonyEditScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name={harmonyNavigations.HARMONY_SETTING}
+          component={HarmonySettingScreen}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

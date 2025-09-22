@@ -2,6 +2,9 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
 import { colors } from '@/constants';
 import LinearGradient from 'react-native-linear-gradient';
+import { HarmonyStackParamList } from '@/navigations/stack/HarmonyStackNavigator';
+import { harmonyNavigations } from '@/constants';
+import {useNavigation} from '@react-navigation/native';
 
 export type Community = {
   id: string;
@@ -22,6 +25,8 @@ const koCompare = (a: string, b: string) => {
 };
 
 const HarmonyRoomStrip: React.FC<Props> = ({ communities, onChange }) => {
+  const navigation = useNavigation<StackNavigationProp<HarmonyStackParamList>>();
+
   const data = useMemo(() => {
     const owners = communities.filter(c => c.isOwner).sort((a, b) => koCompare(a.name, b.name));
     const favs = communities
@@ -41,8 +46,17 @@ const HarmonyRoomStrip: React.FC<Props> = ({ communities, onChange }) => {
       styles.circle,
     ];
 
+    const handlePress = () => {
+      if (isAll) {
+        onChange('all');                  // 전체는 필터 변경
+      } else {
+        const roomID = (item as Community).id; // id를 roomID로 사용
+        navigation.navigate(harmonyNavigations.HARMONY_PAGE, { roomID });
+      }
+    };
+
     return (
-      <TouchableOpacity style={styles.item} onPress={() => onChange(item.id as any)}>
+      <TouchableOpacity style={styles.item} onPress={handlePress}>
         <LinearGradient
             colors={['#64C0E6', '#68E5E5']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
