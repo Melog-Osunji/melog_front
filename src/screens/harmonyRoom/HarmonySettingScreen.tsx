@@ -46,6 +46,10 @@ function HarmonySettingScreen(){
         navigation.navigate(harmonyNavigations.HARMONY_EDIT, { roomID: roomID});
     };
 
+    const handleGoToApply = () => {
+        navigation.navigate(harmonyNavigations.HARMONY_APPLY, { roomID: roomID});
+    };
+
     const handleDelete = () => {
         setShowExitPopup(true);
     };
@@ -105,7 +109,7 @@ function HarmonySettingScreen(){
                     </View>
                     <Text style={styles.description}>운영자가 승인해야 하모니룸에 가입할 수 있어요.</Text>
                 </View>
-                <Pressable style={styles.section}>
+                <Pressable style={styles.section} onPress={handleGoToApply}>
                     <Text style={styles.menu}>가입 신청 관리</Text>
                     <View style={styles.accessWrap}>
                         <Text style={styles.accessNum}>+00</Text>

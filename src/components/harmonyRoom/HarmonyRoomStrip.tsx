@@ -49,6 +49,7 @@ const HarmonyRoomStrip: React.FC<Props> = ({ communities, onChange }) => {
     const handlePress = () => {
       if (isAll) {
         onChange('all');                  // 전체는 필터 변경
+        navigation.navigate(harmonyNavigations.HARMONY_LIST);
       } else {
         const roomID = (item as Community).id; // id를 roomID로 사용
         navigation.navigate(harmonyNavigations.HARMONY_PAGE, { roomID });
