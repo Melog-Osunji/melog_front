@@ -121,6 +121,19 @@ export interface PopularMedia {
   createdAgo: string;
 }
 
+// 캘린더 공연 인터페이스
+export interface Performance {
+    id: number;
+    title: string;
+    location: string;
+    startDate: Date;
+    endDate?: Date;
+    isBookmark: boolean;
+    leftDate?: number;
+    category: string;
+    imaUrl?: string;
+}
+
 // 피드 타입 데이터 생성 함수
 export const createFeedTypes = (contextPosts: Post[]): FeedType[] => {
   // 중복 제거를 위해 Set 사용
