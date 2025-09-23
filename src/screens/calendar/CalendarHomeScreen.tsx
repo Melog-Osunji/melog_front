@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Dimensions, FlatList} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -6,7 +6,10 @@ import {colors} from '@/constants';
 import IconButton from '@/components/common/IconButton';
 import PerformanceCard from '@/components/calender/PerformanceCard';
 import { PerformanceData } from '@/constants/dummyData';
+import CalendarExpandableSheet from '@/components/calender/CalendarExpandableSheet';
 import CalendarTopSheet from '@/components/calender/CalendarTopSheet';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
 
 const SCREEN_W = Dimensions.get('window').width;
 
@@ -23,6 +26,20 @@ function CalenderHomeScreen() {
         : PerformanceData.filter(p => p.category === selectedCategory);
 
   const bookmarked = PerformanceData.filter(p => p.isBookmark);
+
+  const markedDates = useMemo(() => {
+      const m: Record<string, boolean> = {};
+      bookmarked.forEach(p => {
+        const key = dayjs(p.startDate).format('YYYY-MM-DD'); // 필요 시 dayjs(p.startDate).format('YYYY-MM-DD')
+        if (key) m[key] = true;
+      });
+      return m;
+  }, [bookmarked]);
+
+//   const finalData = useMemo(() => {
+//       if (!selectedDate) return filteredData;
+//       return filteredData.filter(p => p.startDate === selectedDate);
+//   }, [filteredData, selectedDate]);
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
@@ -41,11 +58,17 @@ function CalenderHomeScreen() {
           <IconButton imageSource={require('@/assets/icons/post/Notice.png')} />
         </View>
 
-        {/* ⬇️ 여기서 탑시트 */}
+        {/* 탑시트 */}
         <CalendarTopSheet
-          performanceData={bookmarked}
-          onDateSelect={(d) => setSelectedDate(d)}
-        />
+            initialDate={selectedDate ?? undefined}
+            markedDates={markedDates}
+            onDateChange={(iso) => {
+              setSelectedDate(iso);
+              console.log('Selected date:', iso);
+            }}
+            useGradient
+            gradientColors={['#EFFAFF', colors.WHITE]}
+          />
 
         {/* 카테고리 칩 */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScroll}>

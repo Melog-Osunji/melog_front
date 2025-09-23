@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     performanceInfoWrap: {
         gap: 14,
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
     },
     img: {
         width: 85,

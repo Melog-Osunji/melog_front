@@ -1,276 +1,370 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Animated, PanResponder } from 'react-native';
-import { Calendar } from 'react-native-calendars';
-import LinearGradient from 'react-native-linear-gradient';
-import dayjs from 'dayjs';
-import 'dayjs/locale/ko';
-import { colors } from '@/constants';
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  PanResponder,
+  Dimensions,
+} from 'react-native';
 
-
-dayjs.locale('ko');
+// (옵션) 이미 프로젝트에 있다면 사용. 없으면 useGradient=false로 사용하세요.
+let LG: any = View;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  LG = require('react-native-linear-gradient').default;
+} catch {}
 
 const { width: SCREEN_W } = Dimensions.get('window');
-type Props = { performanceData: any[]; onDateSelect?: (date: string) => void; };
+const COLS = 7;
+const CELL = Math.floor((SCREEN_W - 48) / COLS); // 좌우 24px 패딩 가정
+const GRID_ROW_H = 48; // 숫자 한 줄 높이
+const HEADER_H = 72;   // "YYYY.MM" + 좌우 화살표 영역
+const STRIP_H = 80;    // 주간 스트립 높이
+const PADDING_V = 8;
 
-const TITLE_H  = 44;   // "YYYY.MM" 타이틀 영역 대략
-const HANDLE_H = 28;   // handleBar 전체(패딩 포함) 높이
-const SAFE_PAD = 8;
+type Marked = Record<string, boolean>;
 
+type Props = {
+  initialDate?: string;                  // 'YYYY-MM-DD'
+  markedDates?: Marked;                  // {'2025-07-17': true}
+  onDateChange?: (iso: string) => void;
+  useGradient?: boolean;                 // 상단 그라데이션 사용 여부
+  gradientColors?: string[];             // ['#EFFAFF', '#FFFFFF']
+};
 
-export default function CalendarTopSheet({ performanceData, onDateSelect }: Props) {
-  // 상태
-  const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
-  const [monthCursor, setMonthCursor] = useState(dayjs()); // 현재 표시 월
-  const [expanded, setExpanded] = useState(true);
+function toISO(d: Date) {
+  const y = d.getFullYear();
+  const m = `${d.getMonth() + 1}`.padStart(2, '0');
+  const day = `${d.getDate()}`.padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function fromISO(iso?: string) {
+  if (!iso) return new Date();
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, (m as number) - 1, d as number);
+}
+function addMonths(d: Date, diff: number) {
+  const nd = new Date(d);
+  nd.setMonth(nd.getMonth() + diff);
+  return nd;
+}
+function startOfMonth(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+function daysInMonth(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+}
+function getMonthGrid(base: Date) {
+  // 6주 = 42칸(앞/뒤 이전·다음달 날짜 포함)
+  const first = startOfMonth(base);
+  const firstDow = first.getDay(); // 0:Sun ~ 6:Sat
+  const start = new Date(first);
+  start.setDate(1 - firstDow);
+  const cells: { date: Date; inMonth: boolean }[] = [];
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    cells.push({ date: d, inMonth: d.getMonth() === base.getMonth() });
+  }
+  return cells;
+}
+function getWeekStrip(target: Date) {
+  const start = new Date(target);
+  start.setDate(target.getDate() - target.getDay()); // 주의 일요일
+  const arr: Date[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    arr.push(d);
+  }
+  return arr;
+}
 
-  // 높이 애니메이션: 초기는 펼침이므로 1
-  const [collapsedH, setCollapsedH] = useState<number>(160);
-  const [expandedH, setExpandedH] = useState<number>(380); // 측정 전 임시값
-  const progress = useRef(new Animated.Value(1)).current;
-  const height = progress.interpolate({ inputRange:[0,1], outputRange:[collapsedH, expandedH] });
+export default function CalendarTopSheet({
+  initialDate,
+  markedDates = {},
+  onDateChange,
+  useGradient = true,
+  gradientColors = ['#EFFAFF', '#FFFFFF'],
+}: Props) {
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const init = fromISO(initialDate);
+    return new Date(init.getFullYear(), init.getMonth(), 1);
+  });
+  const [selected, setSelected] = useState<Date>(() => fromISO(initialDate));
 
-  const today = dayjs().format('YYYY-MM-DD');
+  const grid = useMemo(() => getMonthGrid(currentMonth), [currentMonth]);
+  const strip = useMemo(() => getWeekStrip(selected), [selected]);
 
-  useFocusEffect(
-    useCallback(() => {
-      // 복귀할 때 펼침 상태로
-      animateTo(1);
-    }, [])
-  );
+  // expand/collapse
+  const EXPANDED_H = HEADER_H + PADDING_V * 2 + GRID_ROW_H * 6 + 8; // 6줄 그리드
+  const COLLAPSED_H = HEADER_H + STRIP_H + PADDING_V * 2;
 
-  // 마킹
-  const markedDates = useMemo(() => {
-    const m: Record<string, any> = {};
-    performanceData.forEach(p => {
-      if (p.isBookmark) {
-        const k = dayjs(p.startDate).format('YYYY-MM-DD');
-        m[k] = { ...(m[k] || {}), marked: true, dotColor: '#1E90FF' };
-      }
-    });
-    if (selectedDate) m[selectedDate] = { ...(m[selectedDate] || {}), selected: true };
-    return m;
-  }, [performanceData, selectedDate]);
+  const [isExpanded, setExpanded] = useState(true);
+  const animH = useRef(new Animated.Value(EXPANDED_H)).current;
+  const startH = useRef(EXPANDED_H);
 
-  // 펼침/접힘 애니메이션
-  const animateTo = (to: 0 | 1) =>
-    Animated.spring(progress, { toValue: to, useNativeDriver: false }).start(() => setExpanded(to === 1));
-
-  // 핸들 제스처(맨 아래에만)
-  const handlePan = useRef(
+  const pan = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > Math.abs(g.dx) && Math.abs(g.dy) > 6,
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 6,
+      onPanResponderGrant: () => {
+        startH.current = (animH as any)._value ?? (isExpanded ? EXPANDED_H : COLLAPSED_H);
+      },
       onPanResponderMove: (_, g) => {
-        const base = expanded ? 1 : 0;
-        const delta = g.dy / Math.max(1, expandedH - COLLAPSED_H); // 아래로 양수 → 펼침
-        const next = Math.min(1, Math.max(0, base + delta));
-        progress.setValue(next);
+        const next = clamp(startH.current + g.dy, COLLAPSED_H, EXPANDED_H);
+        animH.setValue(next);
       },
       onPanResponderRelease: (_, g) => {
-        const v = (progress as any).__getValue();
-        const shouldExpand = g.vy > 0.5 || v > 0.5;
-        animateTo(shouldExpand ? 1 : 0);
+        const halfway = (EXPANDED_H + COLLAPSED_H) / 2;
+        const shouldExpand =
+          g.vy < -0.3 ? false : g.vy > 0.3 ? true : (animH as any)._value > halfway;
+        snapTo(shouldExpand ? EXPANDED_H : COLLAPSED_H, shouldExpand);
       },
     })
   ).current;
 
-  // 날짜 선택
-  const onDayPress = (d: any) => {
-    setSelectedDate(d.dateString);
-    onDateSelect?.(d.dateString);
-  };
+  function snapTo(height: number, expand: boolean) {
+    Animated.spring(animH, { toValue: height, useNativeDriver: false, damping: 15, stiffness: 140 })
+      .start(() => setExpanded(expand));
+  }
 
-  // Day 커스텀(시안: 오늘은 그라데, 선택은 둥근 알약)
-  const Day = ({ date, state, marking }: any) => {
-    const isToday = date?.dateString === today;
-    const isSelected = marking?.selected;
-    const disabled = state === 'disabled';
+  function clamp(n: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, n));
+  }
 
-    let content: React.ReactNode = (
-      <Text style={[styles.dayText, disabled && { color: colors.GRAY_300 }]}>{date?.day}</Text>
-    );
+  function moveMonth(diff: number) {
+    const next = addMonths(currentMonth, diff);
+    setCurrentMonth(next);
+    // 현재 선택일이 다음 달에 없을 수 있으니, 같은 일자로 보정
+    const tmp = new Date(selected);
+    tmp.setMonth(tmp.getMonth() + diff);
+    setSelected(tmp);
+    onDateChange?.(toISO(tmp));
+  }
 
-    if (isSelected) {
-      content = (
-        <LinearGradient colors={['#08C6D3', '#A0B4E4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.selectedBadge}>
-          <Text style={styles.selectedText}>{date?.day}</Text>
-        </LinearGradient>
-      );
-    } else if (isToday) {
-      content = (
-        <LinearGradient colors={['#08C6D3', '#A0B4E4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.todayBadge}>
-          <Text style={styles.todayText}>{date?.day}</Text>
-        </LinearGradient>
-      );
-    }
+  function handleSelect(d: Date) {
+    setSelected(d);
+    onDateChange?.(toISO(d));
+  }
 
-    return (
-      <TouchableOpacity onPress={() => onDayPress(date)} style={styles.dayCell}>
-        {content}
-        {marking?.marked && <View style={styles.dot} />}
-      </TouchableOpacity>
-    );
-  };
-
-  // 월간 높이 측정 (초기 1회만)
-  const onCalendarLayout = (e: any) => {
-    const h = e.nativeEvent.layout.height;  // 달력 자체 높이
-    // 달력 + 타이틀 + 핸들 + 여유
-    const safe = Math.max(340, Math.ceil(h) + TITLE_H + HANDLE_H + SAFE_PAD);
-    if (safe !== expandedH) setExpandedH(safe);
-  };
-
-  const onWeekLayout = (e:any) => {
-    const weekH = e.nativeEvent.layout.height; // 주간 strip 실제 높이
-    const safe  = Math.max(140, Math.ceil(weekH) + TITLE_H + HANDLE_H + SAFE_PAD);
-    if (safe !== collapsedH) setCollapsedH(safe);
-  };
-
-  // 커스텀 헤더(시안: 상단 "YYYY.MM" 제목 + 우측/좌측 화살표는 달력 안)
-  const renderCalHeader = () => (
-    <View style={styles.calHeaderRow}>
-      <TouchableOpacity onPress={() => setMonthCursor(prev => prev.subtract(1, 'month'))} style={styles.arrowBtn}>
-        <Text style={styles.arrow}>{'‹'}</Text>
-      </TouchableOpacity>
-      <Text style={styles.calHeaderMonth}>{monthCursor.format('MMMM YYYY')}</Text>
-      <TouchableOpacity onPress={() => setMonthCursor(prev => prev.add(1, 'month'))} style={styles.arrowBtn}>
-        <Text style={styles.arrow}>{'›'}</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  const title = `${currentMonth.getFullYear()}.${String(currentMonth.getMonth() + 1).padStart(2, '0')}`;
+  const selectedISO = toISO(selected);
 
   return (
-    <Animated.View style={[styles.card, { height }]}>
-      {/* 시안 상단: YYYY.MM */}
-      <Text style={styles.topTitle}>{monthCursor.format('YYYY.MM')}</Text>
-
-      {/* 월간 뷰 (펼침 상태에서도 항상 렌더해서 높이 측정) */}
-      <View onLayout={onCalendarLayout}>
-        <Calendar
-          current={monthCursor.format('YYYY-MM-DD')}
-          onDayPress={onDayPress}
-          markedDates={markedDates}
-          markingType="custom"
-          dayComponent={Day}
-          renderHeader={renderCalHeader}
-          hideExtraDays={false}
-          theme={{
-            calendarBackground: 'transparent',
-            textSectionTitleColor: colors.GRAY_500,
-            dayTextColor: colors.BLACK,
-            monthTextColor: colors.BLACK,
-            textDisabledColor: colors.GRAY_300,
-            arrowColor: colors.GRAY_600,
-          }}
-          style={styles.calendar}
-        />
-      </View>
-
-      {/* 접힌 상태일 때 보이는 주간 스트립 (높이 애니메이션으로 가려짐) */}
-      {!expanded && (
-        <View style={styles.weekRow} onLayout={onWeekLayout}>
-          {[...Array(7)].map((_, i) => {
-            const d = dayjs(selectedDate).startOf('week').add(i, 'day');
-            const key = d.format('YYYY-MM-DD');
-            const isToday = key === today;
-            const isSelected = key === selectedDate;
-            const hasEvent = !!markedDates[key]?.marked;
-            return (
-              <TouchableOpacity key={key} style={styles.weekCell} onPress={() => onDayPress({ dateString: key })}>
-                <Text style={styles.weekDayName}>{d.format('dd')}</Text>
-                {isSelected ? (
-                  <LinearGradient colors={['#08C6D3', '#A0B4E4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.weekBadge}>
-                    <Text style={styles.weekBadgeText}>{d.format('D')}</Text>
-                  </LinearGradient>
-                ) : isToday ? (
-                  <LinearGradient colors={['#08C6D3', '#A0B4E4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.weekBadge}>
-                    <Text style={styles.weekBadgeText}>{d.format('D')}</Text>
-                  </LinearGradient>
-                ) : (
-                  <Text style={styles.weekNum}>{d.format('D')}</Text>
-                )}
-                {hasEvent && <View style={styles.dot} />}
-              </TouchableOpacity>
-            );
-          })}
+    <Animated.View style={[styles.container, { height: animH }]} {...pan.panHandlers}>
+      {useGradient ? (
+        <LG colors={gradientColors} start={{ x: 1, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fill}>
+          <Header title={title} onPrev={() => moveMonth(-1)} onNext={() => moveMonth(1)} />
+          {isExpanded ? (
+            <MonthGrid
+              grid={grid}
+              selectedISO={selectedISO}
+              onSelect={handleSelect}
+              markedDates={markedDates}
+            />
+          ) : (
+            <WeekStrip
+              days={strip}
+              selectedISO={selectedISO}
+              onSelect={handleSelect}
+              markedDates={markedDates}
+            />
+          )}
+          <View style={styles.handle} />
+        </LG>
+      ) : (
+        <View style={[styles.fill, { backgroundColor: '#FFFFFF' }]}>
+          <Header title={title} onPrev={() => moveMonth(-1)} onNext={() => moveMonth(1)} />
+          {isExpanded ? (
+            <MonthGrid
+              grid={grid}
+              selectedISO={selectedISO}
+              onSelect={handleSelect}
+              markedDates={markedDates}
+            />
+          ) : (
+            <WeekStrip
+              days={strip}
+              selectedISO={selectedISO}
+              onSelect={handleSelect}
+              markedDates={markedDates}
+            />
+          )}
+          <View style={styles.handle} />
         </View>
       )}
-
-      {/* 핸들: 맨 아래, 핸들만 제스처 */}
-      <View
-        style={styles.handleBar}
-        {...handlePan.panHandlers}
-        onStartShouldSetResponder={() => true}
-        onResponderRelease={() => animateTo(expanded ? 0 : 1)} // 탭으로 토글
-      >
-        <View style={styles.handle} />
-      </View>
     </Animated.View>
   );
 }
 
+function Header({ title, onPrev, onNext }: { title: string; onPrev: () => void; onNext: () => void }) {
+  return (
+    <View style={styles.header}>
+      <Text style={styles.title}>{title}</Text>
+      <View style={styles.nav}>
+        <TouchableOpacity onPress={onPrev} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Text style={styles.chev}>{'‹'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onNext} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Text style={styles.chev}>{'›'}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+function DayBubble({
+  date,
+  isSelected,
+  dimmed,
+  showDot,
+  onPress,
+}: {
+  date: Date;
+  isSelected: boolean;
+  dimmed?: boolean;
+  showDot?: boolean;
+  onPress: () => void;
+}) {
+  const day = date.getDate();
+  return (
+    <TouchableOpacity style={styles.cell} onPress={onPress} activeOpacity={0.8}>
+      <View style={[styles.dayWrap, isSelected && styles.selWrap]}>
+        {isSelected ? (
+          <LG
+            colors={['#18CAE6', '#6F8BEA']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.selBg}
+          >
+            <Text style={[styles.daySel]}>{day}</Text>
+          </LG>
+        ) : (
+          <Text style={[styles.day, dimmed && styles.dim]}>{day}</Text>
+        )}
+      </View>
+      {!isSelected && showDot && <View style={styles.dot} />}
+    </TouchableOpacity>
+  );
+}
+
+function MonthGrid({
+  grid,
+  selectedISO,
+  onSelect,
+  markedDates,
+}: {
+  grid: { date: Date; inMonth: boolean }[];
+  selectedISO: string;
+  onSelect: (d: Date) => void;
+  markedDates: Marked;
+}) {
+  return (
+    <View style={styles.grid}>
+      {grid.map(({ date, inMonth }) => {
+        const iso = toISO(date);
+        const isSel = iso === selectedISO;
+        const dot = !!markedDates[iso];
+        return (
+          <DayBubble
+            key={iso}
+            date={date}
+            isSelected={isSel}
+            dimmed={!inMonth}
+            showDot={dot}
+            onPress={() => onSelect(date)}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
+function WeekStrip({
+  days,
+  selectedISO,
+  onSelect,
+  markedDates,
+}: {
+  days: Date[];
+  selectedISO: string;
+  onSelect: (d: Date) => void;
+  markedDates: Marked;
+}) {
+  return (
+    <View style={styles.strip}>
+      {days.map((d) => {
+        const iso = toISO(d);
+        const isSel = iso === selectedISO;
+        const dot = !!markedDates[iso];
+        return (
+          <DayBubble
+            key={iso}
+            date={d}
+            isSelected={isSel}
+            showDot={dot}
+            onPress={() => onSelect(d)}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  // 카드(시안 같은 흰색 카드 + 그림자 + 라운드 + 내부 그라데 상단은 배경에서 해결)
-  card: {
-    width: SCREEN_W,
-    backgroundColor: 'transparent',
-    borderRadius: 20,
-    marginTop: 8,
-    paddingBottom: 0,
-    overflow: 'hidden', // 내부가 잘리지 않게 height만 애니메이션
+  container: {
+    overflow: 'hidden',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
-
-  topTitle: { // "2025.07"
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.BLACK,
-    textAlign: 'left',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 6,
+  fill: { flex: 1, paddingHorizontal: 24, paddingVertical: PADDING_V },
+  header: {
+    height: HEADER_H - 8,
+    justifyContent: 'flex-end',
+    paddingBottom: 8,
   },
-
-  calendar: {
-    paddingHorizontal: 10,
-    paddingBottom: 6,
+  title: { fontSize: 28, fontWeight: '700', color: '#242424' },
+  nav: {
+    position: 'absolute',
+    right: 0,
+    bottom: 8,
+    flexDirection: 'row',
+    gap: 16,
   },
-
-  // 달력 내부 헤더(‹ September 2025 ›)
-  calHeaderRow: {
+  chev: { fontSize: 22, color: '#62707C' },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingTop: 8,
+  },
+  cell: {
+    width: CELL,
+    height: GRID_ROW_H,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayWrap: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 18 },
+  selWrap: { width: 44, height: 44, borderRadius: 22 },
+  selBg: { width: '100%', height: '100%', borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
+  day: { fontSize: 18, color: '#222' },
+  daySel: { fontSize: 18, color: '#fff', fontWeight: '700' },
+  dim: { color: '#B8C0C8' },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#18CAE6', marginTop: 2 },
+  strip: {
+    height: STRIP_H,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginHorizontal: 8,
-    marginBottom: 6,
+    paddingTop: 8,
   },
-  calHeaderMonth: { fontSize: 18, fontWeight: '600', color: colors.BLACK },
-  arrowBtn: { padding: 8, borderRadius: 20 },
-  arrow: { fontSize: 22, color: colors.GRAY_600 },
-
-  // Day 셀
-  dayCell: { alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
-  dayText: { fontSize: 16, color: colors.BLACK, fontWeight: '500' },
-  todayBadge: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  todayText: { color: colors.WHITE, fontWeight: '700' },
-  selectedBadge: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }, // 시안의 큰 알약
-  selectedText: { color: colors.WHITE, fontSize: 16, fontWeight: '700' },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#1E90FF', marginTop: 4 },
-
-  // 주간 스트립
-  weekRow: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 16, paddingVertical: 14 },
-  weekCell: { alignItems: 'center', gap: 6 },
-  weekDayName: { fontSize: 12, color: colors.GRAY_500, fontWeight: '500' },
-  weekNum: { fontSize: 16, color: colors.BLACK, fontWeight: '500' },
-  weekBadge: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  weekBadgeText: { color: colors.WHITE, fontWeight: '700' },
-
-  // 핸들
-  handleBar: {
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.LINE_GREY,
+  handle: {
+    alignSelf: 'center',
+    width: 80,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#E7EDF2',
+    marginTop: 6,
   },
-  handle: { width: 44, height: 4, borderRadius: 2, backgroundColor: colors.GRAY_300 },
 });
