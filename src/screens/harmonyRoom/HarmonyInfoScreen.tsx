@@ -15,7 +15,7 @@ import EmptyTab from '@/components/search/EmptyTab'
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 import CustomButton from '@/components/common/CustomButton';
 import CheckPopupOneBtn from '@/components/common/CheckPopupOneBtn';
-
+import CheckPopup from '@/components/common/CheckPopup';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
@@ -35,10 +35,12 @@ export default function HarmonyInfoScreen() {
 
     const harmony = roomData ?? rooms.find(r => r.roomID === roomID);
 
-    const [isOwner, setIsOwner] = useState(true);
-    const [isMember, setIsMember] = useState(false);
+    const [isOwner, setIsOwner] = useState(false);
+    const [isMember, setIsMember] = useState(true);
 
     const [showExitPopup, setShowExitPopup] = useState(false);
+    const [showOutPopup, setShowOutPopup] = useState(false);
+
 
     // 가입 모달 오픈
     const handleAccess = () => {
@@ -49,6 +51,22 @@ export default function HarmonyInfoScreen() {
     const handleConfirmExit = () => {
       setShowExitPopup(false);
     };
+
+    // 나가기 모달 오픈
+    const handleOut = () => {
+        setShowOutPopup(true);
+    };
+
+    // 머무르기
+    const handleCancelExit = () => {
+        setShowOutPopup(false);
+    };
+
+    // 나가기
+    const handleOutAccess = () => {
+        setShowOutPopup(false);
+    }
+
 
     return (
         <LinearGradient
@@ -127,6 +145,17 @@ export default function HarmonyInfoScreen() {
                     <Text style={styles.btnText}>공유</Text>
                 </View>
             </View>
+
+            {/* 나가기 */}
+            { isMember && (
+                <View style={styles.outWrap}>
+                    <Pressable onPress={handleOut}>
+                        <Text style={styles.outText}>하모니룸 나가기</Text>
+                    </Pressable>
+                </View>
+                )
+            }
+
             {/* 고정된 버튼 */}
             {(!isMember && !isOwner) && (
                 <View style={styles.bottom}>
@@ -157,6 +186,23 @@ export default function HarmonyInfoScreen() {
                 btnColor={colors.BLUE_400}
                 btnText="확인"
                 btnTextColor={colors.WHITE}
+            />
+
+
+            {/* 나가기 확인 팝업 */}
+            <CheckPopup
+                visible={showOutPopup}
+                onClose={handleCancelExit}
+                onExit={handleOutAccess}
+                title="이 하모니룸에서 나갈까요?"
+                content="나가시면 다시 가입 신청을 해야 해요."
+                leftBtnColor={colors.WHITE}
+                leftBtnTextColor={colors.ERROR_RED}
+                leftBtnBorderColor={colors.ERROR_RED}
+                leftBtnText="나가기"
+                rightBtnColor={colors.BLUE_400}
+                rightBtnTextColor={colors.WHITE}
+                rightBtnText="머무르기"
             />
             </SafeAreaView>
         </LinearGradient>
@@ -323,5 +369,19 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         marginTop: 'auto',
         paddingTop: 6,
+    },
+    outWrap: {
+        paddingHorizontal: 10,
+        paddingVertical: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    outText: {
+        fontFamily: 'Noto Sans KR',
+        fontSize: 11,
+        fontWeight: '400',
+        letterSpacing: 0.35,
+        lineHeight: 14,
+        color: colors.GRAY_300,
     },
 });
