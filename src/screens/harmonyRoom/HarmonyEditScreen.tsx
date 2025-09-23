@@ -26,6 +26,7 @@ import MusicSearchBottomSheet from '@/components/post/MusicSearchBottomSheet';
 import { useHarmonyRoomContext } from '@/contexts/HarmonyRoomContext';
 import CustomButton from '@/components/common/CustomButton';
 import {launchImageLibrary} from 'react-native-image-picker';
+import CheckPopup from '@/components/common/CheckPopup';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
@@ -49,12 +50,29 @@ function HarmonyEditScreen() {
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+    const [showExitPopup, setShowExitPopup] = useState(false);
+
     const handleSelectImage = () => {
         launchImageLibrary({mediaType: 'photo', quality: 0.8}, response => {
           if (response.assets && response.assets.length > 0) {
             setSelectedImage(response.assets[0].uri || null);
           }
         });
+    };
+
+    const handleBackPress = () => {
+        setShowExitPopup(true);
+    };
+
+    // 팝업에서 나가기 확인
+    const handleConfirmExit = () => {
+        setShowExitPopup(false);
+        navigation.goBack();
+    };
+
+    // 팝업에서 취소
+    const handleCancelExit = () => {
+        setShowExitPopup(false);
     };
 
     const handleMusicPress = () => {
@@ -82,15 +100,6 @@ function HarmonyEditScreen() {
           hideSubscription.remove();
         };
     }, []);
-
-
-    // YouTube URL에서 비디오 ID 추출하는 함수
-      const extractVideoId = (url: string) => {
-        const regex =
-          /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-        const match = url.match(regex);
-        return match ? match[1] : 'dQw4w9WgXcQ'; // 기본값
-      };
 
     const handleCreateRoom = () => {
         if (!roomName.trim()) {
@@ -124,11 +133,12 @@ function HarmonyEditScreen() {
         >
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <IconButton<PostStackParamList>
-                  imageSource={require('@/assets/icons/post/BackArrow.png')}
-                  target={'goBack'}
-                  size={24}
-                />
+                <TouchableOpacity onPress={handleBackPress}>
+                    <Image
+                        source={require('@/assets/icons/post/BackArrow.png')}
+                        style={{width: 24, height: 24}}
+                    />
+                </TouchableOpacity>
                 <Text style={styles.sectionTitle}>하모니룸 변경하기</Text>
             </View>
 
@@ -230,6 +240,20 @@ function HarmonyEditScreen() {
             )}
         </SafeAreaView>
         </KeyboardAvoidingView>
+
+        {/* 나가기 확인 팝업 */}
+        <CheckPopup
+            visible={showExitPopup}
+            onClose={handleCancelExit}
+            onExit={handleConfirmExit}
+            content="변경하지 않고 나갈까요?"
+            leftBtnColor={colors.BLUE_400}
+            leftBtnTextColor={colors.WHITE}
+            leftBtnText="나가기"
+            rightBtnColor={colors.GRAY_100}
+            rightBtnTextColor={colors.GRAY_300}
+            rightBtnText="취소"
+        />
         </>
         );
 };

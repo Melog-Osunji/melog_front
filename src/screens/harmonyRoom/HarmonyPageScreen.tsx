@@ -12,6 +12,7 @@ import { useHarmonyRoomContext } from '@/contexts/HarmonyRoomContext';
 import GuideModal from '@/components/harmonyRoom/GuideModal';
 import LinearGradient from 'react-native-linear-gradient';
 import EmptyTab from '@/components/search/EmptyTab'
+import CheckPopupOneBtn from '@/components/common/CheckPopupOneBtn';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
@@ -38,13 +39,23 @@ export default function HarmonyPageScreen() {
     const [isOwner, setIsOwner] = useState(true);
     const [isMember, setIsMember] = useState(false);
 
+    const [showExitPopup, setShowExitPopup] = useState(false);
+
     // info로 이동
     const handlePress = () => {
         navigation.navigate(harmonyNavigations.HARMONY_INFO, { roomID: roomID, roomData: harmony });
     };
 
     // 가입 모달 오픈
+    const handleAccess = () => {
+        setShowExitPopup(true);
+    };
 
+    // 폐쇄하기 확인
+      const handleConfirmExit = () => {
+          setShowExitPopup(false);
+          navigation.goBack();
+      };
 
     return (
         <LinearGradient
@@ -157,12 +168,32 @@ export default function HarmonyPageScreen() {
 
             {/* 고정된 버튼 */}
             {(!isMember && !isOwner) && (
-                <Pressable style={styles.accessBtn}>
+                <Pressable style={styles.accessBtn} onPress={handleAccess}>
                     <Image source={require('@/assets/icons/harmonyRoom/Access.png')} style={styles.icon} />
                     <Text style={styles.btnText}>가입하기</Text>
                 </Pressable>
             )}
 
+        {/* }<CheckPopupOneBtn
+            visible={showExitPopup}
+            onClose={handleConfirmExit}
+            iconImg={require('@/assets/icons/Access.png')}
+            title="가입 신청 완료"
+            content="승인되면 알림으로 알려드릴게요."
+            btnColor={colors.BLUE_400}
+            btnText="확인"
+            btnTextColor={colors.WHITE}
+        />*/}
+        <CheckPopupOneBtn
+            visible={showExitPopup}
+            onClose={handleConfirmExit}
+            iconImg={require('@/assets/icons/Access.png')}
+            title="가입 완료"
+            content="하모니룸에 가입되었어요."
+            btnColor={colors.BLUE_400}
+            btnText="확인"
+            btnTextColor={colors.WHITE}
+        />
         </SafeAreaView>
     </LinearGradient>
     );

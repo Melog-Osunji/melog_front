@@ -18,6 +18,7 @@ import IconButton from '@/components/common/IconButton';
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 import { useHarmonyRoomContext } from '@/contexts/HarmonyRoomContext';
 import SwitchToggle from '@/components/common/SwitchToggle';
+import CheckPopup from '@/components/common/CheckPopup';
 
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
@@ -39,9 +40,25 @@ function HarmonySettingScreen(){
 
     const [isPublic, setIsPublic] = useState(true);
     const [needApproval, setNeedApproval] = useState(false);
+    const [showExitPopup, setShowExitPopup] = useState(false);
 
     const handleGoToEdit = () => {
         navigation.navigate(harmonyNavigations.HARMONY_EDIT, { roomID: roomID});
+    };
+
+    const handleDelete = () => {
+        setShowExitPopup(true);
+    };
+
+    // 폐쇄하기 확인
+    const handleConfirmExit = () => {
+        setShowExitPopup(false);
+        navigation.goBack();
+    };
+
+    // 팝업에서 유지하기
+    const handleCancelExit = () => {
+        setShowExitPopup(false);
     };
 
     return (
@@ -109,11 +126,28 @@ function HarmonySettingScreen(){
                 </View>
                 <View style={styles.section}>
                     <Text style={styles.menu}>하모니룸 폐쇄</Text>
-                    <Pressable>
-                    <Text style={styles.delete}>폐쇄하기</Text>
+                    <Pressable onPress={handleDelete}>
+                        <Text style={styles.delete}>폐쇄하기</Text>
                     </Pressable>
                 </View>
             </ScrollView>
+
+        {/* 나가기 확인 팝업 */}
+        <CheckPopup
+            visible={showExitPopup}
+            onClose={handleCancelExit}
+            onExit={handleConfirmExit}
+            iconImg={require('@/assets/icons/Error.png')}
+            title="정말 이 하모니룸을 폐쇄하시겠어요?"
+            content={`하모니룸 폐쇄 시, 쓰인 피드와 댓글이 삭제되고\n 복구하기 어려워요.`}
+            leftBtnColor={colors.WHITE}
+            leftBtnTextColor={colors.ERROR_RED}
+            leftBtnBorderColor={colors.ERROR_RED}
+            leftBtnText="폐쇄하기"
+            rightBtnColor={colors.BLUE_400}
+            rightBtnTextColor={colors.WHITE}
+            rightBtnText="유지하기"
+        />
         </SafeAreaView>
     );
 };

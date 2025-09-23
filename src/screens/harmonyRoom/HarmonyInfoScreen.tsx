@@ -14,6 +14,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import EmptyTab from '@/components/search/EmptyTab'
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 import CustomButton from '@/components/common/CustomButton';
+import CheckPopupOneBtn from '@/components/common/CheckPopupOneBtn';
 
 
 const {width: SCREEN_W} = Dimensions.get('window');
@@ -36,6 +37,18 @@ export default function HarmonyInfoScreen() {
 
     const [isOwner, setIsOwner] = useState(true);
     const [isMember, setIsMember] = useState(false);
+
+    const [showExitPopup, setShowExitPopup] = useState(false);
+
+    // 가입 모달 오픈
+    const handleAccess = () => {
+        setShowExitPopup(true);
+    };
+
+    // 확인
+    const handleConfirmExit = () => {
+      setShowExitPopup(false);
+    };
 
     return (
         <LinearGradient
@@ -119,13 +132,32 @@ export default function HarmonyInfoScreen() {
                 <View style={styles.bottom}>
                     <CustomButton
                         label="가입하기"
-                        onPress={() => {
-                          navigation.navigate(harmonyNavigations.HARMONY_HOME);
-                        }}
+                        onPress={handleAccess}
                         style={{backgroundColor:colors.BLUE_500}}
                     />
                 </View>
             )}
+
+            {/* }<CheckPopupOneBtn
+                visible={showExitPopup}
+                onClose={handleConfirmExit}
+                iconImg={require('@/assets/icons/Access.png')}
+                title="가입 신청 완료"
+                content="승인되면 알림으로 알려드릴게요."
+                btnColor={colors.BLUE_400}
+                btnText="확인"
+                btnTextColor={colors.WHITE}
+            />*/}
+            <CheckPopupOneBtn
+                visible={showExitPopup}
+                onClose={handleConfirmExit}
+                iconImg={require('@/assets/icons/Access.png')}
+                title="가입 완료"
+                content="하모니룸에 가입되었어요."
+                btnColor={colors.BLUE_400}
+                btnText="확인"
+                btnTextColor={colors.WHITE}
+            />
             </SafeAreaView>
         </LinearGradient>
     );
