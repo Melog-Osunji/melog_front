@@ -7,7 +7,6 @@ import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
 import LinearGradient from 'react-native-linear-gradient';
 import {colors, postNavigations, harmonyNavigations} from '@/constants';
 import IconButton from '@/components/common/IconButton';
-import ListButton from '@/components/ListButton';
 import {RecentHarmonyRoomData, RecommendRoomData} from '@/constants/dummyData';
 import HarmonyRoomStrip from '@/components/harmonyRoom/HarmonyRoomStrip';
 import RecommendCard from '@/components/harmonyRoom/RecommendCard';

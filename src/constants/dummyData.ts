@@ -1,4 +1,4 @@
-import {Post, Comment, YouTubeVideo, PopularMediam, RecentHarmonyRoom, RecommendRoom} from './types';
+import {Post, Comment, YouTubeVideo, PopularMediam, RecentHarmonyRoom, RecommendRoom, Performance} from './types';
 
 // 더미 포스트 데이터
 export const mockPosts: Post[] = [
@@ -330,5 +330,59 @@ export const RecommendRoomData: RecommendRoom[] = [
         ownerId: '아이디2',
         content: '활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 ',
         memberProfileImg: ['https://images.pexels.com/photos/32552644/pexels-photo-32552644.jpeg', 'https://images.pexels.com/photos/164821/pexels-photo-164821.jpeg'],
+    },
+];
+
+// 공연 데이터
+export const PerformanceData: Performance[] = [
+    {
+        id: 1,
+        title: '가을 클래식 콘서트',
+        location: '서울시 세종문화회관',
+        startDate: new Date('2025-09-26'),
+        endDate: new Date('2025-09-27'),
+        isBookmark: false,
+        leftDate: 2,
+        category: '공연',
+        imgUrl: 'https://ticketimage.interpark.com/Play/image/large/24/24017680_p.gif'
+    },
+    {
+        id: 2,
+        title: '빈센트 반 고흐 전시',
+        location: '부산시',
+        startDate: new Date('2025-09-28'),
+        isBookmark: false,
+        leftDate: 4,
+        category: '전시',
+        imgUrl: 'https://www.sac.or.kr//site/main/file/thumbnail/uu/a4a0f611fc0d42008f2f6516f36a409d'
+    },
+    {
+        id: 3,
+        title: '진주 개천예술제',
+        location: '경상남도 진주시',
+        startDate: new Date('2025-10-10'),
+        endDate: new Date('2025-10-20'),
+        isBookmark: true,
+        leftDate: 16,
+        category: '축제',
+    },
+    {
+        id: 4,
+        title: '가을 클래식 콘서트',
+        location: '서울시 세종문화회관',
+        startDate: new Date('2025-09-24'),
+        endDate: new Date('2025-09-29'),
+        isBookmark: false,
+        leftDate: 0,
+        category: '공연',
+    },
+    {
+        id: 5,
+        title: '가을 클래식 콘서트',
+        location: '서울시 세종문화회관',
+        startDate: new Date('2025-09-20'),
+        endDate: new Date('2025-09-23'),
+        isBookmark: true,
+        category: '공연',
     },
 ];
