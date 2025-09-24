@@ -1,267 +1,377 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {StyleSheet, Text, View, ScrollView, Image, Dimensions, FlatList, TouchableOpacity, Keyboard} from 'react-native';
+import {StyleSheet, Text, View, ScrollView, Image, Dimensions, FlatList, TouchableOpacity, Keyboard, Pressable} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useFocusEffect, useRoute} from '@react-navigation/native';
 import {StackScreenProps} from '@react-navigation/stack';
 import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
-import styled from 'styled-components/native';
-import {colors, harmonyNavigations} from '@/constants';
+import {colors, harmonyNavigations, postNavigations} from '@/constants';
 import IconButton from '@/components/common/IconButton';
-import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
-import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
 import {HarmonyRoomDummyData} from '@/constants/types';
-import ChattingBar from '@/components/harmonyRoom/ChattingBar';
-import ChattingRoom from '@/components/harmonyRoom/ChattingRoom';
 import ExitConfirmModal from '@/components/harmonyRoom/ExitConfirmModal';
-import Chat from '@/constants/types';
 import { useHarmonyRoomContext } from '@/contexts/HarmonyRoomContext';
 import GuideModal from '@/components/harmonyRoom/GuideModal';
+import LinearGradient from 'react-native-linear-gradient';
+import EmptyTab from '@/components/search/EmptyTab'
+import CheckPopupOneBtn from '@/components/common/CheckPopupOneBtn';
 
-const DEVICE_WIDTH = Dimensions.get('window').width;
+const {width: SCREEN_W} = Dimensions.get('window');
 
 type HarmonyPageScreenRouteProp = StackScreenProps<
   HarmonyStackParamList,
   'HARMONY_PAGE'
 >['route'];
 
-// 커스텀 헤더 컴포넌트
-const HarmonyPageHeader = ({ title, onPressFollow }: {
-                             title: string; onPressFollow: () => void; }) => {
-  return (
-    <View style={headerStyles.container}>
-        <TouchableOpacity onPress={onPressFollow}>
-            <Image
-                source={require('@/assets/icons/harmonyRoom/HarmonyFollow.png')}
-                style={headerStyles.icon}
-            />
-        </TouchableOpacity>
-        <Text style={headerStyles.roomTitle}>{title}</Text>
-        <IconButton
-            imageSource={require('@/assets/icons/post/Info.png')}
-            size={32}
-        />
-
-    </View>
-  );
-};
-
 export default function HarmonyPageScreen() {
+    const navigation = useNavigation<StackNavigationProp<HarmonyStackParamList>>();
+
     const route = useRoute<HarmonyPageScreenRouteProp>();
-    const navigation = useNavigation();
-    const [modalVisible, setModalVisible] = useState(false);
-    const [chatList, setChatList] = useState<Chat[]>([]);
-    const {roomID, roomData} = route.params;
+    const { roomID, roomData } = route.params ?? {};
     const scrollRef = useRef<ScrollView>(null);
     const { rooms } = useHarmonyRoomContext();
     const [showGuideModal, setShowGuideModal] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectTab, setSelectTab] = useState<'rcmd' | 'popular'>('rcmd');
 
+    const harmony = roomData ?? rooms.find(r => r.roomID === roomID);
 
-    useHideTabBarOnFocus();
+    const isEmpty = (harmony?.feed?.length ?? 0) === 0;
 
-    const userName = "럽클";
+    const [isOwner, setIsOwner] = useState(true);
+    const [isMember, setIsMember] = useState(false);
 
-    const harmony = roomData || // 먼저 전달받은 roomData 확인
-                        rooms.find(room => room.roomID === roomID) || // Context에서 찾기
-                        HarmonyRoomDummyData.find(room => room.roomID === roomID); // 마지막으로 더미데이터에서 찾기
+    const [showExitPopup, setShowExitPopup] = useState(false);
 
-    useEffect(() => {
-      if (harmony?.ownerId === '럽클') {
-        setShowGuideModal(true);
-      }
-    }, [harmony]);
-
-    useEffect(() => {
-      const entryMessage: Chat = {
-        id: 'entry',
-        sender: 'system',
-        message: `${userName}님이 입장했습니다.`,
-      };
-
-      const message1: Chat = {
-        id: 'user001',
-        sender: 'other',
-        nickname: '클래식조아',
-        message: '비 오는 날 창밖 보면서 듣기 딱 좋은 곡 같아요 ☕',
-        time: '오전 10:20',
-      };
-
-      const message2: Chat = {
-        id: 'user001',
-        sender: 'other',
-        nickname: '클래식조아',
-        message: '안녕하세요~!',
-        time: '오전 10:21',
-      };
-
-      setChatList([entryMessage]);
-
-      setTimeout(() => {
-        setChatList(prev => [...prev, message1]);
-      }, 1000);
-
-      setTimeout(() => {
-        setChatList(prev => [...prev, message2]);
-      }, 2000);
-    }, [userName]);
-
-    useEffect(() => {
-      const showSub = Keyboard.addListener('keyboardDidShow', () => {
-        scrollRef.current?.scrollToEnd({ animated: true });
-      });
-
-      return () => showSub.remove();
-    }, []);
-
-    const handleAddChatt = (text: string) => {
-      const newChat: Chat = {
-        id: `me-${Date.now()}`,
-        sender: 'me',
-        message: text,
-        time: '오전 10:30',
-      };
-      setChatList(prev => [...prev, newChat]);
+    // info로 이동
+    const handlePress = () => {
+        navigation.navigate(harmonyNavigations.HARMONY_INFO, { roomID: roomID, roomData: harmony });
     };
 
+    // 가입 모달 오픈
+    const handleAccess = () => {
+        setShowExitPopup(true);
+    };
 
+    // 폐쇄하기 확인
+      const handleConfirmExit = () => {
+          setShowExitPopup(false);
+          navigation.goBack();
+      };
 
-    if (!harmony) {
-        return (
-          <SafeAreaView style={styles.container}>
-            <Text>해당 하모니룸을 찾을 수 없습니다.</Text>
-          </SafeAreaView>
-        );
-    }
     return (
-        <SafeAreaView style={{flex: 1, backgroundColor:colors.GRAY_100}}>
-            <HarmonyPageHeader title={harmony.title} onPressFollow={() => setModalVisible(true)} />
+        <LinearGradient
+          colors={['#EFFAFF', colors.WHITE]} // 원하는 색 배열
+          start={{x: 1, y: 0}}
+          end={{x: 1, y: 0.3}}
+          style={styles.container}
+        >
+        <SafeAreaView style={{flex: 1, width: SCREEN_W, position: 'relative'}}>
             <ScrollView
                 style={{flex: 1}}
                 ref={scrollRef}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{paddingBottom: 60}}>
-            {/*유튜브 임베딩*/}
-            {harmony.mediaURL && (
-              <>
-                {harmony.mediaURL.includes('youtube.com') ||
-                harmony.mediaURL.includes('youtu.be') ? (
-                  <YouTubeEmbed2 url={harmony.mediaURL} borderRadius={0} />
-                ) : (
-                  <Image
-                    source={{uri: harmony.mediaURL}}
-                    style={styles.fullWidthImage}
-                  />
-                )}
-              </>
-            )}
-            {/*플레이리스트 정보*/}
-            <View style={styles.mediaInfoWrap}>
-                <Text style={styles.mediaTitle}>[Playlist] 레전드 영화 속 클래식 Part.1🎬</Text>
-                <View style={styles.tagAndWatch}>
-                    <View style={styles.infoTagRow}>
-                        <Text style={styles.tag} numberOfLines={1}>
-                            {harmony.tags.map(tag => `#${tag}`).join(' ')}
-                        </Text>
-                    </View>
-                    <View style={styles.numWrap}>
-                        <Image source={require('@/assets/icons/harmonyRoom/FollowIcon.png')} style={styles.seeIcon}/>
-                        <Text style={styles.seeNum}>{harmony.seeNum}</Text>
+                contentContainerStyle={{paddingBottom: 60, flexGlow: 1,}}>
+                {/* 헤더 */}
+                <View style={styles.header}>
+                    <IconButton<PostStackParamList>
+                      imageSource={require('@/assets/icons/post/BackArrow.png')}
+                      target={'goBack'}
+                      size={24}
+                      imageStyle={{tintColor: colors.GRAY_300}}
+                    />
+                    <View style={styles.headerBtn}>
+                        {isOwner ?
+                            <IconButton<MyPageStackParamList>
+                                imageSource={require('@/assets/icons/harmonyRoom/Setting.png')}
+                                target={[harmonyNavigations.HARMONY_SETTING]}
+                            />
+                            : <View style={{ width: 24, height: 24 }} />
+                        }
+                        <IconButton<MyPageStackParamList>
+                            imageSource={require('@/assets/icons/post/Notice.png')}
+                            target={[harmonyNavigations.HARMONY_CREATE]}
+                        />
                     </View>
                 </View>
-            </View>
-            {/*채팅창*/}
-            <ChattingRoom userName={userName} chatList={chatList}/>
-            </ScrollView>
-            {/*채팅쓰기*/}
-            <ChattingBar onSend={handleAddChatt}/>
+
+                {/* 하모니룸 */}
+                <View style={styles.infoWrap}>
+                    <Pressable onPress={handlePress}>
+                        <View style={styles.nameAndTag}>
+                            <Image source={{uri: "https://randomuser.me/api/portraits/men/33.jpg"}} style={styles.roomImg}/>
+                            <View style={styles.wrap}>
+                                <View style={styles.roomInfo}>
+                                    <View style={styles.nameWrap}>
+                                        <Text style={styles.name}>하모니룸</Text>
+                                        {isOwner ?
+                                            <Text style={styles.manageLabel}>운영</Text>
+                                            : <></>
+                                        }
+                                    </View>
+                                    <View style={styles.tagWrap}>
+                                        <Text style={styles.tags}># 키워드</Text>
+                                        <Text style={styles.tags}># 키워드</Text>
+                                        <Text style={styles.tags}># 키워드</Text>
+                                    </View>
+                                </View>
+                                <Image source={require('@/assets/icons/mypage/RightArrow.png')} style={styles.iconBtn}/>
+                            </View>
+                        </View>
+                    </Pressable>
+                    <View style={styles.descriptionWrap}>
+                        <Text style={styles.description}>활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용</Text>
+                    </View>
+                </View>
+
+                <View style={styles.line}></View>
+
+                {/* 피드 탭 */}
+                <View style={styles.tabContainer}>
+                    <Pressable style={[styles.tab, selectTab === 'rcmd' && styles.activeTab]} onPress={() => setSelectTab('rcmd')}>
+                        <Text style={[styles.tabText, selectTab === 'rcmd' && styles.activeText]}>추천</Text>
+                    </Pressable>
+                    <Pressable style={[styles.tab, selectTab === 'popular' && styles.activeTab]} onPress={() => setSelectTab('popular')}>
+                        <Text style={[styles.tabText, selectTab === 'popular' && styles.activeText]}>인기</Text>
+                    </Pressable>
+                </View>
+
+                {/* 피드 */}
+
+                {isEmpty ? (
+                    <View style={styles.emptyCenter}>
+                    <EmptyTab
+                        subtitle={"우측 하단의 글쓰기 버튼으로\n첫 글을 작성해보세요."}
+                    />
+                    </View>
+                )
+                : (<View>포스트</View>
+                )}
+
 
             <ExitConfirmModal
               visible={modalVisible}
               onClose={() => setModalVisible(false)}
               onExit={() => { setModalVisible(false); navigation.navigate(harmonyNavigations.HARMONY_HOME); }}
             />
-        <GuideModal visible={showGuideModal} onClose={() => setShowGuideModal(false)} />
+            </ScrollView>
+
+
+            {/* Write 버튼 */}
+            {(isMember || isOwner) && (
+                <View style={styles.writeButton}>
+                    <IconButton<PostStackParamList>
+                      imageSource={require('@/assets/icons/post/Write.png')}
+    //                   target={[postNavigations.POST_CREATE]}
+                      size={72}
+                    />
+                </View>
+            )}
+
+            {/* 고정된 버튼 */}
+            {(!isMember && !isOwner) && (
+                <Pressable style={styles.accessBtn} onPress={handleAccess}>
+                    <Image source={require('@/assets/icons/harmonyRoom/Access.png')} style={styles.icon} />
+                    <Text style={styles.btnText}>가입하기</Text>
+                </Pressable>
+            )}
+
+        {/* }<CheckPopupOneBtn
+            visible={showExitPopup}
+            onClose={handleConfirmExit}
+            iconImg={require('@/assets/icons/Access.png')}
+            title="가입 신청 완료"
+            content="승인되면 알림으로 알려드릴게요."
+            btnColor={colors.BLUE_400}
+            btnText="확인"
+            btnTextColor={colors.WHITE}
+        />*/}
+        <CheckPopupOneBtn
+            visible={showExitPopup}
+            onClose={handleConfirmExit}
+            iconImg={require('@/assets/icons/Access.png')}
+            title="가입 완료"
+            content="하모니룸에 가입되었어요."
+            btnColor={colors.BLUE_400}
+            btnText="확인"
+            btnTextColor={colors.WHITE}
+        />
         </SafeAreaView>
-        );
+    </LinearGradient>
+    );
 };
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         backgroundColor: colors.WHITE,
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        gap: 16,
     },
-    mediaInfoWrap: {
-        backgroundColor:colors.WHITE,
-        paddingTop:12,
-        paddingBottom:16,
-        paddingHorizontal:20,
-        flexDirection:'column',
-        gap:12,
-    },
-    mediaTitle:{
-        fontSize:15,
-        fontWeight:'700',
-        lineHeight:22,
-        letterSpacing:0.15,
-        color:colors.GRAY_600,
-    },
-    tagAndWatch: {
-        flexDirection:'row',
-        justifyContent:'space-between',
-        alignItems:'center',
-    },
-    infoTagRow : {
-        flexDirection: 'row',
-        gap: 4,
-    },
-    tag: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: colors.BLUE_500,
-        letterSpacing:0.2,
-        lineHeight:20,
-    },
-    seeIcon: {
-        width:18,
-        height:18,
-    },
-    numWrap : {
+    header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        gap: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.LINE_GREY,
     },
-    seeNum: {
+    headerBtn: {
+        flexDirection: 'row',
+        gap: 9,
+    },
+    infoWrap:{
+        paddingHorizontal: 20,
+        paddingTop: 16,
+        paddingBottom: 24,
+        gap: 16,
+    },
+    nameAndTag: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 14,
+    },
+    roomImg: {
+        width: 84,
+        height: 84,
+        borderRadius: 999,
+        backgroundColor: colors.GRAY_500,
+    },
+    wrap: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 33,
+    },
+    roomInfo: {
+        flexDirection: 'column',
+        gap: 6,
+    },
+    nameWrap: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    name: {
+        fontFamily: 'Noto Sans KR',
+        fontSize: 17,
+        fontWeight: '500',
+        letterSpacing: 0.1,
+        lineHeight: 24,
+        color: colors.GRAY_600,
+    },
+    manageLabel: {
+        paddingVertical: 2,
+        paddingHorizontal: 10,
+        borderRadius: 999,
+        backgroundColor: colors.BLUE_300,
+        color: colors.BLUE_500,
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'Noto Sans KR',
+        fontSize: 14,
+        fontWeight: '500',
+        letterSpacing: 0.2,
+        lineHeight: 20,
+    },
+    tagWrap: {
+        flexDirection: 'row',
+        gap: 9,
+    },
+    tags: {
+        fontFamily: 'Noto Sans KR',
+        fontSize: 14,
+        fontWeight: '500',
+        letterSpacing: 0.2,
+        lineHeight: 20,
+        color: colors.BLUE_600,
+    },
+    descriptionWrap: {
+        borderRadius: 16,
+        backgroundColor: colors.BLUE_200,
+        padding:16,
+    },
+    description: {
+        fontFamily: 'Noto Sans KR',
         fontSize: 12,
-        lineHeight:16,
-        color: colors.GRAY_300,
+        fontWeight: '400',
+        letterSpacing: 0.2,
+        lineHeight: 16,
+        color: colors.BLUE_700,
     },
-});
-const headerStyles = StyleSheet.create({
-  container: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.GRAY_100,
-    backgroundColor: colors.WHITE,
-  },
-  leftButton: {
-    padding: 8,
-  },
-  icon: {
-    width:32,
-    height:32,
-  },
-  roomTitle: {
-    fontSize: 17,
-    fontWeight:'600',
-    lineHeight:24,
-    letterSpacing:0.1,
-    color:colors.GRAY_600,
-  },
-
+    line: {
+        width: SCREEN_W,
+        height: 6,
+        backgroundColor: colors.LINE_GREY,
+    },
+    tabContainer: {
+        paddingHorizontal: 20,
+        paddingVertical: 14,
+        flexDirection: 'row',
+        gap: 4,
+    },
+    tab: {
+        paddingVertical: 9,
+        paddingHorizontal: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 999,
+        borderColor: colors.GRAY_300,
+        borderWidth: 1,
+    },
+    activeTab: {
+        backgroundColor: colors.BLUE_500,
+        borderWidth: 0,
+    },
+    tabText: {
+        fontFamily: 'Noto Sans KR',
+        fontSize: 15.75,
+        fontWeight: '500',
+        letterSpacing: 0.2,
+        lineHeight: 22.5,
+        color: colors.GRAY_500,
+    },
+    activeText: {
+        color: colors.WHITE,
+    },
+    emptyCenter: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 20,
+        paddingTop: 60,
+    },
+    writeButton: {
+        position: 'absolute',
+        bottom: 80,
+        right: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    accessBtn: {
+        position: 'absolute',
+        bottom: 60,
+        left: '50%',
+        transform: [{ translateX: -0.5 * 120 }],
+        height: 44,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 999,
+        flexDirection: 'row',
+        gap: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: colors.BLUE_400,
+        marginBottom: 22,
+    },
+    icon: {
+        width: 28,
+        height: 28,
+    },
+    btnText: {
+        fontFamily: 'Noto Sans KR',
+        fontSize: 15,
+        fontWeight: '500',
+        letterSpacing: 0.15,
+        lineHeight: 22,
+        color: colors.WHITE,
+    },
 });

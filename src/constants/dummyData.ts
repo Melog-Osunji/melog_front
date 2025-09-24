@@ -1,4 +1,4 @@
-import {Post, Comment, YouTubeVideo, PopularMedia} from './types';
+import {Post, Comment, YouTubeVideo, PopularMediam, RecentHarmonyRoom, RecommendRoom} from './types';
 
 // 더미 포스트 데이터
 export const mockPosts: Post[] = [
@@ -285,5 +285,50 @@ export const PopularMediaData: PopularMedia[] = [
       mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
       mediaType: 'Youtube',
       createdAgo: '3일 전',
+    },
+];
+
+// RecentHarmonyRoom 더미데이터
+export const RecentHarmonyRoomData: RecentHarmonyRoom[] = [
+    {
+        userNickname: '아이디1',
+        userProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
+        roomID: 'room001',
+        mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
+        mediaType: 'Youtube',
+        createdAgo: 1,
+    },
+    {
+        userNickname: '아이디2',
+        userProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
+        roomID: 'room002',
+        mediaURL: 'https://youtu.be/4-9gp1puvMI?si=GOa0h4oLuak7DM6I',
+        mediaType: 'Youtube',
+        createdAgo: 8,
+    },
+
+];
+
+// RecommendRoom 더미데이터
+export const RecommendRoomData: RecommendRoom[] = [
+    {
+        roomID: 'room003',
+        title: '하모니룸 이름1',
+        tags : ['태그', '태그', '태그'],
+        memberNum : 10,
+        roomProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
+        ownerId: '아이디',
+        content: '활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 ',
+        memberProfileImg: ['https://images.pexels.com/photos/32552644/pexels-photo-32552644.jpeg', 'https://images.pexels.com/photos/164821/pexels-photo-164821.jpeg'],
+    },
+    {
+        roomID: 'room004',
+        title: '하모니룸 이름2',
+        tags : ['태그', '태그'],
+        memberNum : 4,
+        roomProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
+        ownerId: '아이디2',
+        content: '활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 ',
+        memberProfileImg: ['https://images.pexels.com/photos/32552644/pexels-photo-32552644.jpeg', 'https://images.pexels.com/photos/164821/pexels-photo-164821.jpeg'],
     },
 ];

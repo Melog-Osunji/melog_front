@@ -28,6 +28,11 @@ const harmonyNavigations = {
   HARMONY_HOME: 'HarmonyList',
   HARMONY_PAGE: 'HarmonyPage',
   HARMONY_CREATE: 'HarmonyCreate',
+  HARMONY_INFO: 'HarmonyInfo',
+  HARMONY_EDIT: 'HarmonyEdit',
+  HARMONY_SETTING: 'HarmonySetting',
+  HARMONY_LIST: 'HarmonyRoomList',
+  HARMONY_APPLY: 'HarmonyApply',
 } as const;
 
 //프로필설정
