@@ -90,15 +90,13 @@ function Onboarding2Screen({navigation}: IntroScreenProps) {
         contentContainerStyle={{gap: 12, paddingBottom: 12}}
       />
       <View style={styles.bottom}>
-        <TouchableOpacity
-          style={bottomBtnStyle}
-          disabled={!canNext}
-          onPress={() =>
-            navigation.navigate(introNavigations.INTRO_ONBOARDING_3)
-          }
-          activeOpacity={0.9}>
-          <Text style={styles.primaryTxt}>다음</Text>
-        </TouchableOpacity>
+        <CustomButton
+            label="다음"
+            inValid={!canNext}
+            onPress={() => {
+                navigation.navigate(introNavigations.INTRO_ONBOARDING_3);
+            }}
+        />
         <Text
           style={styles.skip}
           onPress={() =>

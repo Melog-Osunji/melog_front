@@ -8,7 +8,7 @@ import PostHomeScreen from '@/screens/post/PostHomeScreen';
 import HarmonyStackNavigator from '../stack/HarmonyStackNavigator';
 import PostStackNavigator from '../stack/PostStackNavigator';
 import CalendarHomeScreen from '@/screens/calendar/CalendarHomeScreen';
-import MyPageScreen from '@/screens/mypage/MyPageScreen';
+import MyPageStackNavigator from '../stack/MyPageStackNavigator';
 
 import {colors} from '@/constants/colors';
 
@@ -109,7 +109,7 @@ function MainTabNavigator() {
       {/* mypage */}
       <Tab.Screen
         name="MY"
-        component={MyPageScreen}
+        component={MyPageStackNavigator}
         options={{
           tabBarLabel: '',
           tabBarIcon: ({focused}) => (

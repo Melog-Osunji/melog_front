@@ -100,15 +100,13 @@ function Onboarding3Screen({navigation, route}: IntroScreenProps) {
         }}
       />
       <View style={styles.bottom}>
-        <TouchableOpacity
-          style={bottomBtnStyle}
-          disabled={!canNext}
+        <CustomButton
+          label="다음"
+          inValid={!canNext}
           onPress={() => {
-            setIsLogin(true);
+              setIsLogin(true);
           }}
-          activeOpacity={0.9}>
-          <Text style={styles.primaryTxt}>다음</Text>
-        </TouchableOpacity>
+        />
         <Text
           style={styles.skip}
           onPress={() => {

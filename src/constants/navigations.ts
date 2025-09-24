@@ -37,7 +37,14 @@ const InitProfileNavigations = {
   INIT_PROFILE_INTRODUCTION: 'InitProfileIntroduction',
 } as const;
 
+// mypage
+const myPageNavigations = {
+  MYPAGE_HOME: 'MyPageHome',
+  MYPAGE_EDIT: 'MyPageEdit',
+} as const;
+
 export {introNavigations};
 export {postNavigations};
 export {harmonyNavigations};
 export {InitProfileNavigations};
+export {myPageNavigations};
