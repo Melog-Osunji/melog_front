@@ -7,7 +7,9 @@ import {
   Animated,
   PanResponder,
   Dimensions,
+  Image
 } from 'react-native';
+import {colors} from '@/constants';
 
 // (옵션) 이미 프로젝트에 있다면 사용. 없으면 useGradient=false로 사용하세요.
 let LG: any = View;
@@ -18,11 +20,13 @@ try {
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const COLS = 7;
-const CELL = Math.floor((SCREEN_W - 48) / COLS); // 좌우 24px 패딩 가정
-const GRID_ROW_H = 48; // 숫자 한 줄 높이
-const HEADER_H = 72;   // "YYYY.MM" + 좌우 화살표 영역
-const STRIP_H = 80;    // 주간 스트립 높이
+const CELL = Math.floor((SCREEN_W - 40) / COLS); // 좌우 24px 패딩 가정
+const GRID_ROW_H = 44; // 숫자 한 줄 높이
+const HEADER_H = 36;   // "YYYY.MM" + 좌우 화살표 영역
+const STRIP_H = 60;    // 주간 스트립 높이
 const PADDING_V = 8;
+const HANDLE_H = 32; // handle 높이 4 + 상하 여백 16
+
 
 type Marked = Record<string, boolean>;
 
@@ -87,7 +91,7 @@ export default function CalendarTopSheet({
   markedDates = {},
   onDateChange,
   useGradient = true,
-  gradientColors = ['#EFFAFF', '#FFFFFF'],
+  gradientColors = ['transparent', '#FFFFFF'],
 }: Props) {
   const [currentMonth, setCurrentMonth] = useState(() => {
     const init = fromISO(initialDate);
@@ -99,8 +103,8 @@ export default function CalendarTopSheet({
   const strip = useMemo(() => getWeekStrip(selected), [selected]);
 
   // expand/collapse
-  const EXPANDED_H = HEADER_H + PADDING_V * 2 + GRID_ROW_H * 6 + 8; // 6줄 그리드
-  const COLLAPSED_H = HEADER_H + STRIP_H + PADDING_V * 2;
+  const EXPANDED_H = HEADER_H + PADDING_V * 2 + GRID_ROW_H * 6 + 8 + HANDLE_H + 16; // 6줄 그리드
+  const COLLAPSED_H = HEADER_H + STRIP_H + PADDING_V * 2 + HANDLE_H + 24;
 
   const [isExpanded, setExpanded] = useState(true);
   const animH = useRef(new Animated.Value(EXPANDED_H)).current;
@@ -172,7 +176,9 @@ export default function CalendarTopSheet({
               markedDates={markedDates}
             />
           )}
-          <View style={styles.handle} />
+          <View style={styles.handleWrap}>
+            <View style={styles.handle} />
+          </View>
         </LG>
       ) : (
         <View style={[styles.fill, { backgroundColor: '#FFFFFF' }]}>
@@ -205,10 +211,10 @@ function Header({ title, onPrev, onNext }: { title: string; onPrev: () => void; 
       <Text style={styles.title}>{title}</Text>
       <View style={styles.nav}>
         <TouchableOpacity onPress={onPrev} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <Text style={styles.chev}>{'‹'}</Text>
+          <Image source={require('@/assets/icons/calender/calenderPrev.png')} style={styles.chev}/>
         </TouchableOpacity>
         <TouchableOpacity onPress={onNext} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <Text style={styles.chev}>{'›'}</Text>
+          <Image source={require('@/assets/icons/calender/calenderNext.png')} style={styles.chev}/>
         </TouchableOpacity>
       </View>
     </View>
@@ -231,21 +237,27 @@ function DayBubble({
   const day = date.getDate();
   return (
     <TouchableOpacity style={styles.cell} onPress={onPress} activeOpacity={0.8}>
-      <View style={[styles.dayWrap, isSelected && styles.selWrap]}>
         {isSelected ? (
           <LG
-            colors={['#18CAE6', '#6F8BEA']}
+            colors={['#08C6D3', '#A0B4E4']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.selBg}
           >
-            <Text style={[styles.daySel]}>{day}</Text>
+            <View style={styles.dayWrap}>
+                <Text style={[styles.daySel]}>{day}</Text>
+            </View>
+            {showDot && <View style={styles.dot} />}
+
           </LG>
         ) : (
-          <Text style={[styles.day, dimmed && styles.dim]}>{day}</Text>
+          <View style={styles.selBg}>
+              <View style={styles.dayWrap}>
+                <Text style={[styles.day, dimmed && styles.dim]}>{day}</Text>
+              </View>
+              {showDot && <View style={styles.dot} />}
+          </View>
         )}
-      </View>
-      {!isSelected && showDot && <View style={styles.dot} />}
     </TouchableOpacity>
   );
 }
@@ -318,53 +330,88 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+    borderBottomWidth: 1,
+    borderRightWidth: 1,
+    borderLeftWidth:1,
+    borderBottomColor: colors.GRAY_100,
+    borderRightColor: colors.GRAY_100,
+    borderLeftColor: colors.GRAY_100,
   },
-  fill: { flex: 1, paddingHorizontal: 24, paddingVertical: PADDING_V },
+  fill: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 28,
+    paddingBottom: 12,
+  },
   header: {
     height: HEADER_H - 8,
-    justifyContent: 'flex-end',
-    paddingBottom: 8,
-  },
-  title: { fontSize: 28, fontWeight: '700', color: '#242424' },
-  nav: {
-    position: 'absolute',
-    right: 0,
-    bottom: 8,
     flexDirection: 'row',
-    gap: 16,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
   },
-  chev: { fontSize: 22, color: '#62707C' },
+  title: {
+    fontFamily: 'Noto Sans KR',
+    fontSize: 20,
+    fontWeight: '500',
+    color: colors.GRAY_600,
+    lineHeight: 28,
+  },
+  nav: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  chev: { width: 24, height:24 },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingTop: 8,
   },
   cell: {
     width: CELL,
     height: GRID_ROW_H,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
-  dayWrap: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 18 },
-  selWrap: { width: 44, height: 44, borderRadius: 22 },
-  selBg: { width: '100%', height: '100%', borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
-  day: { fontSize: 18, color: '#222' },
-  daySel: { fontSize: 18, color: '#fff', fontWeight: '700' },
-  dim: { color: '#B8C0C8' },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#18CAE6', marginTop: 2 },
+  selBg: { width: 32, height: 44, borderRadius: 999, alignItems: 'center', justifyContent: 'flex-start' },
+  dayWrap: {
+      width: 32,
+      height: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+  },
+  day: {
+    fontFamily: 'Noto Sans KR',
+    fontSize: 15,
+    fontWeight: '400',
+    color: colors.GRAY_600,
+    lineHeight: 22,
+    letterSpacing: 0.15,
+  },
+  daySel: {
+    fontFamily: 'Noto Sans KR',
+    fontSize: 15,
+    fontWeight: '500',
+    color: colors.WHITE,
+    lineHeight: 22,
+    letterSpacing: 0.15,
+  },
+  dim: { color: colors.GRAY_200 },
+  dot: { width: 8, height: 8, borderRadius: 99, backgroundColor: colors.BLUE_500, },
   strip: {
     height: STRIP_H,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 8,
+    paddingBottom: 12,
+  },
+  handleWrap: {
+    paddingTop:12,
   },
   handle: {
     alignSelf: 'center',
-    width: 80,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#E7EDF2',
-    marginTop: 6,
+    width: 48,
+    height: 4,
+    borderRadius: 999,
+    backgroundColor: '#E5E5E5',
   },
 });

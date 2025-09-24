@@ -67,7 +67,7 @@ function CalenderHomeScreen() {
               console.log('Selected date:', iso);
             }}
             useGradient
-            gradientColors={['#EFFAFF', colors.WHITE]}
+            gradientColors={['transparent', colors.WHITE]}
           />
 
         {/* 카테고리 칩 */}
@@ -148,7 +148,8 @@ const styles = StyleSheet.create({
   },
   categoryBtnActive: {
     backgroundColor: colors.BLUE_500,
-    borderWidth: 0,
+    borderWidth: 1,
+    borderColor: colors.BLUE_500,
   },
   categoryText: {
     fontFamily: 'Noto Sans KR',
