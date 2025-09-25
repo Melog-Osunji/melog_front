@@ -1,8 +1,10 @@
 import axios from 'axios';
 import {getAccessToken} from '@/utils/tokenStorage';
 
+export const BASE_URL = 'http://yanggang.iptime.org:8080';
+
 const instance = axios.create({
-  baseURL: 'http://10.0.2.2:8080',
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json; charset=utf-8', //인코딩 해결 안됨
     Accept: '*/*',
