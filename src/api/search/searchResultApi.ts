@@ -72,13 +72,15 @@ export const fetchSearch = async (q: string): Promise<SearchResponseDTO> => {
 };
 
 export const fetchSearchProfile = async (q: string): Promise<SearchProfileDTO> => {
-  const url = `/api/search/?q=${encodeURIComponent(q)}/profile`;
-  const res = await instance.get<BaseResponse<SearchProfileDTO>>(url);
+  const res = await instance.get<BaseResponse<SearchProfileDTO>>('/api/search/profile', {
+    params: {q},
+  });
   return res.data.data;
 };
 
 export const fetchSearchFeed = async (q: string): Promise<SearchFeedDTO> => {
-  const url = `/api/search/?q=${encodeURIComponent(q)}/feed`;
-  const res = await instance.get<BaseResponse<SearchFeedDTO>>(url);
+  const res = await instance.get<BaseResponse<SearchFeedDTO>>('/api/search/feed', {
+     params: {q},
+   });
   return res.data.data;
 };

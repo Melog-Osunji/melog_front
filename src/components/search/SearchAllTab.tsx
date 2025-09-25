@@ -1,28 +1,36 @@
 import React from 'react';
-import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ScrollView, Text, View, StyleSheet, ActivityIndicator } from 'react-native';
 import { colors } from '@/constants';
-
-const recommend = ['바이올린콩쿨', '퐁티', '브람스', '안달루시아', '파가니니'];
-const popluarText = [
-  '쇼팽 녹턴 명곡 모음',
-  '모차르트 교향곡 40번',
-  '클래식 입문 추천',
-  '바흐 평균율',
-  '라흐마니노프 협주곡 2번',
-  '힐링 클래식 모음',
-  '사계 비발디',
-  '말러 교향곡 5번',
-  '카페에서 듣기 좋은',
-  '유튜브 클래식 베스트',
-];
+import { useSearchAll } from '@/hooks/queries/search/useSearch';
 
 const SearchAllTab = () => {
+  const { data, isLoading, isError } = useSearchAll();
+
+  if (isLoading) {
+      return (
+        <View style={{ paddingVertical: 32, alignItems: 'center' }}>
+          <ActivityIndicator />
+          <Text style={{ marginTop: 8, color: colors.GRAY_400 }}>불러오는 중…</Text>
+        </View>
+      );
+    }
+
+  if (isError || !data) {
+      return (
+        <View style={{ paddingVertical: 32, alignItems: 'center' }}>
+          <Text style={{ color: colors.GRAY_400 }}>데이터를 불러오지 못했습니다.</Text>
+        </View>
+      );
+    }
+
+  const { recommendKeyword, livePopularSearch, nowTime } = data;
+
   return (
     <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16 }}>
       <View style={styles.firstView}>
         <Text style={styles.sectionTitle}>추천 키워드</Text>
         <View style={styles.keywordWrap}>
-          {recommend.map((keyword, i) => (
+          {recommendKeyword.map((keyword, i) => (
             <Text key={i} style={styles.keyword}>
               <Text style={styles.sharp}># </Text>
               {keyword}
@@ -34,11 +42,11 @@ const SearchAllTab = () => {
       <View style={styles.secondView}>
         <View style={styles.rowBetween}>
           <Text style={styles.sectionTitle}>실시간 인기 검색어</Text>
-          <Text style={styles.updateText}>2025.08.07 기준 업데이트</Text>
+          <Text style={styles.updateText}>{nowTime} 기준 업데이트</Text>
         </View>
 
         <View style={styles.popularWrap}>
-          {popluarText.map((keyword, i) => (
+          {livePopularSearch.map((keyword, i) => (
             <View key={i} style={styles.popularRow}>
               <Text style={styles.rankText}>{i + 1}</Text>
               <Text style={styles.contentText}>{keyword}</Text>

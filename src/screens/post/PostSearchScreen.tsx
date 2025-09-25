@@ -65,9 +65,9 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{flex: 1}}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <SafeAreaView style={styles.container}>
           {/* Header */}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.header}>
             <IconButton<PostStackParamList>
               imageSource={require('@/assets/icons/post/BackArrow.png')}
@@ -89,6 +89,8 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
               }}
             />
           </View>
+        </TouchableWithoutFeedback>
+
 
           {/* 최근검색/자동완성 (포커스 상태) */}
           {showRecent ? (
@@ -222,7 +224,6 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
             </>
           )}
         </SafeAreaView>
-      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }

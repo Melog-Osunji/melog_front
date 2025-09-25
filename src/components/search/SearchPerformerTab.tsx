@@ -1,21 +1,44 @@
 import React from 'react';
-import { ScrollView, View, Text, Dimensions, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, Dimensions, StyleSheet, ActivityIndicator } from 'react-native';
 import { colors } from '@/constants';
+import { useSearchPerformer } from '@/hooks/queries/search/useSearch';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
-const performers = Array.from({ length: 6 }).map((_, i) => `이름 ${i}`);
 
 const SearchPerformerTab = () => {
+
+  const { data, isLoading, isError } = useSearchPerformer();
+
+  if (isLoading) {
+      return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator />
+          <Text style={{ marginTop: 8, color: colors.GRAY_400 }}>불러오는 중…</Text>
+        </View>
+      );
+  }
+
+  if (isError || !data) {
+      return (
+        <View style={styles.center}>
+          <Text style={{ color: colors.GRAY_400 }}>데이터를 불러오지 못했습니다.</Text>
+        </View>
+      );
+  }
+
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16 }}>
       <Text style={styles.sectionTitle}>인기 검색어</Text>
       <View style={styles.container}>
-        {performers.map((name, i) => (
+        {data.map((performer, i) => (
           <View key={i} style={styles.performerItem}>
-            <Text style={styles.name}>{name}</Text>
+            <Text style={styles.name}>{performer.name}</Text>
             <View style={styles.keywordRow}>
-              <Text style={styles.keyword}>#관련 키워드</Text>
-              <Text style={styles.keyword}>#관련 키워드</Text>
+              {performer.keyword.map((kw, idx) => (
+                <Text key={idx} style={styles.keyword}>
+                  #{kw}
+                </Text>
+              ))}
             </View>
           </View>
         ))}

@@ -11,7 +11,7 @@ import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 import YouTubeEmbed from '@/components/YouTubeEmbed';
-import {PopularMedia} from '@/constants/types';
+import {PopularMedia} from '@/api/search/searchResultApi';
 import {postNavigations} from '@/constants';
 import {colors} from '@/constants';
 
@@ -24,7 +24,7 @@ type Props = {
 export default function PopularMediaCard({data}: Props) {
   const navigation = useNavigation<NavigationProp>();
 
-  const {userNickname, userProfileImgLink, postID, mediaURL, createdAgo} = data;
+  const {userNickname, userProfileImgLink, postID, mediaURL, mediaType, createdAgo} = data;
 
   const handlePress = () => {
     navigation.navigate(postNavigations.POST_PAGE, {
@@ -67,7 +67,7 @@ export default function PopularMediaCard({data}: Props) {
           <Text style={styles.nickname} numberOfLines={1}>
             {userNickname}
           </Text>
-          <Text style={styles.date}>{createdAgo}</Text>
+          <Text style={styles.date}>{createdAgo}시간 전</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: '100%',
     height: '100%',
+    backgroundColor: colors.GRAY_200,
   },
   youtubeIcon: {
     width: 20,
@@ -114,6 +115,7 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 50,
     marginRight: 8,
+    backgroundColor: colors.GRAY_200,
   },
   userText: {
     flexShrink: 1,
