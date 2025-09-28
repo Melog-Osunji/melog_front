@@ -1,22 +1,42 @@
 import React from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { colors } from '@/constants';
+import { useSearchGenre } from '@/hooks/queries/search/useSearch';
 
 const SearchGenreTab = () => {
+  const { data, isLoading, isError } = useSearchGenre();
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator />
+        <Text style={{ marginTop: 8, color: colors.GRAY_400 }}>불러오는 중…</Text>
+      </View>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <View style={styles.center}>
+        <Text style={{ color: colors.GRAY_400 }}>데이터를 불러오지 못했습니다.</Text>
+      </View>
+    );
+  }
   return (
-    <ScrollView contentContainerStyle={{ paddingHorizontal: 20 }}>
-      {Array.from({ length: 3 }).map((_, sectionIdx) => (
-        <View key={sectionIdx} style={styles.genreSection}>
-          <Text style={styles.sectionTitle}>장르</Text>
-          <View style={styles.keywordWrap}>
-            {Array.from({ length: 4 }).map((_, i) => (
-              <View key={i} style={styles.keyword}>
-                <Text style={styles.keywordText}>해당 장르 키워드</Text>
-              </View>
-            ))}
+    <ScrollView style={{ flex: 1 }}
+                  contentContainerStyle={{ paddingHorizontal: 20 }}>
+      {data.map((section, sectionIdx) => (
+          <View key={sectionIdx} style={styles.genreSection}>
+            <Text style={styles.sectionTitle}>{section.genre}</Text>
+            <View style={styles.keywordWrap}>
+              {section.keyword.map((kw, i) => (
+                <View key={i} style={styles.keyword}>
+                  <Text style={styles.keywordText}>{kw}</Text>
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
-      ))}
+        ))}
     </ScrollView>
   );
 };

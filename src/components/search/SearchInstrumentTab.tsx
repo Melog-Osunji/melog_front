@@ -1,16 +1,50 @@
-import React from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import React, {useMemo} from 'react';
+import { ScrollView, View, Text, StyleSheet, ActivityIndicator, Image} from 'react-native';
 import { colors } from '@/constants';
+import { useSearchInstrument } from '@/hooks/queries/search/useSearch';
+
 
 const SearchInstrumentTab = () => {
+
+  const { data, isLoading, isError } = useSearchInstrument();
+
+  const instruments = useMemo(() => {
+      if (!data) return [];
+      return data.instrument.map((name, i) => ({
+        name,
+        image: data.imgLink[i] ?? '',
+      }));
+  }, [data]);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator />
+        <Text style={{ marginTop: 8, color: colors.GRAY_400 }}>불러오는 중…</Text>
+      </View>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <View style={styles.center}>
+        <Text style={{ color: colors.GRAY_400 }}>데이터를 불러오지 못했습니다.</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16 }}>
       <Text style={styles.sectionTitle}>인기 검색어</Text>
       <View style={styles.keywordWrap}>
-        {Array.from({ length: 7 }).map((_, i) => (
+        {instruments.map((item, i) => (
           <View key={i} style={styles.keyword}>
-            <View style={styles.circle} />
-            <Text style={styles.keywordText}>악기</Text>
+            <Image
+              source={{ uri: item.image }}
+              style={styles.circle}
+              resizeMode="cover"
+            />
+            <Text style={styles.keywordText}>{item.name}</Text>
           </View>
         ))}
       </View>

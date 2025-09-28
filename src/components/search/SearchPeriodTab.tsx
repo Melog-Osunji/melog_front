@@ -1,18 +1,39 @@
 import React from 'react';
-import { ScrollView, View, Text, Dimensions, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, Dimensions, StyleSheet, ActivityIndicator } from 'react-native';
 import { colors } from '@/constants';
+import { useSearchPeriod } from '@/hooks/queries/search/useSearch';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
 const SearchPeriodTab = () => {
+
+  const { data, isLoading, isError } = useSearchPeriod();
+
+  if (isLoading) {
+      return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator />
+          <Text style={{ marginTop: 8, color: colors.GRAY_400 }}>불러오는 중…</Text>
+        </View>
+      );
+  }
+
+  if (isError || !data) {
+      return (
+        <View style={styles.center}>
+          <Text style={{ color: colors.GRAY_400 }}>데이터를 불러오지 못했습니다.</Text>
+        </View>
+      );
+  }
+
   return (
     <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16 }}>
       <View style={styles.container}>
         <Text style={styles.sectionTitle}>인기 검색어</Text>
         <View style={styles.keywordWrap}>
-          {Array.from({ length: 6 }).map((_, i) => (
+          {data.era.map((item, i) => (
             <View key={i} style={styles.keyword}>
-              <Text style={styles.keywordText}>키워드</Text>
+              <Text style={styles.keywordText}>{item}</Text>
             </View>
           ))}
         </View>
@@ -35,7 +56,7 @@ const styles = StyleSheet.create({
     color: colors.GRAY_600,
   },
   keywordWrap: {
-    width: 294,
+    width: DEVICE_WIDTH - 40,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 18,

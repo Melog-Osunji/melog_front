@@ -1,9 +1,10 @@
 import React from 'react';
-import { ScrollView, Text, StyleSheet, Pressable, View } from 'react-native';
+import { ScrollView, Text, StyleSheet, Pressable, View, ActivityIndicator } from 'react-native';
 import styled from 'styled-components/native';
 import {colors} from '@/constants';
 import EmptyTab from '@/components/search/EmptyTab'
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
+import { useSearchProfile } from '@/hooks/queries/search/useSearchResult';
 
 type Props = { keyword?: string };
 
@@ -11,7 +12,20 @@ const mock: any[] = []; // ← 비었을 때 EmptyState가 보이도록 가정
 
 const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
     useHideTabBarOnFocus();
-    const data = mock ?? [];
+    const { data, isLoading, isError } = useSearchProfile(keyword ?? '');
+
+    if (isLoading) {
+        return (
+          <View style={styles.center}>
+            <ActivityIndicator />
+            <Text style={{ marginTop: 8, color: colors.GRAY_400 }}>불러오는 중…</Text>
+          </View>
+        );
+    }
+
+    if (isError || !data || data.user.length === 0) {
+        return <EmptyTab keyword={keyword} fullScreen />;
+    }
 
     if (data.length === 0) {
         return (
@@ -24,22 +38,26 @@ const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
 
     return (
     <ScrollView contentContainerStyle={styles.content}>
-    {mock.map((id, idx) => (
-      <View
-        key={id}
-        style={[styles.item, idx === mock.length - 1 && styles.itemLast, idx === 0 && styles.itemFirst]}
-      >
-        <View style={styles.avatar} />
-        <View style={styles.textWrap}>
-          <Text style={styles.name}>아이디</Text>
-          <Text style={styles.bio}>자기소개하는 글입니다.</Text>
-        </View>
+        {data.user.map((user, idx) => (
+            <View
+              key={user.userNickname + idx}
+              style={[
+                styles.item,
+                idx === 0 && styles.itemFirst,
+                idx === data.user.length - 1 && styles.itemLast,
+              ]}
+            >
+              <View style={styles.avatar} />
+              <View style={styles.textWrap}>
+                <Text style={styles.name}>{user.userNickname}</Text>
+                <Text style={styles.bio}>{user.intro || '자기소개가 없습니다.'}</Text>
+              </View>
 
-        <Pressable style={styles.followBtn}>
-          <Text style={styles.followLabel}>팔로우</Text>
-        </Pressable>
-      </View>
-    ))}
+              <Pressable style={styles.followBtn}>
+                <Text style={styles.followLabel}>팔로우</Text>
+              </Pressable>
+            </View>
+          ))}
     </ScrollView>
     );
 };

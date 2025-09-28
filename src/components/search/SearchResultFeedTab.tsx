@@ -1,38 +1,64 @@
 import React, {useState} from 'react';
-import { ScrollView, Text, Pressable, View, StyleSheet, FlatList, Image } from 'react-native';
+import { ScrollView, Text, Pressable, View, StyleSheet, FlatList, Image, ActivityIndicator } from 'react-native';
 import styled from 'styled-components/native';
 import {colors} from '@/constants';
-import { realTimeData } from '@/constants/types'; // 더미 데이터
-import PopularMediaCard from '@/components/search/PopularMediaCard';
 import PostCard from '@/components/post/PostCard';
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
+import { useSearchFeed } from '@/hooks/queries/search/useSearchResult';
+import EmptyTab from '@/components/search/EmptyTab'
 
 type Props = { keyword?: string };
 
 const SearchResultFeedTab: React.FC<Props> = ({keyword}) => {
     useHideTabBarOnFocus();
-    const feeds = realTimeData ?? [];
 
     const [sortBy, setSortBy] = useState<'latest' | 'popular'>('latest');
 
+    const { data, isLoading, isError } = useSearchFeed(keyword);
+
+    console.log(data);
+
+    if (isLoading) {
+        return (
+          <View style={styles.center}>
+            <ActivityIndicator />
+            <Text style={{ marginTop: 8, color: colors.GRAY_400 }}>불러오는 중…</Text>
+          </View>
+        );
+      }
+
+    if (isError || !data) {
+      return <EmptyTab keyword={keyword} fullScreen />;
+    }
+
+    let feeds = data.resultsRecent ?? [];
+
+    if (sortBy === 'popular') {
+        feeds = [...feeds].sort((a, b) => b.post.likeCount - a.post.likeCount);
+    } else {
+        feeds = [...feeds].sort(
+          (a, b) => new Date(b.post.createdAt).getTime() - new Date(a.post.createdAt).getTime(),
+        );
+    }
+
     if (feeds.length === 0) {
-            return (
-              <EmptyTab
-              keyword={keyword}
-              fullScreen
-            />
-            );
-        }
+        return (
+          <EmptyTab
+          keyword={keyword}
+          fullScreen
+        />
+        );
+    }
 
     return (
         <FlatList
             data={feeds}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <PostCard {...item} />}
+            keyExtractor={(item) => item.post.id}
+            renderItem={({ item }) => <PostCard {...item.post} />}
             showsVerticalScrollIndicator={false}
             ListHeaderComponent={
                 <View style={styles.headerContainer}>
-                    <Text style={styles.itemNum}>00,000개</Text>
+                    <Text style={styles.itemNum}>{feeds.length}개</Text>
                     <View style={styles.sortWrap}>
                         <Pressable
                           accessibilityRole="button"
