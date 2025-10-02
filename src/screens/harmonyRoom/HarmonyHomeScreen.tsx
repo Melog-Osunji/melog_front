@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Dimensions, FlatList} from 'react-native';
+import {StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Dimensions, FlatList, RefreshControl, ActivityIndicator} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {StackScreenProps} from '@react-navigation/stack';
@@ -11,6 +11,16 @@ import {RecentHarmonyRoomData, RecommendRoomData} from '@/constants/dummyData';
 import HarmonyRoomStrip from '@/components/harmonyRoom/HarmonyRoomStrip';
 import RecommendCard from '@/components/harmonyRoom/RecommendCard';
 import RecentMediaCard from '@/components/harmonyRoom/RecentMediaCard';
+import {
+  useMyHarmonyRoomAll,
+  useHarmonyRecentMedia,
+  useHarmonyRecommendRooms,
+  type MyHarmonyRoomListDTO,
+  type harmonyRecentMediaDTO,
+  type harmonyRecommendDTO,
+} from '@/hooks/queries/harmony/useHarmonyRoomGet';
+import type { HarmonyStackParamList } from '@/navigations/stack/HarmonyStackNavigator';
+
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
