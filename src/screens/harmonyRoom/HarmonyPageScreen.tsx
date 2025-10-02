@@ -1,5 +1,5 @@
-import React, {useState, useEffect, useRef} from 'react';
-import {StyleSheet, Text, View, ScrollView, Image, Dimensions, FlatList, TouchableOpacity, Keyboard, Pressable} from 'react-native';
+import React, {useState, useEffect, useRef, useMemo} from 'react';
+import {StyleSheet, Text, View, ScrollView, Image, Dimensions, FlatList, TouchableOpacity, Keyboard, Pressable, ActivityIndicator} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useFocusEffect, useRoute} from '@react-navigation/native';
 import {StackScreenProps} from '@react-navigation/stack';
@@ -13,6 +13,15 @@ import GuideModal from '@/components/harmonyRoom/GuideModal';
 import LinearGradient from 'react-native-linear-gradient';
 import EmptyTab from '@/components/search/EmptyTab'
 import CheckPopupOneBtn from '@/components/common/CheckPopupOneBtn';
+import {
+  useHarmonyRoomInfo,
+  useHarmonyRoomPosts,
+  useHarmonyIsMember,
+} from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
+// PostCard 가져오기
+import PostCard from '@/components/post/PostCard';
+import type { Post } from '@/constants/types';
+import { RefreshControl } from 'react-native';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
@@ -31,19 +40,95 @@ export default function HarmonyPageScreen() {
     const [showGuideModal, setShowGuideModal] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [selectTab, setSelectTab] = useState<'rcmd' | 'popular'>('rcmd');
-
-    const harmony = roomData ?? rooms.find(r => r.roomID === roomID);
-
-    const isEmpty = (harmony?.feed?.length ?? 0) === 0;
-
-    const [isOwner, setIsOwner] = useState(true);
-    const [isMember, setIsMember] = useState(false);
-
     const [showExitPopup, setShowExitPopup] = useState(false);
+
+    const {
+      data: roomInfo,
+      isLoading: infoLoading,
+      isError: infoError,
+    } = useHarmonyRoomInfo(roomID);
+
+    const {
+      data: postsDTO,
+      isLoading: postsLoading,
+      isError: postsError,
+      refetch: refetchPosts,
+    } = useHarmonyRoomPosts(roomID);
+
+    const {
+      data: memberDTO,
+      isLoading: memberLoading,
+    } = useHarmonyIsMember(roomID);
+
+    const currentUserId = "f4c475f1-9016-4b01-91a8-1880cf749903"; // TODO: auth context 등에서 가져오면 owner 비교 가능
+
+    const isOwner = useMemo(() => {
+      if (!roomInfo) return false;
+      // roomInfo.owner: string (owner의 userId라고 가정)
+      return currentUserId ? roomInfo.owner === currentUserId : false;
+    }, [roomInfo, currentUserId]);
+
+    const isMember = memberDTO?.isMember ?? false;
+
+    // 헤더 표시용 데이터 파생
+    const headerName = roomInfo?.name ?? '하모니룸';
+    const headerImg = roomInfo?.profileImgLink ?? undefined;
+    const headerTags = roomInfo?.category ?? [];
+    const headerIntro = roomInfo?.intro ?? '';
+
+    // FeedItem: 서버 응답 병합 형태
+    type FeedItem = harmonyRoomPost & { author?: harmonyUser };
+
+    // post[]와 user[]를 같은 index로 병합
+    const pairPosts = (blocks?: harmonyRoomPosts[]) => {
+      if (!blocks?.length) return [] as FeedItem[];
+      const merged: FeedItem[] = [];
+      for (const b of blocks) {
+        const posts = b.post ?? [];
+        const users = b.user ?? [];
+        for (let i = 0; i < posts.length; i++) {
+          merged.push({ ...posts[i], author: users[i] });
+        }
+      }
+      return merged;
+    };
+
+    // 탭에 맞는 원천 피드
+    const recommendFeed = useMemo(() => pairPosts(postsDTO?.recommend), [postsDTO]);
+    const popularFeed   = useMemo(() => pairPosts(postsDTO?.popular),   [postsDTO]);
+
+    // ★ PostCard 타입으로 최종 매핑
+    const toPostCardModel = (src: FeedItem): Post => {
+      // 서버 createdAgo 가 "분" 단위(number)라고 가정 → 시간 단위로 변환(최소 1시간)
+      const hours = Math.max(1, Math.floor((src.createdAgo ?? 0) / 60));
+
+      return {
+        id: src.id,
+        user: {
+          nickName: src.author?.nickName ?? '익명',
+          profileImg: src.author?.profileImg ?? '',
+        },
+        createdAgo: hours,                 // PostCard에서 "{createdAgo}시간 전"으로 사용
+        content: src.content ?? '',
+        mediaUrl: src.mediaUrl ?? '',
+        tags: src.tags ?? [],
+        likeCount: src.likeCount ?? 0,
+        commentCount: src.commentCount ?? 0,
+        // bestComment는 서버에 없으니 생략 가능
+      };
+    };
+
+    const activeFeedRaw = selectTab === 'rcmd' ? recommendFeed : popularFeed;
+    const activeFeed: Post[] = useMemo(
+      () => activeFeedRaw.map(toPostCardModel),
+      [activeFeedRaw]
+    );
+    const isEmpty = activeFeed.length === 0;
+
 
     // info로 이동
     const handlePress = () => {
-        navigation.navigate(harmonyNavigations.HARMONY_INFO, { roomID: roomID, roomData: harmony });
+        navigation.navigate(harmonyNavigations.HARMONY_INFO, { roomID: roomID, roomData: roomInfo });
     };
 
     // 가입 모달 오픈
@@ -56,6 +141,14 @@ export default function HarmonyPageScreen() {
           setShowExitPopup(false);
           navigation.goBack();
       };
+
+    if ((infoLoading || postsLoading || memberLoading) && !roomInfo && !postsDTO) {
+      return (
+        <SafeAreaView style={{flex:1, alignItems:'center', justifyContent:'center'}}>
+           <ActivityIndicator />
+        </SafeAreaView>
+      );
+    }
 
     return (
         <LinearGradient
@@ -97,29 +190,33 @@ export default function HarmonyPageScreen() {
                 <View style={styles.infoWrap}>
                     <Pressable onPress={handlePress}>
                         <View style={styles.nameAndTag}>
-                            <Image source={{uri: "https://randomuser.me/api/portraits/men/33.jpg"}} style={styles.roomImg}/>
+                            <Image source={{uri: headerImg}} style={styles.roomImg}/>
                             <View style={styles.wrap}>
                                 <View style={styles.roomInfo}>
                                     <View style={styles.nameWrap}>
-                                        <Text style={styles.name}>하모니룸</Text>
+                                        <Text style={styles.name}>{headerName}</Text>
                                         {isOwner ?
                                             <Text style={styles.manageLabel}>운영</Text>
-                                            : <></>
+                                            : null
                                         }
                                     </View>
-                                    <View style={styles.tagWrap}>
-                                        <Text style={styles.tags}># 키워드</Text>
-                                        <Text style={styles.tags}># 키워드</Text>
-                                        <Text style={styles.tags}># 키워드</Text>
-                                    </View>
+                                    {!!headerTags.length && (
+                                        <View style={styles.tagWrap}>
+                                          {headerTags.slice(0,3).map((t, idx) => (
+                                            <Text key={`${t}_${idx}`} style={styles.tags}>#{t}</Text>
+                                          ))}
+                                        </View>
+                                      )}
                                 </View>
                                 <Image source={require('@/assets/icons/mypage/RightArrow.png')} style={styles.iconBtn}/>
                             </View>
                         </View>
                     </Pressable>
-                    <View style={styles.descriptionWrap}>
-                        <Text style={styles.description}>활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용</Text>
-                    </View>
+                     {!!headerIntro && (
+                        <View style={styles.descriptionWrap}>
+                          <Text style={styles.description}>{headerIntro}</Text>
+                        </View>
+                      )}
                 </View>
 
                 <View style={styles.line}></View>
@@ -136,14 +233,23 @@ export default function HarmonyPageScreen() {
 
                 {/* 피드 */}
 
-                {isEmpty ? (
-                    <View style={styles.emptyCenter}>
-                    <EmptyTab
-                        subtitle={"우측 하단의 글쓰기 버튼으로\n첫 글을 작성해보세요."}
-                    />
-                    </View>
-                )
-                : (<View>포스트</View>
+                {postsError ? (
+                  <View style={styles.emptyCenter}>
+                    <Text style={{color:'#c22'}}>피드를 불러오지 못했어요.</Text>
+                  </View>
+                ) : isEmpty ? (
+                  <View style={styles.emptyCenter}>
+                    <EmptyTab subtitle={"우측 하단의 글쓰기 버튼으로\n첫 글을 작성해보세요."} />
+                  </View>
+                ) : (
+                  <FlatList
+                    data={activeFeed}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => <PostCard {...item} />}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 60 }}
+                    ListHeaderComponent={<View style={{ height: 0 }} />} // 상단 여백 조절용(선택)
+                  />
                 )}
 
 

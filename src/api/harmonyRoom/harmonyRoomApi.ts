@@ -5,7 +5,7 @@ import type { BaseResponse } from '../baseResponse';
 export type MyHarmonyRoomListDTO = {
   myHarmony: HarmonyRoomDTO[];
   harmony: HarmonyRoomDTO[];
-  bookmarkHarmony: HarmonyRoomDTO;
+  bookmarkHarmony: HarmonyRoomDTO[];
 };
 
 export type HarmonyRoomDTO = {
@@ -85,6 +85,8 @@ export type harmonyRoomPosts = {
 };
 
 export type harmonyRoomPostsDTO = {
+    harmonyRoomId: string | null;
+    harmonyRoomName: string | null;
     recommend: harmonyRoomPosts[];
     popular: harmonyRoomPosts[];
 };

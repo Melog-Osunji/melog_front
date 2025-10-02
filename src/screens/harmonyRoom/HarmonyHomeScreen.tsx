@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Dimensions, FlatList, RefreshControl, ActivityIndicator} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
@@ -15,11 +15,7 @@ import {
   useMyHarmonyRoomAll,
   useHarmonyRecentMedia,
   useHarmonyRecommendRooms,
-  type MyHarmonyRoomListDTO,
-  type harmonyRecentMediaDTO,
-  type harmonyRecommendDTO,
-} from '@/hooks/queries/harmony/useHarmonyRoomGet';
-import type { HarmonyStackParamList } from '@/navigations/stack/HarmonyStackNavigator';
+} from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 
 
 const {width: SCREEN_W} = Dimensions.get('window');
@@ -33,14 +29,67 @@ function HarmonyHomeScreen() {
 
   const navigation = useNavigation<StackNavigationProp<HarmonyStackParamList>>();
 
-  const communities: Community[] = [
-      { id: 'c1', name: '내 클래식 운영방', isOwner: true },
-      { id: 'c2', name: '바흐 클럽', isFavorite: true },
-      { id: 'c3', name: '가곡 연구회' },
-      { id: 'c4', name: '첼로 애호가' },
-      { id: 'c5', name: '피아노 살롱' },
-    ];
+  const {
+      data: myRoomsDTO,
+      isLoading: myRoomsLoading,
+      isError: myRoomsError,
+      refetch: refetchMyRooms,
+  } = useMyHarmonyRoomAll();
 
+  const {
+      data: recentMediaDTO,
+      isLoading: recentLoading,
+      isError: recentError,
+      refetch: refetchRecent,
+  } = useHarmonyRecentMedia();
+
+  const {
+      data: recommendDTO,
+      isLoading: recommendLoading,
+      isError: recommendError,
+      refetch: refetchRecommend,
+  } = useHarmonyRecommendRooms();
+
+  const [refreshing, setRefreshing] = useState(false);
+    const onRefresh = useCallback(async () => {
+      setRefreshing(true);
+      try {
+        await Promise.all([refetchMyRooms(), refetchRecent(), refetchRecommend()]);
+      } finally {
+        setRefreshing(false);
+      }
+  }, [refetchMyRooms, refetchRecent, refetchRecommend]);
+
+  const communitiesForStrip = useMemo(() => {
+      if (!myRoomsDTO) return [];
+      const mine = (myRoomsDTO.myHarmony ?? []).map(r => ({
+        id: r.id, name: r.name, coverUri: r.profileImg, isOwner: true,
+      }));
+      const joined = (myRoomsDTO.harmony ?? []).map(r => ({
+        id: r.id, name: r.name, coverUri: r.profileImg,
+      }));
+      const bookmarked = (myRoomsDTO.bookmarked ?? []).map(r => ({
+         id: r.id, name: r.name, coverUri: r.profileImg, isFavorite: true,
+       }));
+      return [...mine, ...bookmarked, ...joined];
+  }, [myRoomsDTO]);
+
+  const recentMedias = recentMediaDTO?.recentMedia ?? [];
+
+  const recommendRooms = recommendDTO?.recommendedRooms ?? [];
+
+  const SectionLoader = () => (
+    <View style={styles.loaderWrap}><ActivityIndicator /></View>
+  );
+
+  const SectionError = ({ text }: { text?: string }) => (
+    <View style={styles.errorWrap}><Text style={styles.errorText}>{text ?? '불러오는 중 오류가 발생했어요.'}</Text></View>
+  );
+  const EmptyRow = ({ text }: { text: string }) => (
+    <View style={styles.emptyWrap}><Text style={styles.emptyText}>{text}</Text></View>
+  );
+
+  console.log(myRoomsDTO);
   return (
     <LinearGradient
       colors={['#EFFAFF', colors.WHITE]} // 원하는 색 배열
@@ -74,29 +123,44 @@ function HarmonyHomeScreen() {
                 {/* 나의 하모니룸 */}
                 <View style={styles.section1}>
                     <Text style={styles.title}>나의 하모니룸</Text>
-                    <HarmonyRoomStrip
-                      communities={communities}
-                      onChange={(id) => {
-                        // TODO: id === 'all' 이면 전체 피드, 아니면 해당 커뮤니티 필터링 로직 호출
-                      }}
-                    />
+                    {myRoomsLoading && <SectionLoader />}
+                    {!myRoomsLoading && !myRoomsError && (
+                      communitiesForStrip.length > 0 ? (
+                          <HarmonyRoomStrip
+                          communities={communitiesForStrip}
+                          onChange={(id) => {
+                          }}/>
+                    ) : (
+                        <EmptyRow text="아직 가입한 하모니룸이 없어요." />
+                      )
+                  )}
                 </View>
                 {/* 최근 업로드된 미디어 */}
                 <View style={styles.section2}>
                     <Text style={styles.title}>최근 업로드된 미디어</Text>
-                    <FlatList
-                        data={RecentHarmonyRoomData}
-                        keyExtractor={(item, index) => `${item.roomID}_${index}`}
-                        renderItem={({ item }) => <RecentMediaCard data={item} />}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.horizontalListContent}
-                        ItemSeparatorComponent={() => <View style={{ width: 15 }} />}
-                    />
+                    {recentLoading && <SectionLoader />}
+                    {recentError && <SectionError text="최근 미디어를 불러오지 못했어요." />}
+                    {!recentLoading && !recentError && (
+                      recentMedias.length > 0 ? (
+                        <FlatList
+                          data={recentMedias}
+                          keyExtractor={(item, index) => `${item.postID}_${index}`}
+                          renderItem={({ item }) => (
+                            <RecentMediaCard data={item} />
+                          )}
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={styles.horizontalListContent}
+                          ItemSeparatorComponent={() => <View style={{ width: 15 }} />}
+                        />
+                      ) : (
+                        <EmptyRow text="최근 업로드된 미디어가 없어요." />
+                      )
+                    )}
                 </View>
                 <View style={styles.section3}>
                     <Text style={styles.title}>추천 하모니룸</Text>
-                    {RecommendRoomData.map((item, idx) => (
+                    {recommendRooms.map((item, idx) => (
                         <View key={`${item.roomID}_${idx}`} style={styles.horizontalListContent}>
                           <RecommendCard data={item} />
                         </View>
@@ -178,7 +242,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     flexDirection: 'column',
     gap: 16,
-  }
+  },
+  emptyWrap: { paddingVertical: 12, paddingHorizontal: 20 },
+  emptyText: { color: colors.GRAY_400, fontSize: 13 },
 });
 
 export default HarmonyHomeScreen;

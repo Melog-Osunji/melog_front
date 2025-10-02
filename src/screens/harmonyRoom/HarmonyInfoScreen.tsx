@@ -1,5 +1,5 @@
-import React, {useState, useEffect, useRef} from 'react';
-import {StyleSheet, Text, View, ScrollView, Image, Dimensions, FlatList, TouchableOpacity, Keyboard, Pressable} from 'react-native';
+import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
+import {StyleSheet, Text, View, ScrollView, Image, Dimensions, FlatList, TouchableOpacity, Keyboard, Pressable, ActivityIndicator } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useFocusEffect, useRoute} from '@react-navigation/native';
 import {StackScreenProps} from '@react-navigation/stack';
@@ -16,6 +16,7 @@ import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 import CustomButton from '@/components/common/CustomButton';
 import CheckPopupOneBtn from '@/components/common/CheckPopupOneBtn';
 import CheckPopup from '@/components/common/CheckPopup';
+import { useHarmonyRoomDetailInfo, useHarmonyIsMember, useHarmonyRoomInfo } from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
@@ -29,44 +30,66 @@ export default function HarmonyInfoScreen() {
 
 
     const route = useRoute<HarmonyPageScreenRouteProp>();
-    const {roomID, roomData} = route.params;
+    const {roomID} = route.params;
     const { rooms } = useHarmonyRoomContext();
     const [selectTab, setSelectTab] = useState<'rcmd' | 'popular'>('rcmd');
 
-    const harmony = roomData ?? rooms.find(r => r.roomID === roomID);
+    const {
+        data: detail,
+        isLoading,
+        isError,
+        refetch,
+    } = useHarmonyRoomDetailInfo(roomID);
 
-    const [isOwner, setIsOwner] = useState(false);
-    const [isMember, setIsMember] = useState(true);
-
+    const [fav, setFav] = useState<boolean>(false);
     const [showExitPopup, setShowExitPopup] = useState(false);
     const [showOutPopup, setShowOutPopup] = useState(false);
 
 
-    // 가입 모달 오픈
-    const handleAccess = () => {
-        setShowExitPopup(true);
-    };
+    const headerImg   = detail?.profileImgLink ?? '';
+    const headerName  = detail?.name ?? '하모니룸';
+    const headerTags  = detail?.category ?? [];
+    const headerIntro = detail?.intro ?? '';
 
-    // 확인
-    const handleConfirmExit = () => {
-      setShowExitPopup(false);
-    };
+    const memberNum   = detail?.memberNum ?? 0;
+    const ranking     = detail?.ranking ?? 0;
+    const countPosts  = detail?.countPosts ?? 0;
 
-    // 나가기 모달 오픈
-    const handleOut = () => {
-        setShowOutPopup(true);
-    };
+    React.useEffect(() => {
+        if (detail) setFav(!!detail.isBookmark);
+      }, [detail]);
 
-    // 머무르기
-    const handleCancelExit = () => {
-        setShowOutPopup(false);
-    };
+    const currentUserId = "f4c475f1-9016-4b01-91a8-1880cf749903";
 
-    // 나가기
-    const handleOutAccess = () => {
-        setShowOutPopup(false);
+    const { data: isMemberDTO } = useHarmonyIsMember(roomID);
+    const isMember = isMemberDTO?.isMember ?? false;
+    const { data: roomInfo } = useHarmonyRoomInfo(roomID);
+    const isOwner = roomInfo ? roomInfo.owner === currentUserId : false;
+
+    const onRefresh = useCallback(async () => { await refetch(); }, [refetch]);
+
+    const handleAccess = () => setShowExitPopup(true);
+    const handleConfirmExit = () => setShowExitPopup(false);
+
+    const handleOut = () => setShowOutPopup(true);
+    const handleCancelExit = () => setShowOutPopup(false);
+    const handleOutAccess = () => setShowOutPopup(false);
+
+    if (isLoading && !detail) {
+        return (
+          <SafeAreaView style={{flex:1, alignItems:'center', justifyContent:'center'}}>
+            <ActivityIndicator />
+          </SafeAreaView>
+        );
     }
 
+    if (isError) {
+        return (
+          <SafeAreaView style={{flex:1, alignItems:'center', justifyContent:'center'}}>
+            <Text style={{color:'#c22'}}>하모니룸 정보를 불러오지 못했어요.</Text>
+          </SafeAreaView>
+        );
+    }
 
     return (
         <LinearGradient
@@ -96,25 +119,33 @@ export default function HarmonyInfoScreen() {
             {/* 하모니룸 */}
             <View style={styles.infoWrap}>
                 <View style={styles.nameAndTag}>
-                    <Image source={{uri: "https://randomuser.me/api/portraits/men/33.jpg"}} style={styles.roomImg}/>
+                    {headerImg ? (
+                        <Image source={{uri: headerImg}} style={styles.roomImg}/>
+                      ) : (
+                        <View style={[styles.roomImg, { backgroundColor: colors.GRAY_300 }]} />
+                      )}
                     <View style={styles.roomInfo}>
                         <View style={styles.nameWrap}>
-                            <Text style={styles.name}>하모니룸</Text>
+                            <Text style={styles.name}>{headerName}</Text>
                             {isOwner ?
                                 <Text style={styles.manageLabel}>운영</Text>
-                                : <></>
+                                : null
                             }
                         </View>
-                        <View style={styles.tagWrap}>
-                            <Text style={styles.tags}># 키워드</Text>
-                            <Text style={styles.tags}># 키워드</Text>
-                            <Text style={styles.tags}># 키워드</Text>
-                        </View>
+                        {!!headerTags.length && (
+                          <View style={styles.tagWrap}>
+                            {headerTags.slice(0,3).map((t, idx) => (
+                              <Text key={`${t}_${idx}`} style={styles.tags}>#{t}</Text>
+                            ))}
+                          </View>
+                        )}
                     </View>
                 </View>
-                <View style={styles.descriptionWrap}>
-                    <Text style={styles.description}>활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용</Text>
-                </View>
+                {!!headerIntro && (
+                  <View style={styles.descriptionWrap}>
+                    <Text style={styles.description}>{headerIntro}</Text>
+                  </View>
+                )}
             </View>
 
             {/* 멤버 정보 */}
@@ -122,25 +153,36 @@ export default function HarmonyInfoScreen() {
                 <View style={styles.memAndRank}>
                     <View style={styles.section}>
                         <Text style={styles.title}>멤버</Text>
-                        <Text style={styles.content}>00명</Text>
+                        <Text style={styles.content}>{memberNum}명</Text>
                     </View>
                     <View style={styles.section}>
                         <Text style={styles.title}>랭킹</Text>
-                        <Text style={styles.content}>00위</Text>
+                        <Text style={styles.content}>{ranking}위</Text>
                     </View>
                     <View style={styles.section}>
                         <Text style={styles.title}>누적 피드</Text>
-                        <Text style={styles.content}>00개</Text>
+                        <Text style={styles.content}>{countPosts}개</Text>
                     </View>
                 </View>
             </View>
 
             {/* 버튼 */}
             <View style={styles.btnWrap}>
-                <View style={styles.btn}>
-                    <Image source={require('@/assets/icons/harmonyRoom/Favorite.png')} style={styles.iconImg}/>
-                    <Text style={styles.btnText}>즐겨찾기</Text>
-                </View>
+                <Pressable
+                  style={styles.btn}
+                  onPress={() => setFav(v => !v)}
+                  hitSlop={{top:8,bottom:8,left:8,right:8}}
+                >
+                  <Image
+                    source={
+                      fav
+                        ? require('@/assets/icons/harmonyRoom/FavoriteColor.png')
+                        : require('@/assets/icons/harmonyRoom/Favorite.png')
+                    }
+                    style={[styles.iconImg, !fav && { tintColor: colors.GRAY_400 }]}
+                  />
+                  <Text style={styles.btnText}>{fav ? '즐겨찾기 해제' : '즐겨찾기'}</Text>
+                </Pressable>
                 <View style={styles.btn}>
                     <Text style={styles.btnText}>공유</Text>
                 </View>
@@ -350,7 +392,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: colors.GRAY_100,
         borderRadius: 8,
-        width: 86,
+        minWidth: 86,
     },
     iconImg: {
         width: 18,

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {getAccessToken} from '@/utils/tokenStorage';
 
-export const BASE_URL = 'http://yanggang.iptime.org:8080';
+export const BASE_URL = 'https://melog.org';
 
 const instance = axios.create({
   baseURL: BASE_URL,
