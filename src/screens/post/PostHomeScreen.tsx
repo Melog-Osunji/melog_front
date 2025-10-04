@@ -14,6 +14,7 @@ import PostList from '@/components/post/PostList';
 import IconButton from '@/components/common/IconButton';
 import FeedSelector from '@/components/post/FeedSelector';
 import GradientBg from '@/components/common/GradientBg';
+import HaryroomNaviBtn from '@/components/post/HaryroomNaviBtn';
 
 type IntroScreenProps = StackScreenProps<
   PostStackParamList,
@@ -24,6 +25,15 @@ function PostHomeScreen({navigation}: IntroScreenProps) {
   const {posts: newPosts} = usePostContext();
   const feedTypes = createFeedTypes(newPosts);
   const [selectedFeed, setSelectedFeed] = useState<FeedType>(feedTypes[0]);
+  const [selectedRoomId, setSelectedRoomId] = useState<string>('room1');
+
+  // 하모니룸 데이터
+  const harmonyRooms = [
+    {id: 'room1', name: '하모니룸1'},
+    {id: 'room2', name: '하모니룸2'},
+    {id: 'room3', name: '하모니룸3'},
+    {id: 'room4', name: '하모니룸4'},
+  ];
 
   // 선택된 피드의 포스트를 표시, 없으면 새 포스트 표시
   const allPosts =
@@ -35,6 +45,11 @@ function PostHomeScreen({navigation}: IntroScreenProps) {
 
   const handleFeedSelect = (feed: FeedType) => {
     setSelectedFeed(feed);
+  };
+
+  const handleRoomSelect = (roomId: string) => {
+    setSelectedRoomId(roomId);
+    // 룸 선택에 따른 추가 로직
   };
 
   return (
@@ -58,7 +73,16 @@ function PostHomeScreen({navigation}: IntroScreenProps) {
           </View>
         </View>
 
-        <PostList data={allPosts} />
+        <PostList
+          data={allPosts}
+          ListHeaderComponent={
+            <HaryroomNaviBtn
+              rooms={harmonyRooms}
+              selectedRoomId={selectedRoomId}
+              onRoomSelect={handleRoomSelect}
+            />
+          }
+        />
 
         {/* Write 버튼 */}
         <View style={styles.writeButton}>

@@ -5,9 +5,14 @@ import {Post} from '@/constants/types';
 
 interface PostListProps {
   data: Post[];
+  ListHeaderComponent?:
+    | React.ComponentType<any>
+    | React.ReactElement
+    | null
+    | undefined;
 }
 
-function PostList({data}: PostListProps) {
+function PostList({data, ListHeaderComponent}: PostListProps) {
   const renderItem: ListRenderItem<Post> = ({item}) => <PostCard {...item} />;
 
   return (
@@ -20,6 +25,7 @@ function PostList({data}: PostListProps) {
       }}
       renderItem={renderItem}
       showsVerticalScrollIndicator={false}
+      ListHeaderComponent={ListHeaderComponent}
     />
   );
 }

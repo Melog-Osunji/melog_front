@@ -8,7 +8,7 @@ import {
   FlatList,
   Image,
 } from 'react-native';
-import YouTubeEmbed from '../common/YouTubeEmbed';
+import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 import {colors} from '@/constants';
 import {YouTubeVideo} from '@/constants/types';
 import {DUMMY_YOUTUBE_VIDEOS} from '@/constants/dummyData';
