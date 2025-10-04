@@ -25,7 +25,7 @@ const PostStats = ({likeCount, commentCount}: PostStatsProps) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.statsRow}>
+      <View style={[styles.statsRow, {gap: 18}]}>
         <TouchableOpacity style={styles.statItem} onPress={handleLikePress}>
           <Image
             source={
@@ -45,25 +45,25 @@ const PostStats = ({likeCount, commentCount}: PostStatsProps) => {
           />
           <Text style={styles.statText}>{commentCount || 0}</Text>
         </View>
-
+      </View>
+      <View style={styles.statsRow}>
         <TouchableOpacity style={styles.statItem}>
           <Image
             source={require('@/assets/icons/post/Share.png')}
             style={styles.icon}
           />
         </TouchableOpacity>
+        <TouchableOpacity style={styles.statItem} onPress={handleBookmarkPress}>
+          <Image
+            source={
+              isBookmarked
+                ? require('@/assets/icons/post/Bookmark_activate.png')
+                : require('@/assets/icons/post/Bookmark.png')
+            }
+            style={styles.icon}
+          />
+        </TouchableOpacity>
       </View>
-
-      <TouchableOpacity style={styles.statItem} onPress={handleBookmarkPress}>
-        <Image
-          source={
-            isBookmarked
-              ? require('@/assets/icons/post/Bookmark_activate.png')
-              : require('@/assets/icons/post/Bookmark.png')
-          }
-          style={styles.icon}
-        />
-      </TouchableOpacity>
     </View>
   );
 };
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 4,
   },
   statText: {
     fontSize: 14,
