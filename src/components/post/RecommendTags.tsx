@@ -68,11 +68,9 @@ export default function RecommendTags({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 10,
-    marginBottom: 10,
+    paddingHorizontal: 12,
+    marginBottom: 2,
     backgroundColor: colors.WHITE,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.GRAY_200,
   },
   scrollView: {
     flexGrow: 0,
@@ -87,21 +85,17 @@ const styles = StyleSheet.create({
   tagItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    gap: 6,
-  },
-  selectedTagItem: {
     backgroundColor: colors.BLUE_300,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 8,
   },
   tagText: {
     fontSize: 14,
     fontWeight: '500',
     color: '#8C9CAA',
   },
-  selectedTagText: {
-    color: colors.BLACK,
-  },
+  selectedTagItem: {},
+  selectedTagText: {}, //현재는 스타일 없음
 });

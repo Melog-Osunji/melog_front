@@ -10,18 +10,20 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-
+//constants
 import {colors} from '@/constants';
-import axiosInstance from '@/api/axiosInstance';
+import {YouTubeVideo, Post} from '@/constants/types';
+//navigation
 import {useNavigation} from '@react-navigation/native';
-import {postNavigations} from '@/constants';
+//utils
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
+//contexts
+import {usePostContext} from '@/contexts/PostContext';
+//components
 import PostActionButtons from '@/components/post/PostActionButtons';
 import CustomButton from '@/components/common/CustomButton';
 import Toast from '@/components/common/Toast';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
-import {YouTubeVideo, Post} from '@/constants/types';
-import {usePostContext} from '@/contexts/PostContext';
 
 export default function PostCreateScreen() {
   const navigation = useNavigation();
@@ -57,10 +59,6 @@ export default function PostCreateScreen() {
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
-    setSelectedTags(prev => prev.filter(tag => tag !== tagToRemove));
-  };
-
   const handlePost = () => {
     if (!content.trim()) {
       showToast('내용을 입력해주세요.');
@@ -91,10 +89,6 @@ export default function PostCreateScreen() {
 
     // Context에 포스트 추가
     addPost(newPost);
-
-    console.log('게시 내용:', content);
-    console.log('선택된 비디오:', selectedVideo);
-    console.log('생성된 포스트:', newPost);
 
     navigation.goBack();
 
@@ -134,6 +128,7 @@ export default function PostCreateScreen() {
             label="게시"
             variant="filled"
             size="small"
+            inValid={!content.trim()}
             onPress={handlePost}
           />
         </View>
@@ -149,23 +144,21 @@ export default function PostCreateScreen() {
           <TextInput
             style={styles.contentInput}
             placeholder="오늘은 어떤 클래식을 감상했나요?"
-            placeholderTextColor="#8C9CAA"
+            placeholderTextColor={colors.GRAY_300}
             multiline
             textAlignVertical="top"
             value={content}
             onChangeText={setContent}
           />
 
-          {/* Selected Tags Display */}
           {selectedTags.length > 0 && (
             <View style={styles.selectedTagsContainer}>
-              {selectedTags.map((tag, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.selectedTag}
-                  onPress={() => removeTag(tag)}>
-                  <Text style={styles.selectedTagText}>#{tag}</Text>
-                </TouchableOpacity>
+              {selectedTags.map(tag => (
+                <View key={tag} style={styles.selectedTag}>
+                  <TouchableOpacity onPress={() => handleTagSelect(tag)}>
+                    <Text style={styles.selectedTagText}>#{tag}</Text>
+                  </TouchableOpacity>
+                </View>
               ))}
             </View>
           )}
@@ -205,7 +198,7 @@ export default function PostCreateScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.WHITE,
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -233,13 +226,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 60,
   },
-  postText: {
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 20,
-    letterSpacing: 0.2,
-    color: '#FBFBFC',
-  },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -261,18 +247,17 @@ const styles = StyleSheet.create({
     color: colors.BLACK,
   },
   contentSection: {
-    flex: 1,
     paddingHorizontal: 18,
-    paddingTop: 20,
   },
   contentInput: {
-    flex: 1,
     fontSize: 14,
-    fontWeight: '400',
     lineHeight: 20,
     letterSpacing: 0.2,
     color: colors.BLACK,
     textAlignVertical: 'top',
+    padding: 12,
+    maxHeight: 300,
+    // backgroundColor: 'peasfink',
   },
   selectedVideoContainer: {
     backgroundColor: '#F8F9FA',
@@ -306,25 +291,22 @@ const styles = StyleSheet.create({
   selectedTagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 12,
-    gap: 8,
+    gap: 2,
   },
   selectedTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 6,
     paddingVertical: 6,
-    borderRadius: 16,
-    borderColor: colors.BLUE_600,
   },
   selectedTagText: {
     fontSize: 14,
-    color: colors.BLUE_600,
+    color: colors.BLACK,
     fontWeight: '500',
   },
   removeTagText: {
     fontSize: 12,
-    color: colors.BLUE_600,
+    color: colors.BLACK,
     marginLeft: 4,
   },
 });

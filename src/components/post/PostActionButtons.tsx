@@ -8,6 +8,8 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
+import {colors} from '@/constants';
+//components
 import PhotoBottomSheet from './PhotoBottomSheet';
 import MusicSearchBottomSheet from './MusicSearchBottomSheet';
 import RecommendTags from './RecommendTags';
@@ -102,12 +104,12 @@ export default function PostActionButtons({
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={handleMusicPress}>
           {renderIcon('music', require('@/assets/icons/post/FindMusic.png'))}
-          {renderText('music', '음악 찾기')}
+          {renderText('music', '동영상')}
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={handlePhotoPress}>
           {renderIcon('photo', require('@/assets/icons/post/Picture.png'))}
-          {renderText('photo', '사진/파일')}
+          {renderText('photo', '이미지')}
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={handleTagPress}>
@@ -134,14 +136,19 @@ export default function PostActionButtons({
 
 const styles = StyleSheet.create({
   container: {
-    borderTopWidth: 1,
-    borderTopColor: '#BDCAD8',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
+    backgroundColor: colors.WHITE,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
   },
   buttonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.GRAY_200,
     paddingHorizontal: 18,
     gap: 16,
   },
@@ -166,7 +173,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 20,
     letterSpacing: 0.2,
-    color: '#8C9CAA',
+    color: colors.GRAY_300,
   },
   musicButtonText: {
     color: '#155B7E',
