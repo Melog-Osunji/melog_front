@@ -1,5 +1,5 @@
 import React from 'react';
-import BottomSheet from '../common/BottomSheet';
+import BottomSheet from '@/components/common/BottomSheet';
 import MusicSearchContent from './MusicSearchContent';
 import {YouTubeVideo} from '@/constants/types';
 

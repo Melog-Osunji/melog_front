@@ -20,7 +20,7 @@ import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 //contexts
 import {usePostContext} from '@/contexts/PostContext';
 //components
-import PostActionButtons from '@/components/post/PostActionButtons';
+import PostActionButtons from '@/components/post/postcreate/PostActionButtons';
 import CustomButton from '@/components/common/CustomButton';
 import Toast from '@/components/common/Toast';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
