@@ -202,6 +202,7 @@ function PostPageScreen() {
             <PostStats
               likeCount={post.likeCount}
               commentCount={post.commentCount}
+              visibleStats={['like', 'share', 'bookmark']}
             />
           </View>
 
