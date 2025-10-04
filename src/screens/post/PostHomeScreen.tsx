@@ -13,7 +13,7 @@ import {usePostContext} from '@/contexts/PostContext';
 import PostList from '@/components/post/PostList';
 import IconButton from '@/components/common/IconButton';
 import FeedSelector from '@/components/post/FeedSelector';
-import GradientBg from '@/components/common/GradientBg';
+import GradientBg from '@/components/common/styles/GradientBg';
 import HaryroomNaviBtn from '@/components/post/HaryroomNaviBtn';
 
 type IntroScreenProps = StackScreenProps<

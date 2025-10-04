@@ -6,23 +6,28 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
-  TouchableOpacity,
 } from 'react-native';
-import {RouteProp, useRoute, useNavigation} from '@react-navigation/native';
+import {RouteProp, useRoute} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import PostStats from '@/components/post/PostStats';
+//constants
+import {postNavigations} from '@/constants';
 import {colors, Post} from '@/constants';
 import {mockPosts, mockComments} from '@/constants/dummyData';
+//api
 import axiosInstance from '@/api/axiosInstance';
+//utils
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
-import LikeAndComment from '@/components/post/CommentBar';
+//navigation
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
-import {postNavigations} from '@/constants';
+//components
+import PostStats from '@/components/post/PostStats';
+import LikeAndComment from '@/components/post/CommentBar';
 import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
 import CommentList from '@/components/post/CommentList';
 import CustomButton from '@/components/common/CustomButton';
 import IconButton from '@/components/common/IconButton';
 import PostCard from '@/components/post/PostCard';
+import GradientBg from '@/components/common/styles/GradientBg';
 
 // 네비게이션 param 타입 정의
 type PostPageScreenRouteProp = RouteProp<
@@ -144,80 +149,82 @@ function PostPageScreen() {
 
   return (
     <SafeAreaView style={{flex: 1}}>
-      <PostPageHeader />
-      <ScrollView
-        style={{flex: 1}}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{paddingBottom: 100}}>
-        {/* 미디어 - 화면 전체 너비 사용 */}
-        {post.mediaUrl && (
-          <>
-            {post.mediaUrl.includes('youtube.com') ||
-            post.mediaUrl.includes('youtu.be') ? (
-              <YouTubeEmbed2 url={post.mediaUrl} borderRadius={0} />
-            ) : (
-              <Image
-                source={{uri: post.mediaUrl}}
-                style={styles.fullWidthImage}
-              />
-            )}
-          </>
-        )}
+      <GradientBg>
+        <PostPageHeader />
+        <ScrollView
+          style={{flex: 1}}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{paddingBottom: 100}}>
+          {/* 미디어 - 화면 전체 너비 사용 */}
+          {post.mediaUrl && (
+            <>
+              {post.mediaUrl.includes('youtube.com') ||
+              post.mediaUrl.includes('youtu.be') ? (
+                <YouTubeEmbed2 url={post.mediaUrl} borderRadius={0} />
+              ) : (
+                <Image
+                  source={{uri: post.mediaUrl}}
+                  style={styles.fullWidthImage}
+                />
+              )}
+            </>
+          )}
 
-        <View style={styles.postContainer}>
-          {/* 사용자 정보 */}
-          <View style={styles.userSection}>
-            <View style={styles.userWrapper}>
-              <Image
-                source={{uri: post.user.profileImg}}
-                style={styles.profileImage}
-              />
-              <View style={styles.userInfo}>
-                <Text style={styles.nickName}>{post.user.nickName}</Text>
-                <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
+          <View style={styles.postContainer}>
+            {/* 사용자 정보 */}
+            <View style={styles.userSection}>
+              <View style={styles.userWrapper}>
+                <Image
+                  source={{uri: post.user.profileImg}}
+                  style={styles.profileImage}
+                />
+                <View style={styles.userInfo}>
+                  <Text style={styles.nickName}>{post.user.nickName}</Text>
+                  <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
+                </View>
               </View>
+              <CustomButton label="팔로우" variant="filled" size="small" />
             </View>
-            <CustomButton label="팔로우" variant="filled" size="small" />
+
+            {/* 본문 */}
+            <Text style={styles.content}>{post.content}</Text>
+
+            {/* 태그 */}
+            <View style={styles.tags}>
+              {(post.tags ?? []).map((tag, index) => (
+                <Text key={index} style={styles.tag}>
+                  #{tag}
+                </Text>
+              ))}
+            </View>
+
+            {/* 통계 */}
+            <PostStats
+              likeCount={post.likeCount}
+              commentCount={post.commentCount}
+            />
           </View>
 
-          {/* 본문 */}
-          <Text style={styles.content}>{post.content}</Text>
-
-          {/* 태그 */}
-          <View style={styles.tags}>
-            {(post.tags ?? []).map((tag, index) => (
-              <Text key={index} style={styles.tag}>
-                #{tag}
-              </Text>
-            ))}
-          </View>
-
-          {/* 통계 */}
-          <PostStats
-            likeCount={post.likeCount}
-            commentCount={post.commentCount}
+          {/* 댓글 섹션 */}
+          <CommentList
+            comments={comments}
+            totalCommentCount={post.commentCount}
           />
-        </View>
 
-        {/* 댓글 섹션 */}
-        <CommentList
-          comments={comments}
-          totalCommentCount={post.commentCount}
-        />
+          {/* 관련 포스트 섹션 */}
+          <View style={styles.relatedPostsSection}>
+            <Text style={styles.sectionTitle}>관련이 높은 포스팅</Text>
+            {(mockPosts || [])
+              .filter((p: Post) => p.id !== post.id)
+              .slice(0, 1)
+              .map((dummyPost: Post) => (
+                <PostCard key={dummyPost.id} {...dummyPost} />
+              ))}
+          </View>
+        </ScrollView>
 
-        {/* 관련 포스트 섹션 */}
-        <View style={styles.relatedPostsSection}>
-          <Text style={styles.sectionTitle}>관련이 높은 포스팅</Text>
-          {(mockPosts || [])
-            .filter((p: Post) => p.id !== post.id)
-            .slice(0, 1)
-            .map((dummyPost: Post) => (
-              <PostCard key={dummyPost.id} {...dummyPost} />
-            ))}
-        </View>
-      </ScrollView>
-
-      <LikeAndComment onSend={handleAddComment} />
+        <LikeAndComment onSend={handleAddComment} />
+      </GradientBg>
     </SafeAreaView>
   );
 }
