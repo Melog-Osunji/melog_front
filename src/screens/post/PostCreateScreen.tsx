@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   View,
@@ -33,6 +33,7 @@ export default function PostCreateScreen() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [inputHeight, setInputHeight] = useState(50);
 
   useHideTabBarOnFocus();
 
@@ -142,13 +143,25 @@ export default function PostCreateScreen() {
         {/* Content Input */}
         <View style={styles.contentSection}>
           <TextInput
-            style={styles.contentInput}
+            style={[
+              styles.contentInput,
+              {height: content.trim() ? Math.max(100, inputHeight + 50) : 100},
+            ]}
             placeholder="오늘은 어떤 클래식을 감상했나요?"
             placeholderTextColor={colors.GRAY_300}
             multiline
             textAlignVertical="top"
             value={content}
-            onChangeText={setContent}
+            onChangeText={text => {
+              setContent(text);
+            }}
+            onContentSizeChange={event => {
+              const newHeight = event.nativeEvent.contentSize.height;
+              // 텍스트가 있을 때만 높이 업데이트
+              if (content.trim()) {
+                setInputHeight(newHeight);
+              }
+            }}
           />
 
           {selectedTags.length > 0 && (
@@ -251,13 +264,12 @@ const styles = StyleSheet.create({
   },
   contentInput: {
     fontSize: 14,
+    fontWeight: '400',
     lineHeight: 20,
     letterSpacing: 0.2,
     color: colors.BLACK,
     textAlignVertical: 'top',
-    padding: 12,
-    maxHeight: 300,
-    // backgroundColor: 'peasfink',
+    paddingHorizontal: 6,
   },
   selectedVideoContainer: {
     backgroundColor: '#F8F9FA',
@@ -289,24 +301,19 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   selectedTagsContainer: {
+    marginTop: -40,
+    marginHorizontal: 4,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 2,
+    gap: 10,
   },
   selectedTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 6,
-    paddingVertical: 6,
   },
   selectedTagText: {
     fontSize: 14,
     color: colors.BLACK,
     fontWeight: '500',
-  },
-  removeTagText: {
-    fontSize: 12,
-    color: colors.BLACK,
-    marginLeft: 4,
   },
 });
