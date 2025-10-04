@@ -1,16 +1,19 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import axiosInstance from '@/api/axiosInstance';
-import {Post, FeedType, createFeedTypes} from '@/constants/types';
+import {View, StyleSheet} from 'react-native';
+//constants
+import {FeedType, createFeedTypes} from '@/constants/types';
+import {colors, postNavigations} from '@/constants';
+//navigation
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
-import IconButton from '@/components/common/IconButton';
-import PostList from '@/components/post/PostList';
-import FeedSelector from '@/components/post/FeedSelector';
-import {View, StyleSheet} from 'react-native';
-import {colors, postNavigations} from '@/constants';
+//context
 import {usePostContext} from '@/contexts/PostContext';
+//components
+import PostList from '@/components/post/PostList';
+import IconButton from '@/components/common/IconButton';
+import FeedSelector from '@/components/post/FeedSelector';
+import GradientBg from '@/components/common/GradientBg';
 
 type IntroScreenProps = StackScreenProps<
   PostStackParamList,
@@ -30,50 +33,43 @@ function PostHomeScreen({navigation}: IntroScreenProps) {
       ? newPosts
       : selectedFeed.posts || [];
 
-  // 디버깅용 로그
-  console.log('PostHomeScreen - selectedFeed:', selectedFeed);
-  console.log('PostHomeScreen - allPosts length:', allPosts.length);
-  console.log('PostHomeScreen - newPosts length:', newPosts.length);
-  console.log(
-    'PostHomeScreen - selectedFeed.posts length:',
-    selectedFeed.posts?.length || 0,
-  );
-
   const handleFeedSelect = (feed: FeedType) => {
     setSelectedFeed(feed);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <FeedSelector
-          selectedFeed={selectedFeed}
-          onFeedSelect={handleFeedSelect}
-          feedTypes={feedTypes}
-        />
-        <View style={styles.headerIconRow}>
-          <IconButton<PostStackParamList>
-            imageSource={require('@/assets/icons/post/Search.png')}
-            target={[postNavigations.POST_SEARCH]}
+    <GradientBg>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <FeedSelector
+            selectedFeed={selectedFeed}
+            onFeedSelect={handleFeedSelect}
+            feedTypes={feedTypes}
           />
+          <View style={styles.headerIconRow}>
+            <IconButton<PostStackParamList>
+              imageSource={require('@/assets/icons/post/Search.png')}
+              target={[postNavigations.POST_SEARCH]}
+            />
+            <IconButton<PostStackParamList>
+              imageSource={require('@/assets/icons/post/Notice.png')}
+              target={[postNavigations.POST_SEARCH]}
+            />
+          </View>
+        </View>
+
+        <PostList data={allPosts} />
+
+        {/* Write 버튼 */}
+        <View style={styles.writeButton}>
           <IconButton<PostStackParamList>
-            imageSource={require('@/assets/icons/post/Notice.png')}
-            target={[postNavigations.POST_SEARCH]}
+            imageSource={require('@/assets/icons/post/Write.png')}
+            target={[postNavigations.POST_CREATE]}
+            size={72}
           />
         </View>
-      </View>
-
-      <PostList data={allPosts} />
-
-      {/* Write 버튼 */}
-      <View style={styles.writeButton}>
-        <IconButton<PostStackParamList>
-          imageSource={require('@/assets/icons/post/Write.png')}
-          target={[postNavigations.POST_CREATE]}
-          size={72}
-        />
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </GradientBg>
   );
 }
 
@@ -81,7 +77,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: colors.WHITE,
+    backgroundColor: 'transparent',
   },
   header: {
     width: '100%',

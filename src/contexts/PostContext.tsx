@@ -3,9 +3,9 @@ import {Post} from '@/constants/types';
 import {mockPosts} from '@/constants/dummyData';
 
 interface PostContextType {
-  posts: Post[];
-  addPost: (post: Post) => void;
-  removePost: (postId: string) => void;
+  posts: Post[]; // 포스트 배열
+  addPost: (post: Post) => void; // 포스트 추가 함수
+  removePost: (postId: string) => void; // 포스트 삭제 함수
 }
 
 const PostContext = createContext<PostContextType | undefined>(undefined);
