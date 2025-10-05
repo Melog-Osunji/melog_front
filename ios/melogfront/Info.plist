@@ -55,5 +55,18 @@
 	<array>
 		<string>SOYOMapleBold.ttf</string>
 	</array>
+	<key>KAKAO_APP_KEY</key>
+	<string>f128b5577e075ab54e57d47c7f386643</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+	    <dict>
+	        <key>CFBundleURLName</key>
+	        <string>kakao</string>
+	        <key>CFBundleURLSchemes</key>
+	        <array>
+	            <string>f128b5577e075ab54e57d47c7f386643</string>
+	        </array>
+	    </dict>
+	</array>
 </dict>
 </plist>

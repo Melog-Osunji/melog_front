@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import {launchImageLibrary} from 'react-native-image-picker';
 import CustomButton from '@/components/common/CustomButton';
 import {colors} from '@/constants';
 
@@ -20,7 +19,7 @@ type InitProfileScreenProps = StackScreenProps<
   typeof InitProfileNavigations.INIT_PROFILE_INTRODUCTION
 >;
 
-function InitProfileNickname({navigation}: InitProfileScreenProps) {
+function InitProfileNicknameScreen({navigation}: InitProfileScreenProps) {
   const [nickname, setNickname] = useState('');
   const [checked, setChecked] = useState(false);
 
@@ -171,4 +170,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default InitProfileNickname;
+export default InitProfileNicknameScreen;

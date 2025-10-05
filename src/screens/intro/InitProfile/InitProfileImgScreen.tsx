@@ -13,7 +13,7 @@ type InitProfileScreenProps = StackScreenProps<
   typeof InitProfileNavigations.INIT_PROFILE_NICKNAME
 >;
 
-function InitProfileImg({navigation}: InitProfileScreenProps) {
+function InitProfileImgScreen({navigation}: InitProfileScreenProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const handleSelectImage = () => {
@@ -80,4 +80,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default InitProfileImg;
+export default InitProfileImgScreen;

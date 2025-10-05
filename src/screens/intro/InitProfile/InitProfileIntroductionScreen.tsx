@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {View, Text, Image, TextInput, StyleSheet} from 'react-native';
-import {launchImageLibrary} from 'react-native-image-picker';
 import CustomButton from '@/components/common/CustomButton';
 import {colors} from '@/constants';
 
@@ -13,7 +12,7 @@ type InitProfileScreenProps = StackScreenProps<
   typeof introNavigations.INTRO_ONBOARDING_1
 >;
 
-function InitProfileIntroduction({navigation}: InitProfileScreenProps) {
+function InitProfileIntroductionScreen({navigation}: InitProfileScreenProps) {
   const [inrtoduction, setInrtoduction] = useState('');
 
   return (
@@ -142,4 +141,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default InitProfileIntroduction;
+export default InitProfileIntroductionScreen;

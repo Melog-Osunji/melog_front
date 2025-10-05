@@ -6,7 +6,7 @@ import {useAuthContext} from '@/contexts/AuthContext';
 
 function RootNavigator() {
   const {isLogin, setIsLogin} = useAuthContext();
-  setIsLogin(true); // 테스트용 강제 로그아웃
+  // setIsLogin(true); // 테스트용 강제 로그아웃
   return <>{isLogin ? <MainTabNavigator /> : <AuthStackNavigator />}</>;
 }
 

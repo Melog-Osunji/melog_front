@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.melog.app">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -31,5 +32,18 @@
             <data android:scheme="kakao15b2ee92bbecc02200e822a35cb45f3c" android:host="oauth" />
         </intent-filter>
       </activity>
+
+        <!-- 카카오 로그인 설정 -->
+        <activity
+            android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="oauth"
+                      android:scheme="f128b5577e075ab54e57d47c7f386643" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>
