@@ -57,16 +57,26 @@
 	</array>
 	<key>KAKAO_APP_KEY</key>
 	<string>f128b5577e075ab54e57d47c7f386643</string>
+	
 	<key>CFBundleURLTypes</key>
 	<array>
-	    <dict>
-	        <key>CFBundleURLName</key>
-	        <string>kakao</string>
-	        <key>CFBundleURLSchemes</key>
-	        <array>
-	            <string>f128b5577e075ab54e57d47c7f386643</string>
-	        </array>
-	    </dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>kakao</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kakaof128b5577e075ab54e57d47c7f386643</string>
+			</array>
+		</dict>
+	</array>
+	
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>kakaokompassauth</string>
+		<string>storykompassauth</string>
+		<string>kakaolink</string>
 	</array>
 </dict>
 </plist>

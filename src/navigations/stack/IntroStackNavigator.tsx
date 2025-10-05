@@ -13,7 +13,7 @@ import Onboarding2Screen from '@/screens/intro/Onboarding/Onboarding2Screen';
 import Onboarding3Screen from '@/screens/intro/Onboarding/Onboarding3Screen';
 import {introNavigations} from '@/constants';
 
-import LoginScreen from '@/screens/intro/LoginSreen';
+import LoginScreen from '@/screens/intro/LoginScreen';
 import ConsentList from '@/screens/intro/ToS/ConsentList';
 import AgreementViewer from '@/screens/intro/ToS/AgreementViewer';
 import InitProfileStackNavigator from '@/navigations/stack/InitProfileStackNavigator';

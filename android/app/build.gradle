@@ -69,17 +69,15 @@ def enableProguardInReleaseBuilds = false
 def jscFlavor = 'org.webkit:android-jsc:+'
 
 android {
-    ndkVersion rootProject.ext.ndkVersion
-
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.melog.app"
     defaultConfig {
-        applicationId "com.melog.app"
+        applicationId "com.melog.app"  // 이 값이 AndroidManifest.xml의 package와 일치해야 함
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
     }
     
     compileOptions {
