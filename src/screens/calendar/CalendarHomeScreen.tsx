@@ -136,9 +136,9 @@ const styles = StyleSheet.create({
     paddingTop: 32,
     paddingHorizontal: 20,
     gap: 4,
+    paddingBottom: 16,
   },
   categoryBtn: {
-    height: 36,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 40,

@@ -100,7 +100,6 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
     },
     gradientWrap: {
-        height: 20,
         paddingHorizontal: 8,
         borderRadius: 999,
         justifyContent: 'center',
