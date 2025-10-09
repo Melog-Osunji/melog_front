@@ -1,9 +1,14 @@
 import React from 'react';
-import { ScrollView, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { colors } from '@/constants';
 import { useSearchGenre } from '@/hooks/queries/search/useSearch';
 
-const SearchGenreTab = () => {
+
+type Props = {
+  onSelect: (keyword: string) => void; // ✅ 추가
+};
+
+const SearchGenreTab: React.FC<Props> = ({ onSelect }) => {
   const { data, isLoading, isError } = useSearchGenre();
 
   if (isLoading) {
@@ -17,7 +22,7 @@ const SearchGenreTab = () => {
 
   if (isError || !data) {
     return (
-      <View style={styles.center}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ color: colors.GRAY_400 }}>데이터를 불러오지 못했습니다.</Text>
       </View>
     );
@@ -30,9 +35,9 @@ const SearchGenreTab = () => {
             <Text style={styles.sectionTitle}>{section.genre}</Text>
             <View style={styles.keywordWrap}>
               {section.keyword.map((kw, i) => (
-                <View key={i} style={styles.keyword}>
+                <TouchableOpacity key={i} style={styles.keyword} activeOpacity={0.7} onPress={() => onSelect(kw)}>
                   <Text style={styles.keywordText}>{kw}</Text>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           </View>

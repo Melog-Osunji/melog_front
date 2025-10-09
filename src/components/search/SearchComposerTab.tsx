@@ -1,9 +1,14 @@
 import React, { useMemo } from 'react';
-import { ScrollView, View, Image, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { ScrollView, View, Image, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { colors } from '@/constants';
 import { useSearchComposer } from '@/hooks/queries/search/useSearch';
 
-const SearchComposerTab = () => {
+type Props = {
+  onSelect: (keyword: string) => void; // ✅ 추가
+};
+
+
+const SearchComposerTab: React.FC<Props> = ({ onSelect }) => {
 
   const { data, isLoading, isError } = useSearchComposer();
 
@@ -37,10 +42,10 @@ const SearchComposerTab = () => {
       <Text style={styles.sectionTitle}>인기 검색어</Text>
       <View style={styles.gridWrap}>
         {composers.map((composer, idx) => (
-          <View key={idx} style={styles.gridItem}>
+          <TouchableOpacity key={idx} style={styles.gridItem} activeOpacity={0.7} onPress={() => onSelect(composer.name)}>
             <Image source={{ uri: composer.image }} style={styles.circleImage} resizeMode="cover" />
             <Text style={styles.name}>{composer.name}</Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
     </ScrollView>
