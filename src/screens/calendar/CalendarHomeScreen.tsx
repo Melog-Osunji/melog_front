@@ -17,6 +17,7 @@ const CATEGORIES = ['전체', '공연', '전시', '강연', '축제', '토크'];
 
 function CalenderHomeScreen() {
 
+  const [listScrollEnabled, setListScrollEnabled] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [selectedDate, setSelectedDate] = useState(null);
 
@@ -35,11 +36,6 @@ function CalenderHomeScreen() {
       });
       return m;
   }, [bookmarked]);
-
-//   const finalData = useMemo(() => {
-//       if (!selectedDate) return filteredData;
-//       return filteredData.filter(p => p.startDate === selectedDate);
-//   }, [filteredData, selectedDate]);
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
@@ -68,6 +64,7 @@ function CalenderHomeScreen() {
             }}
             useGradient
             gradientColors={['transparent', colors.WHITE]}
+            onDragStateChange={(dragging) => setListScrollEnabled(!dragging)}
           />
 
         {/* 카테고리 칩 */}
@@ -94,6 +91,7 @@ function CalenderHomeScreen() {
             renderItem={({ item }) => <PerformanceCard data={item} />}
             ListHeaderComponent={Header}
             contentContainerStyle={{ paddingBottom: 60 }}
+            scrollEnabled={listScrollEnabled}
           />
         </SafeAreaView>
       </LinearGradient>
@@ -103,7 +101,7 @@ function CalenderHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: SCREEN_W,
+//     width: SCREEN_W,
   },
   content: {
     width: '100%',
