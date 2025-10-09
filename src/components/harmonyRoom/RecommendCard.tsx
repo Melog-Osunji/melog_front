@@ -11,7 +11,7 @@ import {useNavigation} from '@react-navigation/native';
 import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {harmonyRoomNavigation} from '@/constants';
-import {colors} from '@/constants';
+import {colors, harmonyNavigations} from '@/constants';
 import LinearGradient from 'react-native-linear-gradient';
 import {recommendRoom} from '@/api/harmonyRoom/harmonRoomApi';
 
@@ -25,7 +25,7 @@ export default function RecommendCard({data}: Props) {
   const {id, name, category, profileImgLink, intro, memberNum, userProfileImgsUrl} = data;
 
   const handlePress = () => {
-    navigation.navigate(harmonyRoomNavigation.HARMONY_PAGE, {
+    navigation.navigate(harmonyNavigations.HARMONY_PAGE, {
       roomID: id,
     });
   };

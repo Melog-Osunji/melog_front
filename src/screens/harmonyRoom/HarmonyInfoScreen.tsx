@@ -6,8 +6,6 @@ import {StackScreenProps} from '@react-navigation/stack';
 import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
 import {colors, harmonyNavigations, postNavigations} from '@/constants';
 import IconButton from '@/components/common/IconButton';
-import {HarmonyRoomDummyData} from '@/constants/types';
-import ExitConfirmModal from '@/components/harmonyRoom/ExitConfirmModal';
 import { useHarmonyRoomContext } from '@/contexts/HarmonyRoomContext';
 import GuideModal from '@/components/harmonyRoom/GuideModal';
 import LinearGradient from 'react-native-linear-gradient';
@@ -17,6 +15,10 @@ import CustomButton from '@/components/common/CustomButton';
 import CheckPopupOneBtn from '@/components/common/CheckPopupOneBtn';
 import CheckPopup from '@/components/common/CheckPopup';
 import { useHarmonyRoomDetailInfo, useHarmonyIsMember, useHarmonyRoomInfo } from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
+import { useRequestJoinHarmonyRoom, useLeaveHarmonyRoom, useBookmarkHarmonyRoom } from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
+import { useQueryClient } from '@tanstack/react-query';
+import { RefreshControl } from 'react-native';
+
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
@@ -34,23 +36,30 @@ export default function HarmonyInfoScreen() {
     const { rooms } = useHarmonyRoomContext();
     const [selectTab, setSelectTab] = useState<'rcmd' | 'popular'>('rcmd');
 
+    // hook들
     const {
         data: detail,
         isLoading,
         isError,
         refetch,
     } = useHarmonyRoomDetailInfo(roomID);
+    const { mutateAsync: requestJoin, isPending: joinLoading } = useRequestJoinHarmonyRoom(roomID);
+    const { mutateAsync: leaveRoom, isPending: leaveLoading } = useLeaveHarmonyRoom(roomID);
+    const { mutateAsync: toggleBookmark, isPending: bookmarkLoading } = useBookmarkHarmonyRoom();
+
 
     const [fav, setFav] = useState<boolean>(false);
     const [showExitPopup, setShowExitPopup] = useState(false);
     const [showOutPopup, setShowOutPopup] = useState(false);
+    // 상태: 가입 상태(버튼 문구/노출 제어), 팝업 모드
+    const [joinStatus, setJoinStatus] = useState<'none' | 'pending' | 'joined'>('none');
+    const [popupMode, setPopupMode] = useState<'joined' | 'applied'>('joined');
 
-
+    // 변수
     const headerImg   = detail?.profileImgLink ?? '';
     const headerName  = detail?.name ?? '하모니룸';
     const headerTags  = detail?.category ?? [];
     const headerIntro = detail?.intro ?? '';
-
     const memberNum   = detail?.memberNum ?? 0;
     const ranking     = detail?.ranking ?? 0;
     const countPosts  = detail?.countPosts ?? 0;
@@ -59,21 +68,70 @@ export default function HarmonyInfoScreen() {
         if (detail) setFav(!!detail.isBookmark);
       }, [detail]);
 
+    React.useEffect(() => {
+      if (isMemberDTO?.isMember) setJoinStatus('joined');
+      else setJoinStatus('none'); // 서버에 대기중 플래그가 없으면 로컬로만 관리
+    }, [isMemberDTO]);
+
+    useFocusEffect(
+      useCallback(() => {
+        refetch(); // detail
+      }, [refetch])
+    );
+
     const currentUserId = "f4c475f1-9016-4b01-91a8-1880cf749903";
 
     const { data: isMemberDTO } = useHarmonyIsMember(roomID);
     const isMember = isMemberDTO?.isMember ?? false;
+    const effectiveIsMember = isMember || joinStatus === 'joined';
     const { data: roomInfo } = useHarmonyRoomInfo(roomID);
     const isOwner = roomInfo ? roomInfo.owner === currentUserId : false;
 
     const onRefresh = useCallback(async () => { await refetch(); }, [refetch]);
 
-    const handleAccess = () => setShowExitPopup(true);
-    const handleConfirmExit = () => setShowExitPopup(false);
+    const handleAccess = async () => {
+      if (!detail) return;
+      try {
+        await requestJoin(); // API는 하나만: 백엔드가 isDirectAssign로 처리
+        if (detail.isDirectAssign) {
+          setJoinStatus('joined');
+          setPopupMode('joined');   // "가입 완료"
+        } else {
+          setJoinStatus('pending');
+          setPopupMode('applied');  // "가입 신청 완료"
+        }
+        setShowExitPopup(true);
+      } catch (e) {
+        console.warn(e);
+        // 필요시 토스트/알럿 추가
+      }
+    };
 
+    const handleConfirmExit = () => setShowExitPopup(false);
     const handleOut = () => setShowOutPopup(true);
     const handleCancelExit = () => setShowOutPopup(false);
-    const handleOutAccess = () => setShowOutPopup(false);
+    const handleOutAccess = async () => {
+      try {
+        await leaveRoom();              // 서버에서 나가기 처리
+        setShowOutPopup(false);         // 팝업 닫기
+        setJoinStatus('none');          // 로컬 상태도 비회원으로
+        navigation.navigate(harmonyNavigations.HARMONY_HOME);
+      } catch (e) {
+        console.warn(e);
+      }
+    };
+    const handleToggleFav = async () => {
+       // 이미 처리 중이면 중복 클릭 방지
+       if (bookmarkLoading) return;
+       const prev = fav;
+       setFav(!prev);                 // 옵티미스틱 업데이트
+       try {
+         await toggleBookmark(roomID);  // 서버 토글
+       } catch (e) {
+         setFav(prev);                // 실패 시 롤백
+         console.warn(e);
+       }
+     };
 
     if (isLoading && !detail) {
         return (
@@ -110,7 +168,7 @@ export default function HarmonyInfoScreen() {
                 {isOwner ?
                     <IconButton<MyPageStackParamList>
                         imageSource={require('@/assets/icons/harmonyRoom/Setting.png')}
-                        target={[harmonyNavigations.HARMONY_SETTING]}
+                        target={[harmonyNavigations.HARMONY_SETTING, { roomID }]}
                     />
                     : <View style={{ width: 24, height: 24 }} />
                 }
@@ -169,8 +227,9 @@ export default function HarmonyInfoScreen() {
             {/* 버튼 */}
             <View style={styles.btnWrap}>
                 <Pressable
-                  style={styles.btn}
-                  onPress={() => setFav(v => !v)}
+                  style={[styles.btn, bookmarkLoading && { opacity: 0.6 }]}
+                  onPress={handleToggleFav}
+                  disabled={bookmarkLoading}
                   hitSlop={{top:8,bottom:8,left:8,right:8}}
                 >
                   <Image
@@ -199,35 +258,33 @@ export default function HarmonyInfoScreen() {
             }
 
             {/* 고정된 버튼 */}
-            {(!isMember && !isOwner) && (
+            {(!effectiveIsMember && !isOwner) && (
                 <View style={styles.bottom}>
                     <CustomButton
-                        label="가입하기"
+                        label={joinStatus === 'pending' ? '가입 진행중' : '가입하기'}
                         onPress={handleAccess}
-                        style={{backgroundColor:colors.BLUE_500}}
+                        disabled={joinStatus === 'pending' || joinLoading}
+                        style={[
+                          { backgroundColor: colors.BLUE_500 },
+                          (joinStatus === 'pending' || joinLoading) && { opacity: 0.6 },
+                        ]}
                     />
                 </View>
             )}
 
-            {/* }<CheckPopupOneBtn
-                visible={showExitPopup}
-                onClose={handleConfirmExit}
-                iconImg={require('@/assets/icons/Access.png')}
-                title="가입 신청 완료"
-                content="승인되면 알림으로 알려드릴게요."
-                btnColor={colors.BLUE_400}
-                btnText="확인"
-                btnTextColor={colors.WHITE}
-            />*/}
             <CheckPopupOneBtn
-                visible={showExitPopup}
-                onClose={handleConfirmExit}
-                iconImg={require('@/assets/icons/Access.png')}
-                title="가입 완료"
-                content="하모니룸에 가입되었어요."
-                btnColor={colors.BLUE_400}
-                btnText="확인"
-                btnTextColor={colors.WHITE}
+              visible={showExitPopup}
+              onClose={() => setShowExitPopup(false)}
+              iconImg={require('@/assets/icons/Access.png')}
+              title={popupMode === 'joined' ? '가입 완료' : '가입 신청 완료'}
+              content={
+                popupMode === 'joined'
+                  ? '하모니룸에 가입되었어요.'
+                  : '승인되면 알림으로 알려드릴게요.'
+              }
+              btnColor={colors.BLUE_400}
+              btnText="확인"
+              btnTextColor={colors.WHITE}
             />
 
 

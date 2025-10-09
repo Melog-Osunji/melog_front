@@ -22,6 +22,8 @@ import {
 import PostCard from '@/components/post/PostCard';
 import type { Post } from '@/constants/types';
 import { RefreshControl } from 'react-native';
+import { useRequestJoinHarmonyRoom } from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
+import { useQueryClient } from '@tanstack/react-query';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
@@ -37,10 +39,14 @@ export default function HarmonyPageScreen() {
     const { roomID, roomData } = route.params ?? {};
     const scrollRef = useRef<ScrollView>(null);
     const { rooms } = useHarmonyRoomContext();
+
+    const [showExitPopup, setShowExitPopup] = useState(false);
     const [showGuideModal, setShowGuideModal] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [selectTab, setSelectTab] = useState<'rcmd' | 'popular'>('rcmd');
-    const [showExitPopup, setShowExitPopup] = useState(false);
+    // 상태: 가입 상태(버튼 문구/노출 제어), 팝업 모드
+    const [joinStatus, setJoinStatus] = useState<'none' | 'pending' | 'joined'>('none');
+    const [popupMode, setPopupMode] = useState<'joined' | 'applied'>('joined');
 
     const {
       data: roomInfo,
@@ -60,15 +66,22 @@ export default function HarmonyPageScreen() {
       isLoading: memberLoading,
     } = useHarmonyIsMember(roomID);
 
+    useEffect(() => {
+      if (memberDTO?.isMember) setJoinStatus('joined');
+      else setJoinStatus('none'); // (대기중 여부를 서버가 안주면 로컬로만 관리)
+    }, [memberDTO]);
+
+    const { mutateAsync: requestJoin, isPending: requestLoading } = useRequestJoinHarmonyRoom(roomID);
+
     const currentUserId = "f4c475f1-9016-4b01-91a8-1880cf749903"; // TODO: auth context 등에서 가져오면 owner 비교 가능
 
     const isOwner = useMemo(() => {
       if (!roomInfo) return false;
-      // roomInfo.owner: string (owner의 userId라고 가정)
       return currentUserId ? roomInfo.owner === currentUserId : false;
     }, [roomInfo, currentUserId]);
 
-    const isMember = memberDTO?.isMember ?? false;
+    const serverIsMember = memberDTO?.isMember ?? false;
+    const effectiveIsMember = serverIsMember || joinStatus === 'joined';
 
     // 헤더 표시용 데이터 파생
     const headerName = roomInfo?.name ?? '하모니룸';
@@ -132,8 +145,28 @@ export default function HarmonyPageScreen() {
     };
 
     // 가입 모달 오픈
-    const handleAccess = () => {
+    const handleAccess = async () => {
+      if (!roomInfo) return;
+
+      try {
+        // 백엔드가 isDirectAssign에 맞게 처리 (멤버 추가 또는 대기열 추가)
+        await requestJoin();
+
+        if (roomInfo.isDirectAssign) {
+          // 즉시 가입
+          setJoinStatus('joined');     // 글쓰기 버튼 노출, 가입 버튼 숨김
+          setPopupMode('joined');      // "가입 완료" 팝업
+        } else {
+          // 승인제: 대기 등록
+          setJoinStatus('pending');    // 버튼 "가입 대기중"으로 변경/비활성화
+          setPopupMode('applied');     // "가입 신청 완료" 팝업
+        }
         setShowExitPopup(true);
+        // 쿼리 무효화는 훅 내부 onSuccess에서 이미 처리됨
+      } catch (e) {
+        console.warn(e);
+        // 필요 시 에러 토스트/알럿
+      }
     };
 
     // 폐쇄하기 확인
@@ -175,7 +208,7 @@ export default function HarmonyPageScreen() {
                         {isOwner ?
                             <IconButton<MyPageStackParamList>
                                 imageSource={require('@/assets/icons/harmonyRoom/Setting.png')}
-                                target={[harmonyNavigations.HARMONY_SETTING]}
+                                target={[harmonyNavigations.HARMONY_SETTING, { roomID }]}
                             />
                             : <View style={{ width: 24, height: 24 }} />
                         }
@@ -190,8 +223,8 @@ export default function HarmonyPageScreen() {
                 <View style={styles.infoWrap}>
                     <Pressable onPress={handlePress}>
                         <View style={styles.nameAndTag}>
-                            <Image source={{uri: headerImg}} style={styles.roomImg}/>
                             <View style={styles.wrap}>
+                                <Image source={{uri: headerImg}} style={styles.roomImg}/>
                                 <View style={styles.roomInfo}>
                                     <View style={styles.nameWrap}>
                                         <Text style={styles.name}>{headerName}</Text>
@@ -208,8 +241,8 @@ export default function HarmonyPageScreen() {
                                         </View>
                                       )}
                                 </View>
-                                <Image source={require('@/assets/icons/mypage/RightArrow.png')} style={styles.iconBtn}/>
                             </View>
+                            <Image source={require('@/assets/icons/mypage/RightArrow.png')} style={styles.iconBtn}/>
                         </View>
                     </Pressable>
                      {!!headerIntro && (
@@ -262,43 +295,45 @@ export default function HarmonyPageScreen() {
 
 
             {/* Write 버튼 */}
-            {(isMember || isOwner) && (
-                <View style={styles.writeButton}>
-                    <IconButton<PostStackParamList>
-                      imageSource={require('@/assets/icons/post/Write.png')}
-    //                   target={[postNavigations.POST_CREATE]}
-                      size={72}
-                    />
-                </View>
+            {(effectiveIsMember || isOwner) && (
+              <View style={styles.writeButton}>
+                <IconButton<PostStackParamList>
+                  imageSource={require('@/assets/icons/post/Write.png')}
+                  size={72}
+                />
+              </View>
             )}
 
             {/* 고정된 버튼 */}
-            {(!isMember && !isOwner) && (
-                <Pressable style={styles.accessBtn} onPress={handleAccess}>
-                    <Image source={require('@/assets/icons/harmonyRoom/Access.png')} style={styles.icon} />
-                    <Text style={styles.btnText}>가입하기</Text>
-                </Pressable>
+            {(!effectiveIsMember && !isOwner) && (
+              <Pressable
+                style={[
+                  styles.accessBtn,
+                  (joinStatus === 'pending' || requestLoading) && { opacity: 0.6 },
+                ]}
+                onPress={handleAccess}
+                disabled={joinStatus === 'pending' || requestLoading}
+              >
+                <Image source={require('@/assets/icons/harmonyRoom/Apply.png')} style={styles.icon} />
+                <Text style={styles.btnText}>
+                  {joinStatus === 'pending' ? '가입 대기중' : '가입하기'}
+                </Text>
+              </Pressable>
             )}
 
-        {/* }<CheckPopupOneBtn
-            visible={showExitPopup}
-            onClose={handleConfirmExit}
-            iconImg={require('@/assets/icons/Access.png')}
-            title="가입 신청 완료"
-            content="승인되면 알림으로 알려드릴게요."
-            btnColor={colors.BLUE_400}
-            btnText="확인"
-            btnTextColor={colors.WHITE}
-        />*/}
         <CheckPopupOneBtn
-            visible={showExitPopup}
-            onClose={handleConfirmExit}
-            iconImg={require('@/assets/icons/Access.png')}
-            title="가입 완료"
-            content="하모니룸에 가입되었어요."
-            btnColor={colors.BLUE_400}
-            btnText="확인"
-            btnTextColor={colors.WHITE}
+          visible={showExitPopup}
+          onClose={() => setShowExitPopup(false)}
+          iconImg={require('@/assets/icons/Access.png')}
+          title={popupMode === 'joined' ? '가입 완료' : '가입 신청 완료'}
+          content={
+            popupMode === 'joined'
+              ? '하모니룸에 가입되었어요.'
+              : '승인되면 알림으로 알려드릴게요.'
+          }
+          btnColor={colors.BLUE_400}
+          btnText="확인"
+          btnTextColor={colors.WHITE}
         />
         </SafeAreaView>
     </LinearGradient>
@@ -334,7 +369,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: 14,
     },
     roomImg: {
         width: 84,
@@ -345,7 +379,7 @@ const styles = StyleSheet.create({
     wrap: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 33,
+        gap: 14,
     },
     roomInfo: {
         flexDirection: 'column',

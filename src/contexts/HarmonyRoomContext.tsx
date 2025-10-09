@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import { HarmonyRoomInfo } from '@/constants/types';
+import {harmonyRoomInfo} from '@/api/harmonyRoom/harmonyRoomApi';
 
 type HarmonyRoomContextType = {
   rooms: HarmonyRoomInfo[];

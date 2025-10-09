@@ -9,6 +9,7 @@ import {
   bookmarkHarmonyRoom,
   updateHarmonyMembership,
   fetchWaitingUserList,
+  uploadHarmonyImage,
   type HarmonyRoomBaseResponse,
   type HarmonyRoomBaseResponse2,
   type CreateHarmonyRoomRequest,
@@ -63,6 +64,13 @@ export const useUpdateHarmonyRoom = (harmonyId: string) => {
   });
 };
 
+// 선택: 이미지 업로드만 단독으로 쓰고 싶을 때
+export const useUploadHarmonyImage = (harmonyId: string) => {
+  return useMutation<string, Error, { uri: string; name?: string; type?: string }>({
+    mutationFn: (file) => uploadHarmonyImage(harmonyId, file),
+  });
+};
+
 // 3) 하모니룸 삭제 (DELETE /api/harmony/{id}/delete)
 export const useDeleteHarmonyRoom = (harmonyId: string) => {
   const qc = useQueryClient();
@@ -107,13 +115,16 @@ export const useUpdateHarmonyMembership = (harmonyId: string) => {
 // 6) 즐겨찾기 (POST /api/harmony/{id}/bookmark)
 export const useBookmarkHarmonyRoom = (harmonyId: string) => {
   const qc = useQueryClient();
-  return useMutation<HarmonyRoomBaseResponse2, Error, void>({
-    mutationFn: () => bookmarkHarmonyRoom(harmonyId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: HarmonyQueryKeys.detail(harmonyId) });
-      qc.invalidateQueries({ queryKey: HarmonyQueryKeys.bookmarks() });
-      qc.invalidateQueries({ queryKey: HarmonyQueryKeys.list() });
-    },
+  return useMutation({
+      // ✅ 호출 시에 harmonyId를 변수로 받는다
+      mutationFn: (harmonyId: string) => bookmarkHarmonyRoom(harmonyId),
+      onSuccess: (_res, harmonyId) => {
+        // ✅ 관련 쿼리 싹 갱신
+        qc.invalidateQueries({ queryKey: HarmonyQueryKeys.detail(harmonyId) });
+        qc.invalidateQueries({ queryKey: HarmonyQueryKeys.bookmarks() });
+        qc.invalidateQueries({ queryKey: HarmonyQueryKeys.my() });   // useMyHarmonyRoomAll
+        qc.invalidateQueries({ queryKey: HarmonyQueryKeys.list() }); // 리스트 화면
+      },
   });
 };
 

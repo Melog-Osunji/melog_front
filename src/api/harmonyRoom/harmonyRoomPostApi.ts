@@ -33,6 +33,10 @@ export const createHarmonyRoom = async (
 export type UpdateHarmonyRoomRequest = {
   name?: string;
   intro?: string;
+  category?: string[];
+  profileImg?: string;
+  isPrivate?: boolean;
+  isDirectAssign?: boolean;
 };
 
 export const updateHarmonyRoom = async (
@@ -45,6 +49,34 @@ export const updateHarmonyRoom = async (
   );
   return res.data;
 };
+
+// 이미지 전송
+export type UploadHarmonyImageResponse = BaseResponse<string>;
+
+export const uploadHarmonyImage = async (
+  harmonyId: string,
+  file: { uri: string; name?: string; type?: string }
+): Promise<string> => {
+  const form = new FormData();
+  const name =
+    file.name ??
+    `harmony_${Date.now()}.${(file.type?.split('/')[1] || 'jpg')}`;
+  const type = file.type ?? 'image/jpeg';
+
+  form.append('file', {
+    // RN FormData 규격
+    uri: file.uri,
+    name,
+    type,
+  } as any);
+
+  const res = await instance.post<UploadHarmonyImageResponse>(
+    `/api/images/harmony/${encodeURIComponent(harmonyId)}`,
+    form
+  );
+  return (res.data as any).data;
+};
+
 
 // 하모니룸 삭제
 export type DeleteHarmonyRoomRequest = {

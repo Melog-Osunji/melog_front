@@ -56,8 +56,9 @@ export const useMyHarmonyRoomAll = (options?: Opt<MyHarmonyRoomListDTO>) =>
   useQuery({
     queryKey: HarmonyQueryKeys.myRooms(),
     queryFn: fetchMyHarmonyRoomAll,
-    ...DEFAULTS,
-    ...options,
+    staleTime: 30 * 1000,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: false
   });
 
 /** 하모니룸 초입 - 최근 올라온 미디어 조회 */
@@ -65,8 +66,9 @@ export const useHarmonyRecentMedia = (options?: Opt<harmonyRecentMediaDTO>) =>
   useQuery({
     queryKey: HarmonyQueryKeys.recentMedia(),
     queryFn: fetchRecentMediaAll,
-    ...DEFAULTS,
-    ...options,
+    staleTime: 30 * 1000,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: false
   });
 
 /** 하모니룸 초입 - 하모니룸 추천 */
@@ -74,8 +76,9 @@ export const useHarmonyRecommendRooms = (options?: Opt<harmonyRecommendDTO>) =>
   useQuery({
     queryKey: HarmonyQueryKeys.recommendRooms(),
     queryFn: fetchRecommendRoomsAll,
-    ...DEFAULTS,
-    ...options,
+    staleTime: 30 * 1000,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: false
   });
 
 /** 하모니룸 정보 - 하모니룸 포스트 목록(추천/인기) */

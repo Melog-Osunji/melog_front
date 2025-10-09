@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Dimensions, FlatList, RefreshControl, ActivityIndicator} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native'
 import {StackScreenProps} from '@react-navigation/stack';
 import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
 import LinearGradient from 'react-native-linear-gradient';
@@ -50,6 +50,14 @@ function HarmonyHomeScreen() {
       refetch: refetchRecommend,
   } = useHarmonyRecommendRooms();
 
+  useFocusEffect(
+     useCallback(() => {
+       refetchMyRooms();
+       refetchRecent();
+       refetchRecommend();
+     }, [refetchMyRooms, refetchRecent, refetchRecommend])
+  );
+
   const [refreshing, setRefreshing] = useState(false);
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
@@ -60,19 +68,32 @@ function HarmonyHomeScreen() {
       }
   }, [refetchMyRooms, refetchRecent, refetchRecommend]);
 
+  console.log(myRoomsDTO);
+
   const communitiesForStrip = useMemo(() => {
-      if (!myRoomsDTO) return [];
-      const mine = (myRoomsDTO.myHarmony ?? []).map(r => ({
-        id: r.id, name: r.name, coverUri: r.profileImg, isOwner: true,
-      }));
-      const joined = (myRoomsDTO.harmony ?? []).map(r => ({
-        id: r.id, name: r.name, coverUri: r.profileImg,
-      }));
-      const bookmarked = (myRoomsDTO.bookmarked ?? []).map(r => ({
-         id: r.id, name: r.name, coverUri: r.profileImg, isFavorite: true,
-       }));
-      return [...mine, ...bookmarked, ...joined];
+    if (!myRoomsDTO) return [];
+
+    // id가 number일 수도 있으니 문자열로 통일
+    type R = { id: string | number; name: string; profileImg?: string };
+
+    const map = new Map<string, { id: string; name: string; coverUri?: string; isOwner?: boolean; isFavorite?: boolean }>();
+
+    const upsert = (r: R, flags?: Partial<{ isOwner: boolean; isFavorite: boolean }>) => {
+      const key = String(r.id);
+      const prev = map.get(key) ?? { id: key, name: r.name, coverUri: r.profileImg };
+      map.set(key, { ...prev, ...flags, isOwner: prev.isOwner || flags?.isOwner, isFavorite: prev.isFavorite || flags?.isFavorite });
+    };
+
+    // 내가 운영
+    (myRoomsDTO.myHarmony ?? []).forEach((r: R) => upsert(r, { isOwner: true }));
+    // 내가 즐겨찾기
+    (myRoomsDTO.bookmarkHarmony ?? []).forEach((r: R) => upsert(r, { isFavorite: true }));
+    // 내가 가입
+    (myRoomsDTO.harmony ?? []).forEach((r: R) => upsert(r));
+
+    return Array.from(map.values());
   }, [myRoomsDTO]);
+
 
   const recentMedias = recentMediaDTO?.recentMedia ?? [];
 
@@ -111,11 +132,11 @@ function HarmonyHomeScreen() {
                 />
                 <IconButton<MyPageStackParamList>
                     imageSource={require('@/assets/icons/post/Search.png')}
-                    target={[harmonyNavigations.HARMONY_CREATE]}
+//                     target={[harmonyNavigations.HARMONY_CREATE]}
                 />
                 <IconButton<MyPageStackParamList>
                     imageSource={require('@/assets/icons/post/Notice.png')}
-                    target={[harmonyNavigations.HARMONY_CREATE]}
+//                     target={[harmonyNavigations.HARMONY_CREATE]}
                 />
                 </View>
             </View>
