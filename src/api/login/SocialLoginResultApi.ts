@@ -1,5 +1,6 @@
 import axiosInstance from '../axiosInstance';
 import {setTokens, setUserInfo} from '@/utils/tokenStorage';
+import {UserProfileDTO} from '@/types';
 
 export interface SocialLoginRequest {
   idToken?: string;
@@ -9,18 +10,11 @@ export interface SocialLoginRequest {
 
 export interface SocialLoginResponse {
   success: boolean;
-  user: {
-    id: string;
-    email: string;
-    platform: string;
-    nickName: string;
-    profileImg: string;
-    intro: string | null;
-  };
+  user: UserProfileDTO;
   newUser: boolean;
 }
 
-export const socialLoginService = async (
+export const SocialLoginResultApi = async (
   loginData: SocialLoginRequest,
   endpoint: string,
 ): Promise<SocialLoginResponse> => {

@@ -9,7 +9,7 @@ import {
 import {
   SocialLoginButton as SocialLoginButtonType,
   SocialProvider,
-} from '@/constants/socialLogin';
+} from '@/constants/Auth';
 
 interface SocialLoginButtonProps {
   button: SocialLoginButtonType;

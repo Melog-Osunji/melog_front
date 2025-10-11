@@ -1,9 +1,8 @@
 import React from 'react';
 import {Image, Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
-import {PostWithUserDTO} from '@/types';
+import {PostDTO, UserDTO} from '@/types';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
-import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
 import PostStats from '@/components/post/PostStats';
 import IconButton from '@/components/common/IconButton';
 import {useNavigation} from '@react-navigation/native';
@@ -13,11 +12,13 @@ import {postNavigations} from '@/constants';
 
 type PostCardNavigationProp = StackNavigationProp<PostStackParamList>;
 
-function PostCard(postwithuser: PostWithUserDTO) {
-  const navigation = useNavigation<PostCardNavigationProp>();
+type PostCardProps = {
+  post: PostDTO;
+  user: UserDTO;
+};
 
-  // PostCard가 PostWithUserDTO를 받아야 하므로 구조 분해
-  const {post, user} = postwithuser;
+function PostCard({post, user}: PostCardProps) {
+  const navigation = useNavigation<PostCardNavigationProp>();
 
   const handlePress = () => {
     navigation.navigate(postNavigations.POST_PAGE, {
@@ -69,7 +70,7 @@ function PostCard(postwithuser: PostWithUserDTO) {
       <PostStats likeCount={post.likeCount} commentCount={post.commentCount} />
 
       {/* 베스트 댓글 */}
-      {/* {post.bestComment && (
+      {post.bestComment && (
         <View style={styles.bestCommentContainer}>
           <Image
             source={{uri: post.bestComment.profileImg}}
@@ -82,7 +83,7 @@ function PostCard(postwithuser: PostWithUserDTO) {
             {post.bestComment.content}
           </Text>
         </View>
-      )} */}
+      )}
     </TouchableOpacity>
   );
 }

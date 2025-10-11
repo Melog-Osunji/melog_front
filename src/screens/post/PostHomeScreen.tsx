@@ -59,7 +59,7 @@ function PostHomeScreen({navigation}: IntroScreenProps) {
     refetch,
   } = usePostsByFeedType(selectedFeed.label);
 
-  console.log('feedPosts', feedPosts);
+  console.log('feedPosts?.results[0]', feedPosts?.results[0]);
 
   // 표시할 포스트 결정
   const getDisplayPosts = (): PostWithUserDTO[] => {

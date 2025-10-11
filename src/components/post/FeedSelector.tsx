@@ -27,7 +27,7 @@ const FeedSelector: React.FC<FeedSelectorProps> = ({
       <TouchableOpacity
         style={styles.headerTitle}
         onPress={() => setIsBottomSheetVisible(true)}>
-        <Text style={styles.headerTitleText}>{selectedFeed.name}</Text>
+        <Text style={styles.headerTitleText}>{selectedFeed.label}</Text>
         <Image
           source={require('@/assets/icons/post/UpArrow.png')}
           style={styles.dropdownIcon}
@@ -45,7 +45,7 @@ const FeedSelector: React.FC<FeedSelectorProps> = ({
               key={feed.id}
               style={styles.feedOption}
               onPress={() => handleFeedSelect(feed)}>
-              <Text style={styles.feedOptionText}>{feed.name}</Text>
+              <Text style={styles.feedOptionText}>{feed.label}</Text>
             </TouchableOpacity>
           ))}
         </View>

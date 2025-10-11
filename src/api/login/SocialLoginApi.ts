@@ -1,11 +1,11 @@
 // src/api/login/kakaoLoginApi.ts
 import {login} from '@react-native-seoul/kakao-login';
-import {socialLoginService} from './LoginServiceApi';
+import {SocialLoginResultApi} from './SocialLoginResultApi';
 
 export const kakaoLoginApi = async () => {
   const kakaoResult = await login();
 
-  return await socialLoginService(
+  return await SocialLoginResultApi(
     {
       idToken: kakaoResult.idToken,
       accessToken: kakaoResult.accessToken,
@@ -15,6 +15,7 @@ export const kakaoLoginApi = async () => {
   );
 };
 
+//이후 추가
 // export const googleLoginApi = async () => {
 //   const googleResult = await GoogleSignin.signIn();
 
@@ -39,3 +40,4 @@ export const kakaoLoginApi = async () => {
 //     '/api/auth/login/naver'
 //   );
 // };
+

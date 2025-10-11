@@ -5,7 +5,7 @@ import {StackScreenProps} from '@react-navigation/stack';
 import {IntroStackParamList} from '@/navigations/stack/IntroStackNavigator';
 import {introNavigations} from '@/constants';
 import {useSocialLogin} from '@/hooks/useSocialLogin';
-import {socialLoginButtons} from '@/constants/socialLogin';
+import {socialLoginButtons} from '@/constants/Auth';
 import SocialLoginButton from '@/components/auth/SocialLoginButton';
 
 type IntroScreenProps = StackScreenProps<

@@ -1,5 +1,16 @@
 import {ImageSourcePropType} from 'react-native';
 
+export type SocialProvider = 'KAKAO' | 'GOOGLE' | 'NAVER';
+
+export const getProviderName = (provider: SocialProvider): string => {
+  const names = {
+    KAKAO: '카카오',
+    GOOGLE: '구글',
+    NAVER: '네이버',
+  };
+  return names[provider];
+};
+
 export interface SocialLoginButton {
   key: SocialProvider;
   icon: ImageSourcePropType;
@@ -9,12 +20,9 @@ export interface SocialLoginButton {
   borderColor?: string;
   enabled: boolean;
 }
-
-export type SocialProvider = 'kakao' | 'google' | 'naver';
-
 export const socialLoginButtons: SocialLoginButton[] = [
   {
-    key: 'google',
+    key: 'GOOGLE',
     icon: require('@/assets/icons/intro/google_icon.png'),
     text: '구글로 로그인하기',
     backgroundColor: '#fff',
@@ -23,7 +31,7 @@ export const socialLoginButtons: SocialLoginButton[] = [
     enabled: false, // 나중에 true로 변경
   },
   {
-    key: 'kakao',
+    key: 'KAKAO',
     icon: require('@/assets/icons/intro/kakao_icon.png'),
     text: '카카오톡으로 로그인하기',
     backgroundColor: '#FEE500',
@@ -31,7 +39,7 @@ export const socialLoginButtons: SocialLoginButton[] = [
     enabled: true,
   },
   {
-    key: 'naver',
+    key: 'NAVER',
     icon: require('@/assets/icons/intro/naver_icon.png'),
     text: '네이버로 로그인하기',
     backgroundColor: '#03C75A',

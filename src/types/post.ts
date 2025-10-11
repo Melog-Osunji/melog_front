@@ -11,6 +11,7 @@ export type PostDTO = {
   likeCount: number;
   hiddenUser: string[];
   commentCount: number;
+  bestComment?: Comment;
 };
 
 export type UserDTO = {
@@ -26,4 +27,10 @@ export type PostWithUserDTO = {
 
 export type PostsDTO = {
   results: PostWithUserDTO[];
+};
+
+export type Comment = {
+  userId: string;
+  content: string;
+  profileImg: string; // 이후 추가 요청
 };

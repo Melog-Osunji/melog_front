@@ -1,10 +1,8 @@
-// Post 관련
-export type {PostDTO, PostWithUserDTO, PostsDTO} from './post';
-
-// User 관련
-export type {UserDTO, UserProfileDTO, AuthUserDTO} from './user';
-
-// 기존 타입들도 re-export
+// 이용약관 관련
 export type {AGREEMENTS} from './agreements';
 
-// export type {Category} from './domain'; //이후 리팩토링
+// Post 관련
+export type {PostDTO, PostWithUserDTO, PostsDTO, UserDTO} from './post';
+
+// User 관련
+export type {UserProfileDTO} from './user';

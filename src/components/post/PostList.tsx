@@ -14,7 +14,7 @@ interface PostListProps {
 
 function PostList({data, ListHeaderComponent}: PostListProps) {
   const renderItem: ListRenderItem<PostWithUserDTO> = ({item}) => (
-    <PostCard {...item} />
+    <PostCard post={item.post} user={item.user} />
   );
 
   return (

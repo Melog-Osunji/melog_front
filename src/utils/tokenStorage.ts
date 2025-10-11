@@ -7,6 +7,7 @@ import {
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_INFO_KEY = 'user_info';
+const REGISTRATION_STATUS_KEY = 'registration_completed';
 
 interface TokenData {
   accessToken: string;
@@ -61,12 +62,26 @@ export const getUserInfo = async (): Promise<UserInfo | null> => {
   return await getEncryptStorage(USER_INFO_KEY);
 };
 
+// 가입 상태 저장
+export const setRegistrationStatus = async (
+  completed: boolean,
+): Promise<void> => {
+  await setEncryptStorage(REGISTRATION_STATUS_KEY, completed);
+};
+
+// 가입 상태 조회
+export const getRegistrationStatus = async (): Promise<boolean> => {
+  const status = await getEncryptStorage(REGISTRATION_STATUS_KEY);
+  return status === true;
+};
+
 // 모든 인증 데이터 삭제
 export const clearAuthData = async (): Promise<void> => {
   await Promise.all([
     removeEncryptStorage(ACCESS_TOKEN_KEY),
     removeEncryptStorage(REFRESH_TOKEN_KEY),
     removeEncryptStorage(USER_INFO_KEY),
+    removeEncryptStorage(REGISTRATION_STATUS_KEY),
   ]);
 };
 

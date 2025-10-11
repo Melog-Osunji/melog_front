@@ -1,5 +1,11 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
-import {getUserInfo, isLoggedIn, clearAuthData} from '@/utils/tokenStorage';
+import {
+  getUserInfo,
+  isLoggedIn,
+  clearAuthData,
+  getRegistrationStatus,
+  setRegistrationStatus,
+} from '@/utils/tokenStorage';
 
 interface User {
   id: string;
@@ -13,11 +19,15 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLogin: boolean;
+  isRegistered: boolean;
   isLoading: boolean;
   login: (userData: User) => void;
   logout: () => Promise<void>;
   refreshUserInfo: () => Promise<void>;
-  setIsLogin: (value: boolean) => void; //임시
+  completeRegistration: () => Promise<void>;
+  // 테스트용
+  setIsLogin: (value: boolean) => void;
+  setIsRegistered: (value: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,6 +37,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLogin, setIsLogin] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // 앱 시작 시 인증 상태 확인
@@ -37,6 +48,8 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
   const checkAuthStatus = async () => {
     try {
       const loggedIn = await isLoggedIn();
+      const registered = await getRegistrationStatus();
+
       if (loggedIn) {
         const userInfo = await getUserInfo();
         if (userInfo) {
@@ -44,6 +57,8 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
           setIsLogin(true);
         }
       }
+
+      setIsRegistered(registered);
     } catch (error) {
       console.error('인증 상태 확인 실패:', error);
     } finally {
@@ -61,6 +76,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
       await clearAuthData();
       setUser(null);
       setIsLogin(false);
+      setIsRegistered(false);
     } catch (error) {
       console.error('로그아웃 실패:', error);
     }
@@ -77,14 +93,27 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
     }
   };
 
+  const completeRegistration = async () => {
+    try {
+      await setRegistrationStatus(true);
+      setIsRegistered(true);
+      console.log('✅ 가입 완료 처리됨');
+    } catch (error) {
+      console.error('가입 완료 처리 실패:', error);
+    }
+  };
+
   const value = {
     user,
     isLogin,
+    isRegistered,
     isLoading,
     login,
     logout,
     refreshUserInfo,
-    setIsLogin, // 추가하여 타입 일치
+    completeRegistration,
+    setIsLogin,
+    setIsRegistered,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

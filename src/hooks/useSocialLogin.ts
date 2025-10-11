@@ -1,16 +1,16 @@
 import {useState} from 'react';
 import {kakaoLoginApi} from '@/api/login/SocialLoginApi';
-// import {googleLoginApi} from '@/api/login/googleLoginApi';
-// import {naverLoginApi} from '@/api/login/naverLoginApi';
-import {SocialProvider} from '@/constants/socialLogin';
+// import {googleLoginApi} from '@/api/login/SocialLoginApi';
+// import {naverLoginApi} from '@/api/login/SocialLoginApi';
+import {SocialProvider, getProviderName} from '@/constants/Auth';
 import {useToast} from '@/contexts/ToastContext';
 import {useAuthContext} from '@/contexts/AuthContext';
 
 // API 매핑 객체
 const socialLoginAPIs = {
-  kakao: kakaoLoginApi,
-  google: async () => ({success: false, user: null}), // TODO: 구현 필요
-  naver: async () => ({success: false, user: null}), // TODO: 구현 필요
+  KAKAO: kakaoLoginApi,
+  GOOGLE: async () => ({success: false, user: null}), // TODO: 구현 필요
+  NAVER: async () => ({success: false, user: null}), // TODO: 구현 필요
 } as const;
 
 export const useSocialLogin = () => {
@@ -59,19 +59,9 @@ export const useSocialLogin = () => {
     }
   };
 
-  const getProviderName = (provider: SocialProvider): string => {
-    const names = {
-      kakao: '카카오',
-      google: '구글',
-      naver: '네이버',
-    };
-    return names[provider];
-  };
-
   return {
     isLoading,
     loadingProvider,
     handleSocialLogin,
-    getProviderName,
   };
 };

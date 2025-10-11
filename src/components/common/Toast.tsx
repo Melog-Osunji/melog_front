@@ -19,8 +19,6 @@ interface ToastProps {
   duration?: number;
 }
 
-const {width: SCREEN_WIDTH} = Dimensions.get('window');
-
 const Toast: React.FC<ToastProps> = ({
   message,
   type = 'success',
@@ -31,14 +29,8 @@ const Toast: React.FC<ToastProps> = ({
   const translateY = useRef(new Animated.Value(-100)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
-  console.log('🍞 Toast 렌더링:', {message, type, visible});
-
   useEffect(() => {
-    console.log('🍞 Toast useEffect:', {visible});
-
     if (visible) {
-      console.log('🍞 Toast 애니메이션 시작');
-
       // 토스트 보이기
       Animated.parallel([
         Animated.timing(translateY, {
@@ -51,26 +43,20 @@ const Toast: React.FC<ToastProps> = ({
           duration: 300,
           useNativeDriver: true,
         }),
-      ]).start(() => {
-        console.log('🍞 Toast 표시 완료');
-      });
+      ]).start();
 
       // 일정 시간 후 자동으로 숨기기
       const timer = setTimeout(() => {
-        console.log('🍞 Toast 자동 숨김 실행');
         hideToast();
       }, duration);
 
       return () => {
-        console.log('🍞 Toast cleanup');
         clearTimeout(timer);
       };
     }
   }, [visible, duration]);
 
   const hideToast = () => {
-    console.log('🍞 Toast hideToast 실행');
-
     Animated.parallel([
       Animated.timing(translateY, {
         toValue: -100,
@@ -83,7 +69,6 @@ const Toast: React.FC<ToastProps> = ({
         useNativeDriver: true,
       }),
     ]).start(() => {
-      console.log('🍞 Toast 숨김 완료');
       onHide();
     });
   };
@@ -94,19 +79,15 @@ const Toast: React.FC<ToastProps> = ({
         case 'success':
           return require('@/assets/icons/Check.png');
         case 'error':
-          // Error 아이콘이 없으면 기본 아이콘 사용
           return require('@/assets/icons/Check.png');
         case 'warning':
-          // Warning 아이콘이 없으면 기본 아이콘 사용
           return require('@/assets/icons/Check.png');
         case 'info':
-          // Info 아이콘이 없으면 기본 아이콘 사용
           return require('@/assets/icons/Check.png');
         default:
           return require('@/assets/icons/Check.png');
       }
     } catch (error) {
-      console.warn('🍞 아이콘 로드 실패:', error);
       return require('@/assets/icons/Check.png');
     }
   };
@@ -128,11 +109,8 @@ const Toast: React.FC<ToastProps> = ({
   };
 
   if (!visible) {
-    console.log('🍞 Toast visible=false, 렌더링 안함');
     return null;
   }
-
-  console.log('🍞 Toast 최종 렌더링 시작');
 
   return React.createElement(
     View,
