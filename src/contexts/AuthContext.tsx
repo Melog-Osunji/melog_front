@@ -5,23 +5,16 @@ import {
   clearAuthData,
   getRegistrationStatus,
   setRegistrationStatus,
-} from '@/utils/tokenStorage';
+} from '@/utils/storage/tokenStorage';
 
-interface User {
-  id: string;
-  email: string;
-  platform: string;
-  nickName: string;
-  profileImg: string;
-  intro: string | null;
-}
+import {ProfileDTO} from '@/types';
 
 interface AuthContextType {
-  user: User | null;
+  user: ProfileDTO | null;
   isLogin: boolean;
   isRegistered: boolean;
   isLoading: boolean;
-  login: (userData: User) => void;
+  login: (userData: ProfileDTO) => void;
   logout: () => Promise<void>;
   refreshUserInfo: () => Promise<void>;
   completeRegistration: () => Promise<void>;
@@ -35,7 +28,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<ProfileDTO | null>(null);
   const [isLogin, setIsLogin] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,7 +59,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
     }
   };
 
-  const login = (userData: User) => {
+  const login = (userData: ProfileDTO) => {
     setUser(userData);
     setIsLogin(true);
   };
@@ -127,6 +120,3 @@ export const useAuthContext = (): AuthContextType => {
   }
   return context;
 };
-
-// User 타입도 export
-export type {User};

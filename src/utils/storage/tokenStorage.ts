@@ -3,25 +3,12 @@ import {
   getEncryptStorage,
   removeEncryptStorage,
 } from './encryptStorage';
+import {ProfileDTO, TokenData} from '@/types';
 
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_INFO_KEY = 'user_info';
 const REGISTRATION_STATUS_KEY = 'registration_completed';
-
-interface TokenData {
-  accessToken: string;
-  refreshToken: string;
-}
-
-interface UserInfo {
-  id: string;
-  email: string;
-  platform: string;
-  nickName: string;
-  profileImg: string;
-  intro: string | null;
-}
 
 // Access Token 저장
 export const setAccessToken = async (token: string): Promise<void> => {
@@ -53,12 +40,12 @@ export const setTokens = async (tokenData: TokenData): Promise<void> => {
 };
 
 // 사용자 정보 저장
-export const setUserInfo = async (userInfo: UserInfo): Promise<void> => {
+export const setUserInfo = async (userInfo: ProfileDTO): Promise<void> => {
   await setEncryptStorage(USER_INFO_KEY, userInfo);
 };
 
 // 사용자 정보 조회
-export const getUserInfo = async (): Promise<UserInfo | null> => {
+export const getUserInfo = async (): Promise<ProfileDTO | null> => {
   return await getEncryptStorage(USER_INFO_KEY);
 };
 

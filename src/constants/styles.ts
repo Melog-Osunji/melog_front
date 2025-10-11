@@ -1,26 +1,6 @@
-import {ImageSourcePropType} from 'react-native';
+import {SocialLoginButtonType} from '@/types';
 
-export type SocialProvider = 'KAKAO' | 'GOOGLE' | 'NAVER';
-
-export const getProviderName = (provider: SocialProvider): string => {
-  const names = {
-    KAKAO: '카카오',
-    GOOGLE: '구글',
-    NAVER: '네이버',
-  };
-  return names[provider];
-};
-
-export interface SocialLoginButton {
-  key: SocialProvider;
-  icon: ImageSourcePropType;
-  text: string;
-  backgroundColor: string;
-  textColor: string;
-  borderColor?: string;
-  enabled: boolean;
-}
-export const socialLoginButtons: SocialLoginButton[] = [
+export const socialLoginButtons: SocialLoginButtonType[] = [
   {
     key: 'GOOGLE',
     icon: require('@/assets/icons/intro/google_icon.png'),

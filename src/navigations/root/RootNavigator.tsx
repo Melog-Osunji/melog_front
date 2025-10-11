@@ -22,7 +22,7 @@ function RootNavigator() {
         case 'LOGIN':
           setIsLogin(false);
           setIsRegistered(true);
-          console.log('[dev] 가입 이후 로그인 프로세스 상태로 설정됨');
+          console.log('[dev] 가입 이후 로그인 프로세스 상태로 설정됨', isLogin);
           break;
         case 'MAIN':
           setIsLogin(true);

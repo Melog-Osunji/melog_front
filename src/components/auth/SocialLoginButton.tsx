@@ -6,10 +6,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import {
-  SocialLoginButton as SocialLoginButtonType,
-  SocialProvider,
-} from '@/constants/Auth';
+import {SocialProvider, SocialLoginButtonType} from '@/types';
 
 interface SocialLoginButtonProps {
   button: SocialLoginButtonType;

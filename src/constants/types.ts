@@ -1,45 +1,5 @@
 // @/constants/types.ts
 import {mockPosts} from './dummyData';
-import type {PostWithUserDTO} from '@/types/post';
-
-// Post
-export interface User {
-  profileImg: string;
-  nickName: string;
-}
-
-export interface BestComment {
-  userId: string;
-  content: string;
-  profileImg: string;
-}
-
-export interface Comment {
-  id: string;
-  userId: string;
-  userName: string;
-  userProfileImg: string;
-  content: string;
-  createdAgo: number;
-  likeCount: number;
-  commentCount?: number;
-  replies?: Comment[];
-}
-
-export type Post = {
-  id: string;
-  userId: string;
-  title: string;
-  content: string;
-  mediaType: string;
-  mediaUrl?: string;
-  createdAgo: number;
-  likeCount: number;
-  commentCount: number;
-  tags: string[];
-  bestComment?: BestComment;
-  user: User;
-};
 
 // YouTube Video
 export interface YouTubeVideo {
@@ -126,35 +86,6 @@ export interface Performance {
   category: string;
   imaUrl?: string;
 }
-
-// Feed Type 정의
-export interface FeedType {
-  id: string;
-  label: string;
-  posts?: PostWithUserDTO[];
-}
-
-// 피드 타입 데이터 생성 함수
-export const createFeedTypes = (newPosts: PostWithUserDTO[]): FeedType[] => [
-  {
-    id: 'popular',
-    label: '인기',
-    posts: newPosts,
-  },
-  {
-    id: 'follow',
-    label: '팔로우',
-    posts: newPosts,
-  },
-  {
-    id: 'recommend',
-    label: '추천',
-    posts: newPosts,
-  },
-];
-
-// 기본 피드 타입 (호환성을 위해 유지)
-export const feedTypes: FeedType[] = createFeedTypes([]);
 
 export const realTimeData: Post[] = [
   {

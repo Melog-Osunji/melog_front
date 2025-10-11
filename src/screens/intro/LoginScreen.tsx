@@ -1,12 +1,20 @@
-import React from 'react';
-import {View, StyleSheet, Image, ActivityIndicator, Text} from 'react-native';
+import React, {useState} from 'react';
+import {
+  View,
+  StyleSheet,
+  Image,
+  ActivityIndicator,
+  Text,
+  Alert,
+} from 'react-native';
 import {StackScreenProps} from '@react-navigation/stack';
 
 import {IntroStackParamList} from '@/navigations/stack/IntroStackNavigator';
 import {introNavigations} from '@/constants';
 import {useSocialLogin} from '@/hooks/useSocialLogin';
-import {socialLoginButtons} from '@/constants/Auth';
+import {socialLoginButtons} from '@/constants';
 import SocialLoginButton from '@/components/auth/SocialLoginButton';
+import {SocialProvider} from '@/types';
 
 type IntroScreenProps = StackScreenProps<
   IntroStackParamList,
@@ -14,12 +22,36 @@ type IntroScreenProps = StackScreenProps<
 >;
 
 const LoginScreen = ({navigation}: IntroScreenProps) => {
-  const {isLoading, loadingProvider, handleSocialLogin} = useSocialLogin();
+  const {socialLogin, isLoading} = useSocialLogin();
+  const [loadingProvider, setLoadingProvider] = useState<SocialProvider | null>(
+    null,
+  );
 
-  const onSocialLogin = async (provider: 'kakao' | 'google' | 'naver') => {
-    const success = await handleSocialLogin(provider);
-    if (success) {
-      navigation.navigate(introNavigations.TOS_CONSENTLIST);
+  const onSocialLogin = async (provider: SocialProvider) => {
+    try {
+      setLoadingProvider(provider);
+      console.log(`[LoginScreen] ${provider} 로그인 시작`);
+
+      const result = await socialLogin(provider);
+
+      console.log(`[LoginScreen] ${provider} 로그인 성공:`, result);
+    } catch (loginError) {
+      console.error(`[LoginScreen] ${provider} 로그인 실패:`, loginError);
+
+      // 에러 메시지 표시
+      const errorMessage =
+        loginError instanceof Error
+          ? loginError.message
+          : `${provider} 로그인에 실패했습니다.`;
+
+      Alert.alert('로그인 실패', errorMessage, [
+        {
+          text: '확인',
+          style: 'default',
+        },
+      ]);
+    } finally {
+      setLoadingProvider(null);
     }
   };
 
@@ -38,8 +70,12 @@ const LoginScreen = ({navigation}: IntroScreenProps) => {
       {/* 글로벌 로딩 오버레이 */}
       {isLoading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#ffffffff" />
-          <Text style={styles.loadingText}>로그인 중...</Text>
+          <ActivityIndicator size="large" color="#ffffff" />
+          <Text style={styles.loadingText}>
+            {loadingProvider
+              ? `${loadingProvider} 로그인 중...`
+              : '로그인 중...'}
+          </Text>
         </View>
       )}
 
@@ -90,7 +126,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   loadingText: {
-    color: '#ffffffff',
+    color: '#ffffff',
     fontSize: 16,
     marginTop: 10,
     fontWeight: 'bold',

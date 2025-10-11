@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {colors} from '@/constants';
-import {Post} from '@/constants/types';
+import {PostDTO} from '@/types';
 
 type StatsType = 'like' | 'comment' | 'share' | 'bookmark';
 
-type PostStatsProps = Pick<Post, 'likeCount' | 'commentCount'> & {
+type PostStatsProps = Pick<PostDTO, 'likeCount' | 'commentCount'> & {
   visibleStats?: StatsType[];
 };
 

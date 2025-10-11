@@ -1,20 +1,18 @@
 import instance from '../axiosInstance';
 import type {BaseResponse} from '../baseResponse';
-import type {PostsDTO} from '@/types';
+import type {PostsDTO, FeedType} from '@/types'; // ✅ FeedType 추가
 
-// 인기 피드
+// 개별 API 함수들
 export const fetchPopularPosts = async (): Promise<PostsDTO> => {
   const res = await instance.get<BaseResponse<PostsDTO>>('/api/posts/populars');
   return res.data.data;
 };
 
-// 팔로우 피드
 export const fetchFollowPosts = async (): Promise<PostsDTO> => {
   const res = await instance.get<BaseResponse<PostsDTO>>('/api/posts/follows');
   return res.data.data;
 };
 
-// 추천 피드
 export const fetchRecommendPosts = async (): Promise<PostsDTO> => {
   const res = await instance.get<BaseResponse<PostsDTO>>(
     '/api/posts/recommends',
@@ -22,21 +20,20 @@ export const fetchRecommendPosts = async (): Promise<PostsDTO> => {
   return res.data.data;
 };
 
-// 피드 타입에 따른 API 함수 매핑
-export const FEED_API_MAP = {
-  인기: fetchPopularPosts,
-  팔로우: fetchFollowPosts,
-  추천: fetchRecommendPosts,
+type FeedId = FeedType['id']; // 'popular' | 'follow' | 'recommend'
+
+const FEED_API_MAP: Record<FeedType['id'], () => Promise<PostsDTO>> = {
+  popular: fetchPopularPosts,
+  follow: fetchFollowPosts,
+  recommend: fetchRecommendPosts,
 } as const;
 
-// 통합 피드 조회 함수
-export const fetchPostsByFeedType = async (
-  feedType: string,
-): Promise<PostsDTO> => {
-  const apiFunction = FEED_API_MAP[feedType as keyof typeof FEED_API_MAP];
+// ID 기반 통합 API 함수
+export const fetchPostsByFeedId = async (feedId: FeedId): Promise<PostsDTO> => {
+  const apiFunction = FEED_API_MAP[feedId];
 
   if (!apiFunction) {
-    console.warn(`⚠️ 알 수 없는 피드 타입: ${feedType}, 인기 피드로 대체`);
+    console.warn(`알 수 없는 피드 ID: ${feedId}, 인기 피드로 대체`);
     return fetchPopularPosts();
   }
 
