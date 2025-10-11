@@ -9,13 +9,13 @@ import RootNavigator from '@/navigations/root/RootNavigator'; //auth부터
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <ToastProvider>
           <NavigationContainer>
             <RootNavigator />
           </NavigationContainer>
-        </AuthProvider>
-      </ToastProvider>
+        </ToastProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

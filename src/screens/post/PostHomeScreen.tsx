@@ -1,14 +1,18 @@
 import React, {useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {View, StyleSheet} from 'react-native';
+import {View, StyleSheet, ActivityIndicator, Text} from 'react-native';
 //constants
-import {FeedType, createFeedTypes} from '@/constants/types';
-import {colors, postNavigations} from '@/constants';
+import {colors, postNavigations, harmonyRooms} from '@/constants';
+//types
+import type {FeedType, createFeedTypes} from '@/constants/types';
+import type {PostWithUserDTO} from '@/types';
 //navigation
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 //context
 import {usePostContext} from '@/contexts/PostContext';
+//hooks
+import {usePostsByFeedType} from '@/hooks/queries/usePostQueries';
 //components
 import PostList from '@/components/post/PostList';
 import IconButton from '@/components/common/IconButton';
@@ -23,34 +27,97 @@ type IntroScreenProps = StackScreenProps<
 
 function PostHomeScreen({navigation}: IntroScreenProps) {
   const {posts: newPosts} = usePostContext();
+
+  // 피드 타입 생성
+  const createFeedTypes = (posts: PostWithUserDTO[]): FeedType[] => [
+    {
+      id: 'popular',
+      label: '인기',
+      posts: posts,
+    },
+    {
+      id: 'follow',
+      label: '팔로우',
+      posts: posts,
+    },
+    {
+      id: 'recommend',
+      label: '추천',
+      posts: posts,
+    },
+  ];
+
   const feedTypes = createFeedTypes(newPosts);
   const [selectedFeed, setSelectedFeed] = useState<FeedType>(feedTypes[0]);
   const [selectedRoomId, setSelectedRoomId] = useState<string>('room1');
 
-  // 하모니룸 데이터
-  const harmonyRooms = [
-    {id: 'room1', name: '하모니룸1'},
-    {id: 'room2', name: '하모니룸2'},
-    {id: 'room3', name: '하모니룸3'},
-    {id: 'room4', name: '하모니룸4'},
-  ];
+  // 선택된 피드 타입에 따른 포스트 조회
+  const {
+    data: feedPosts,
+    isLoading,
+    error,
+    refetch,
+  } = usePostsByFeedType(selectedFeed.label);
 
-  // 선택된 피드의 포스트를 표시, 없으면 새 포스트 표시
-  const allPosts =
-    selectedFeed.posts && selectedFeed.posts.length > 0
-      ? selectedFeed.posts
-      : newPosts.length > 0
-      ? newPosts
-      : selectedFeed.posts || [];
+  console.log('feedPosts', feedPosts);
+
+  // 표시할 포스트 결정
+  const getDisplayPosts = (): PostWithUserDTO[] => {
+    // API에서 가져온 데이터가 있으면 우선 사용
+    if (feedPosts?.results) {
+      console.log(
+        `${selectedFeed.label} 피드 데이터 사용:`,
+        feedPosts.results.length,
+      );
+      return feedPosts.results;
+    }
+
+    // 폴백: 컨텍스트 데이터 사용
+    const fallbackPosts =
+      selectedFeed.posts && selectedFeed.posts.length > 0
+        ? selectedFeed.posts
+        : newPosts.length > 0
+        ? newPosts
+        : [];
+
+    console.log(`폴백 데이터 사용:`, fallbackPosts.length);
+    return fallbackPosts;
+  };
 
   const handleFeedSelect = (feed: FeedType) => {
+    console.log(`피드 변경: ${selectedFeed.label} → ${feed.label}`);
     setSelectedFeed(feed);
   };
 
   const handleRoomSelect = (roomId: string) => {
     setSelectedRoomId(roomId);
-    // 룸 선택에 따른 추가 로직
   };
+
+  // 에러 상태 처리
+  if (error) {
+    console.error('포스트 조회 에러:', error);
+    return (
+      <GradientBg>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.header}>
+            <FeedSelector
+              selectedFeed={selectedFeed}
+              onFeedSelect={handleFeedSelect}
+              feedTypes={feedTypes}
+            />
+          </View>
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>
+              포스트를 불러오는데 실패했습니다
+            </Text>
+            <Text style={styles.retryText} onPress={() => refetch()}>
+              다시 시도
+            </Text>
+          </View>
+        </SafeAreaView>
+      </GradientBg>
+    );
+  }
 
   return (
     <GradientBg>
@@ -73,16 +140,26 @@ function PostHomeScreen({navigation}: IntroScreenProps) {
           </View>
         </View>
 
-        <PostList
-          data={allPosts}
-          ListHeaderComponent={
-            <HaryroomNaviBtn
-              rooms={harmonyRooms}
-              selectedRoomId={selectedRoomId}
-              onRoomSelect={handleRoomSelect}
-            />
-          }
-        />
+        {/* 로딩 상태 */}
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.WHITE} />
+            <Text style={styles.loadingText}>
+              {selectedFeed.label} 피드를 불러오는 중...
+            </Text>
+          </View>
+        ) : (
+          <PostList
+            data={getDisplayPosts()}
+            ListHeaderComponent={
+              <HaryroomNaviBtn
+                rooms={harmonyRooms}
+                selectedRoomId={selectedRoomId}
+                onRoomSelect={handleRoomSelect}
+              />
+            }
+          />
+        )}
 
         {/* Write 버튼 */}
         <View style={styles.writeButton}>
@@ -116,6 +193,32 @@ const styles = StyleSheet.create({
   headerIconRow: {
     flexDirection: 'row',
     gap: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: colors.GRAY_500,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  errorText: {
+    fontSize: 16,
+    color: colors.BLACK,
+    textAlign: 'center',
+  },
+  retryText: {
+    fontSize: 16,
+    color: colors.GRAY_200,
+    textDecorationLine: 'underline',
   },
   writeButton: {
     position: 'absolute',

@@ -1,4 +1,11 @@
-import {Post, Comment, YouTubeVideo, PopularMediam, RecentHarmonyRoom, RecommendRoom, Performance} from './types';
+import {
+  Post,
+  Comment,
+  YouTubeVideo,
+  RecentHarmonyRoom,
+  RecommendRoom,
+  Performance,
+} from './types';
 
 // 더미 포스트 데이터
 export const mockPosts: Post[] = [
@@ -271,118 +278,133 @@ export const PopularMediaData: PopularMedia[] = [
     createdAgo: '3일 전',
   },
   {
-      userNickname: '바흐흑',
-      userProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
-      postID: 'post001',
-      mediaURL: 'https://youtu.be/4-9gp1puvMI?si=GOa0h4oLuak7DM6I',
-      mediaType: 'Youtube',
-      createdAgo: '7일 전',
-    },
-    {
-      userNickname: '클래식 듣기 딱 좋은 날',
-      userProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
-      postID: 'post001',
-      mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
-      mediaType: 'Youtube',
-      createdAgo: '3일 전',
-    },
+    userNickname: '바흐흑',
+    userProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
+    postID: 'post001',
+    mediaURL: 'https://youtu.be/4-9gp1puvMI?si=GOa0h4oLuak7DM6I',
+    mediaType: 'Youtube',
+    createdAgo: '7일 전',
+  },
+  {
+    userNickname: '클래식 듣기 딱 좋은 날',
+    userProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
+    postID: 'post001',
+    mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
+    mediaType: 'Youtube',
+    createdAgo: '3일 전',
+  },
 ];
 
 // RecentHarmonyRoom 더미데이터
 export const RecentHarmonyRoomData: RecentHarmonyRoom[] = [
-    {
-        userNickname: '아이디1',
-        userProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
-        roomID: 'room001',
-        mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
-        mediaType: 'Youtube',
-        createdAgo: 1,
-    },
-    {
-        userNickname: '아이디2',
-        userProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
-        roomID: 'room002',
-        mediaURL: 'https://youtu.be/4-9gp1puvMI?si=GOa0h4oLuak7DM6I',
-        mediaType: 'Youtube',
-        createdAgo: 8,
-    },
-
+  {
+    userNickname: '아이디1',
+    userProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
+    roomID: 'room001',
+    mediaURL: 'https://youtu.be/XNM8IfAxYKc?si=T5mQCRDyN6d58-XP',
+    mediaType: 'Youtube',
+    createdAgo: 1,
+  },
+  {
+    userNickname: '아이디2',
+    userProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
+    roomID: 'room002',
+    mediaURL: 'https://youtu.be/4-9gp1puvMI?si=GOa0h4oLuak7DM6I',
+    mediaType: 'Youtube',
+    createdAgo: 8,
+  },
 ];
 
 // RecommendRoom 더미데이터
 export const RecommendRoomData: RecommendRoom[] = [
-    {
-        roomID: 'room003',
-        title: '하모니룸 이름1',
-        tags : ['태그', '태그', '태그'],
-        memberNum : 10,
-        roomProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
-        ownerId: '아이디',
-        content: '활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 ',
-        memberProfileImg: ['https://images.pexels.com/photos/32552644/pexels-photo-32552644.jpeg', 'https://images.pexels.com/photos/164821/pexels-photo-164821.jpeg'],
-    },
-    {
-        roomID: 'room004',
-        title: '하모니룸 이름2',
-        tags : ['태그', '태그'],
-        memberNum : 4,
-        roomProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
-        ownerId: '아이디2',
-        content: '활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 ',
-        memberProfileImg: ['https://images.pexels.com/photos/32552644/pexels-photo-32552644.jpeg', 'https://images.pexels.com/photos/164821/pexels-photo-164821.jpeg'],
-    },
+  {
+    roomID: 'room003',
+    title: '하모니룸 이름1',
+    tags: ['태그', '태그', '태그'],
+    memberNum: 10,
+    roomProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
+    ownerId: '아이디',
+    content: '활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 ',
+    memberProfileImg: [
+      'https://images.pexels.com/photos/32552644/pexels-photo-32552644.jpeg',
+      'https://images.pexels.com/photos/164821/pexels-photo-164821.jpeg',
+    ],
+  },
+  {
+    roomID: 'room004',
+    title: '하모니룸 이름2',
+    tags: ['태그', '태그'],
+    memberNum: 4,
+    roomProfileImgLink: 'https://randomuser.me/api/portraits/men/33.jpg',
+    ownerId: '아이디2',
+    content: '활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 활동 내용 ',
+    memberProfileImg: [
+      'https://images.pexels.com/photos/32552644/pexels-photo-32552644.jpeg',
+      'https://images.pexels.com/photos/164821/pexels-photo-164821.jpeg',
+    ],
+  },
 ];
 
 // 공연 데이터
 export const PerformanceData: Performance[] = [
-    {
-        id: 1,
-        title: '가을 클래식 콘서트',
-        location: '서울시 세종문화회관',
-        startDate: new Date('2025-09-26'),
-        endDate: new Date('2025-09-27'),
-        isBookmark: false,
-        leftDate: 2,
-        category: '공연',
-        imgUrl: 'https://ticketimage.interpark.com/Play/image/large/24/24017680_p.gif'
-    },
-    {
-        id: 2,
-        title: '빈센트 반 고흐 전시',
-        location: '부산시',
-        startDate: new Date('2025-09-28'),
-        isBookmark: false,
-        leftDate: 4,
-        category: '전시',
-        imgUrl: 'https://www.sac.or.kr//site/main/file/thumbnail/uu/a4a0f611fc0d42008f2f6516f36a409d'
-    },
-    {
-        id: 3,
-        title: '진주 개천예술제',
-        location: '경상남도 진주시',
-        startDate: new Date('2025-10-10'),
-        endDate: new Date('2025-10-20'),
-        isBookmark: true,
-        leftDate: 16,
-        category: '축제',
-    },
-    {
-        id: 4,
-        title: '가을 클래식 콘서트',
-        location: '서울시 세종문화회관',
-        startDate: new Date('2025-09-24'),
-        endDate: new Date('2025-09-29'),
-        isBookmark: false,
-        leftDate: 0,
-        category: '공연',
-    },
-    {
-        id: 5,
-        title: '가을 클래식 콘서트',
-        location: '서울시 세종문화회관',
-        startDate: new Date('2025-09-20'),
-        endDate: new Date('2025-09-23'),
-        isBookmark: true,
-        category: '공연',
-    },
+  {
+    id: 1,
+    title: '가을 클래식 콘서트',
+    location: '서울시 세종문화회관',
+    startDate: new Date('2025-09-26'),
+    endDate: new Date('2025-09-27'),
+    isBookmark: false,
+    leftDate: 2,
+    category: '공연',
+    imgUrl:
+      'https://ticketimage.interpark.com/Play/image/large/24/24017680_p.gif',
+  },
+  {
+    id: 2,
+    title: '빈센트 반 고흐 전시',
+    location: '부산시',
+    startDate: new Date('2025-09-28'),
+    isBookmark: false,
+    leftDate: 4,
+    category: '전시',
+    imgUrl:
+      'https://www.sac.or.kr//site/main/file/thumbnail/uu/a4a0f611fc0d42008f2f6516f36a409d',
+  },
+  {
+    id: 3,
+    title: '진주 개천예술제',
+    location: '경상남도 진주시',
+    startDate: new Date('2025-10-10'),
+    endDate: new Date('2025-10-20'),
+    isBookmark: true,
+    leftDate: 16,
+    category: '축제',
+  },
+  {
+    id: 4,
+    title: '가을 클래식 콘서트',
+    location: '서울시 세종문화회관',
+    startDate: new Date('2025-09-24'),
+    endDate: new Date('2025-09-29'),
+    isBookmark: false,
+    leftDate: 0,
+    category: '공연',
+  },
+  {
+    id: 5,
+    title: '가을 클래식 콘서트',
+    location: '서울시 세종문화회관',
+    startDate: new Date('2025-09-20'),
+    endDate: new Date('2025-09-23'),
+    isBookmark: true,
+    category: '공연',
+  },
+];
+
+// 하모니룸 데이터
+export const harmonyRooms = [
+  {id: 'room1', name: '하모니룸1'},
+  {id: 'room2', name: '하모니룸2'},
+  {id: 'room3', name: '하모니룸3'},
+  {id: 'room4', name: '하모니룸4'},
 ];

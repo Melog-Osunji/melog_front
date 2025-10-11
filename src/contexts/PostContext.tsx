@@ -1,10 +1,10 @@
 import React, {createContext, useContext, useState, ReactNode} from 'react';
-import {Post} from '@/constants/types';
-import {mockPosts} from '@/constants/dummyData';
+import {PostWithUserDTO} from '@/types';
+// import {mockPosts} from '@/constants/dummyData';
 
 interface PostContextType {
-  posts: Post[]; // 포스트 배열
-  addPost: (post: Post) => void; // 포스트 추가 함수
+  posts: PostWithUserDTO[]; // 포스트 배열
+  addPost: (post: PostWithUserDTO) => void; // 포스트 추가 함수
   removePost: (postId: string) => void; // 포스트 삭제 함수
 }
 
@@ -23,14 +23,16 @@ interface PostProviderProps {
 }
 
 export const PostProvider: React.FC<PostProviderProps> = ({children}) => {
-  const [posts, setPosts] = useState<Post[]>(mockPosts); // 초기값으로 mockPosts 사용
+  const [posts, setPosts] = useState<PostWithUserDTO[]>([]);
 
-  const addPost = (post: Post) => {
+  const addPost = (post: PostWithUserDTO) => {
     setPosts(prevPosts => [post, ...prevPosts]); // 새 포스트를 맨 앞에 추가
   };
 
   const removePost = (postId: string) => {
-    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+    setPosts(prevPosts =>
+      prevPosts.filter(postWithUser => postWithUser.post.id !== postId),
+    );
   };
 
   return (

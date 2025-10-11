@@ -1,10 +1,10 @@
 import React from 'react';
 import {FlatList, ListRenderItem} from 'react-native';
 import PostCard from '@/components/post/PostCard';
-import {Post} from '@/constants/types';
+import {PostWithUserDTO} from '@/types';
 
 interface PostListProps {
-  data: Post[];
+  data: PostWithUserDTO[];
   ListHeaderComponent?:
     | React.ComponentType<any>
     | React.ReactElement
@@ -13,12 +13,14 @@ interface PostListProps {
 }
 
 function PostList({data, ListHeaderComponent}: PostListProps) {
-  const renderItem: ListRenderItem<Post> = ({item}) => <PostCard {...item} />;
+  const renderItem: ListRenderItem<PostWithUserDTO> = ({item}) => (
+    <PostCard {...item} />
+  );
 
   return (
     <FlatList
       data={data}
-      keyExtractor={(item: Post) => item.id}
+      keyExtractor={(item: PostWithUserDTO) => item.post.id}
       style={{width: '100%'}}
       contentContainerStyle={{
         paddingBottom: 80,

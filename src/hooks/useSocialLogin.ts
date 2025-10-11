@@ -1,10 +1,17 @@
 import {useState} from 'react';
-import {Alert} from 'react-native';
-import {kakaoLoginApi} from '@/api/login/kakaoLoginApi';
-import {SocialProvider} from '@/constants/socialLogin';
+import {kakaoLoginApi} from '@/api/login/SocialLoginApi';
 // import {googleLoginApi} from '@/api/login/googleLoginApi';
 // import {naverLoginApi} from '@/api/login/naverLoginApi';
+import {SocialProvider} from '@/constants/socialLogin';
 import {useToast} from '@/contexts/ToastContext';
+import {useAuthContext} from '@/contexts/AuthContext';
+
+// API 매핑 객체
+const socialLoginAPIs = {
+  kakao: kakaoLoginApi,
+  google: async () => ({success: false, user: null}), // TODO: 구현 필요
+  naver: async () => ({success: false, user: null}), // TODO: 구현 필요
+} as const;
 
 export const useSocialLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,42 +19,39 @@ export const useSocialLogin = () => {
     null,
   );
   const {showToast} = useToast();
+  const {login} = useAuthContext();
 
   const handleSocialLogin = async (
     provider: SocialProvider,
   ): Promise<boolean> => {
     try {
-      console.log(`${provider} 로그인 시작`);
+      console.log(`[useSocialLogin] ${provider} 로그인 시작`);
       setIsLoading(true);
       setLoadingProvider(provider);
 
-      let result;
-
-      switch (provider) {
-        case 'kakao':
-          result = await kakaoLoginApi();
-          break;
-        case 'google':
-          // result = await googleLoginApi();
-          console.log('구글 로그인 준비 중...');
-          throw new Error('구글 로그인이 준비 중입니다.');
-        case 'naver':
-          // result = await naverLoginApi();
-          console.log('네이버 로그인 준비 중...');
-          throw new Error('네이버 로그인이 준비 중입니다.');
-        default:
-          throw new Error('지원하지 않는 로그인 방식입니다.');
+      // 공통 로그인 처리
+      const loginAPI = socialLoginAPIs[provider];
+      if (!loginAPI) {
+        throw new Error(`${provider} 로그인 API를 찾을 수 없습니다.`);
       }
 
-      console.log(`✅ ${provider} 로그인 성공:`, result);
+      const result = await loginAPI();
+
+      // 로그인 성공 시 AuthContext 업데이트
+      if (result.success && result.user) {
+        login(result.user);
+        showToast(`${getProviderName(provider)} 로그인 성공`, 'success', 2000);
+      }
+
+      console.log(`${provider} 로그인 성공:`, result);
       return true;
     } catch (error) {
       console.error(`❌ ${provider} 로그인 실패:`, error);
-      showToast(
-        `${getProviderName(provider)} 로그인에 실패했습니다`,
-        'error',
-        3000,
-      );
+
+      // 에러 메시지 처리
+      const errorMessage =
+        error instanceof Error ? error.message : '로그인에 실패했습니다';
+      showToast(`${getProviderName(provider)} ${errorMessage}`, 'error', 3000);
       return false;
     } finally {
       setIsLoading(false);
