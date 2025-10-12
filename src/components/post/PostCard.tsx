@@ -72,10 +72,10 @@ function PostCard({post, user}: PostCardProps) {
       {/* 베스트 댓글 */}
       {post.bestComment && (
         <View style={styles.bestCommentContainer}>
-          <Image
+          {/* <Image
             source={{uri: post.bestComment.profileImg}}
             style={styles.bestCommentProfileImage}
-          />
+          /> */}
           <Text
             style={styles.bestCommentContent}
             numberOfLines={1}

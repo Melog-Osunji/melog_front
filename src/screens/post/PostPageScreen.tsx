@@ -6,12 +6,14 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  Button,
 } from 'react-native';
 import {RouteProp, useRoute} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {StackScreenProps} from '@react-navigation/stack';
 //constants
 import {postNavigations} from '@/constants';
-import {colors, Post} from '@/constants';
+import {colors} from '@/constants';
 import {mockPosts, mockComments} from '@/constants/dummyData';
 //api
 import axiosInstance from '@/api/axiosInstance';
@@ -21,143 +23,89 @@ import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 //components
 import PostStats from '@/components/post/PostStats';
-import LikeAndComment from '@/components/post/CommentBar';
 import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
-import CommentList from '@/components/post/CommentList';
+import CommentList from '@/components/post/postpage/CommentList';
 import CustomButton from '@/components/common/CustomButton';
 import IconButton from '@/components/common/IconButton';
 import PostCard from '@/components/post/PostCard';
 import GradientBg from '@/components/common/styles/GradientBg';
+import {usePostDetail} from '@/hooks/queries/post/usePostQueries';
 
 // 네비게이션 param 타입 정의
-type PostPageScreenRouteProp = RouteProp<
+type PostPageScreenProp = StackScreenProps<
   PostStackParamList,
   typeof postNavigations.POST_PAGE
 >;
 
-// 커스텀 헤더 컴포넌트
-const PostPageHeader = () => {
-  return (
-    <View style={headerStyles.container}>
-      <IconButton
-        imageSource={require('@/assets/icons/post/BackArrow.png')}
-        target={'goBack'}
-        size={24}
-      />
+const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
+  const {postId} = route.params;
 
-      <View style={headerStyles.rightButtons}>
-        <IconButton
-          imageSource={require('@/assets/icons/post/Search.png')}
-          size={32}
-        />
-        <IconButton
-          imageSource={require('@/assets/icons/post/Info.png')}
-          size={32}
-        />
-      </View>
-    </View>
-  );
-};
-
-function PostPageScreen() {
-  const route = useRoute<PostPageScreenRouteProp>();
-  const {postId, postData} = route.params;
-
-  const [post, setPost] = useState<Post | null>(postData || null);
-  const [loading, setLoading] = useState(!postData);
-  const [comments, setComments] = useState(mockComments);
-
+  // 탭 바 숨기기
   useHideTabBarOnFocus();
 
-  // 댓글 추가 함수
-  const handleAddComment = (commentText: string) => {
-    const newComment = {
-      id: `comment${Date.now()}`,
-      userId: 'current_user',
-      userName: '홍길동',
-      userProfileImg: '',
-      content: commentText,
-      createdAgo: 0,
-      likeCount: 0,
-      commentCount: 0,
-      replies: [],
-    };
+  // API 호출
+  const {data: postData, isLoading, error, isError} = usePostDetail(postId);
 
-    setComments(prev => [...prev, newComment]);
-
-    // 포스트의 댓글 카운트도 업데이트
-    if (post) {
-      setPost({...post, commentCount: post.commentCount + 1});
-    }
-  };
-
-  useHideTabBarOnFocus();
-
-  useEffect(() => {
-    // postData가 있으면 API 호출을 하지 않음 (즉시 표시)
-    if (postData) {
-      setLoading(false);
-      return;
-    }
-
-    // 더미데이터에서 postId에 해당하는 포스트 찾기
-    const foundPost = (mockPosts || []).find(
-      (mockPost: Post) => mockPost.id === postId,
-    );
-
-    if (foundPost) {
-      // 더미데이터를 사용
-      setPost(foundPost);
-      setLoading(false);
-    } else {
-      // 더미데이터에 없으면 API 호출
-      const fetchPost = async () => {
-        try {
-          const res = await axiosInstance.get(`/api/posts/${postId}`);
-          if (res.data.success) {
-            console.log('res.data', res.data);
-            // 백엔드 데이터를 Post 타입으로 직접 설정
-            setPost(res.data.response);
-          } else {
-            setPost(null);
-          }
-        } catch (e) {
-          setPost(null);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchPost();
-    }
-  }, [postId, postData]);
-
-  if (loading) {
+  // 로딩 상태 처리
+  if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color={colors.BLUE_400} />
+        <View style={styles.loadingContainer}>
+          <Text>게시글을 불러오는 중...</Text>
+        </View>
       </SafeAreaView>
     );
   }
 
-  if (!post) {
+  // 에러 상태 처리
+  if (isError || !postData) {
+    console.error('[PostPageScreen] 게시글 로드 실패:', error);
     return (
       <SafeAreaView style={styles.container}>
-        <Text>게시글을 찾을 수 없습니다.</Text>
+        <View style={styles.errorContainer}>
+          <Text>게시글을 불러올 수 없습니다.</Text>
+          <Button title="다시 시도" onPress={() => navigation.goBack()} />
+        </View>
       </SafeAreaView>
     );
   }
 
+  console.log('[PostPageScreen] 게시글 데이터 로드 완료:', postData);
+
+  // postData.post와 postData.user로 접근
+  const {post, user} = postData;
+
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={styles.container}>
       <GradientBg>
-        <PostPageHeader />
+        {/* 헤더 */}
+        <View style={headerStyles.container}>
+          <IconButton
+            imageSource={require('@/assets/icons/post/BackArrow.png')}
+            target={'goBack'}
+            size={24}
+          />
+
+          <View style={headerStyles.rightButtons}>
+            <IconButton
+              imageSource={require('@/assets/icons/post/Search.png')}
+              size={32}
+            />
+            <IconButton
+              imageSource={require('@/assets/icons/post/Info.png')}
+              size={32}
+            />
+          </View>
+        </View>
+
+        {/* 본문 및 댓글 섹션 */}
         <ScrollView
           style={{flex: 1}}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{paddingBottom: 100}}>
-          {/* 미디어 - 화면 전체 너비 사용 */}
+          {/* 미디어 */}
           {post.mediaUrl && (
-            <>
+            <View style={styles.media}>
               {post.mediaUrl.includes('youtube.com') ||
               post.mediaUrl.includes('youtu.be') ? (
                 <YouTubeEmbed2 url={post.mediaUrl} borderRadius={0} />
@@ -167,7 +115,7 @@ function PostPageScreen() {
                   style={styles.fullWidthImage}
                 />
               )}
-            </>
+            </View>
           )}
 
           <View style={styles.postContainer}>
@@ -175,11 +123,11 @@ function PostPageScreen() {
             <View style={styles.userSection}>
               <View style={styles.userWrapper}>
                 <Image
-                  source={{uri: post.user.profileImg}}
+                  source={{uri: user.profileImg}}
                   style={styles.profileImage}
                 />
                 <View style={styles.userInfo}>
-                  <Text style={styles.nickName}>{post.user.nickName}</Text>
+                  <Text style={styles.nickName}>{user.nickName}</Text>
                   <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
                 </View>
               </View>
@@ -207,13 +155,13 @@ function PostPageScreen() {
           </View>
 
           {/* 댓글 섹션 */}
-          <CommentList
+          {/* <CommentList
             comments={comments}
             totalCommentCount={post.commentCount}
-          />
+          /> */}
 
           {/* 관련 포스트 섹션 */}
-          <View style={styles.relatedPostsSection}>
+          {/* <View style={styles.relatedPostsSection}>
             <Text style={styles.sectionTitle}>관련이 높은 포스팅</Text>
             {(mockPosts || [])
               .filter((p: Post) => p.id !== post.id)
@@ -221,21 +169,44 @@ function PostPageScreen() {
               .map((dummyPost: Post) => (
                 <PostCard key={dummyPost.id} {...dummyPost} />
               ))}
-          </View>
+          </View> */}
         </ScrollView>
 
-        <LikeAndComment onSend={handleAddComment} />
+        {/* <LikeAndComment onSend={handleAddComment} /> */}
       </GradientBg>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.WHITE,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 16,
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  nickname: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   postContainer: {
     backgroundColor: colors.WHITE,
@@ -254,11 +225,6 @@ const styles = StyleSheet.create({
   userWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  profileImage: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
   },
   userInfo: {
     color: colors.BLACK,
@@ -281,6 +247,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: colors.BLACK,
+  },
+  media: {
+    backgroundColor: colors.GRAY_200,
+    overflow: 'hidden',
   },
   tags: {
     flexDirection: 'row',

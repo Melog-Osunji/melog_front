@@ -1,6 +1,7 @@
 // 포스트 관련 모든 타입 정의
 import {FEED_IDS} from '@/constants';
 
+//post
 export type PostDTO = {
   id: string;
   title: string;
@@ -12,13 +13,7 @@ export type PostDTO = {
   likeCount: number;
   hiddenUser: string[];
   commentCount: number;
-  bestComment?: Comment;
-};
-
-export type UserDTO = {
-  id: string;
-  nickName: string;
-  profileImg: string;
+  bestComment?: BestCommentDTO;
 };
 
 export type PostWithUserDTO = {
@@ -30,18 +25,37 @@ export type PostsDTO = {
   results: PostWithUserDTO[];
 };
 
-export type Comment = {
-  userId: string;
-  content: string;
-  profileImg: string; // 이후 추가 요청
+//user
+export type UserDTO = {
+  id: string;
+  nickName: string;
+  profileImg: string;
 };
 
-// 타입 정의
+export type UserMiniDTO = Pick<UserDTO, 'id' | 'profileImg'>;
+
+//comment
+export interface CommentDTO {
+  id: string;
+  user: UserMiniDTO;
+  content: string;
+  likes: number;
+  createdAgo?: number;
+  recomments: CommentDTO[];
+  parentId?: string;
+  depth?: number;
+  isDeleted?: boolean;
+  editedAt?: string;
+  // profileImg?: string; 이후추가요청
+}
+
+export type BestCommentDTO = Pick<CommentDTO, 'id' | 'content' | 'profileImg'>;
+
+// feed
 export interface FeedType {
   id: string;
   label: string;
   posts?: PostWithUserDTO[];
 }
 
-// 타입 유니온 추출
 export type FeedId = (typeof FEED_IDS)[keyof typeof FEED_IDS]; // 'popular' | 'follow' | 'recommend'

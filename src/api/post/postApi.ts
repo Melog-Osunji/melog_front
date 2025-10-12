@@ -1,8 +1,8 @@
 import instance from '../axiosInstance';
 import type {BaseResponse} from '../baseResponse';
-import type {PostsDTO, FeedType} from '@/types'; // ✅ FeedType 추가
+import type {PostsDTO, FeedType, PostWithUserDTO} from '@/types';
 
-// 개별 API 함수들
+// # feed
 export const fetchPopularPosts = async (): Promise<PostsDTO> => {
   const res = await instance.get<BaseResponse<PostsDTO>>('/api/posts/populars');
   return res.data.data;
@@ -28,7 +28,7 @@ const FEED_API_MAP: Record<FeedType['id'], () => Promise<PostsDTO>> = {
   recommend: fetchRecommendPosts,
 } as const;
 
-// ID 기반 통합 API 함수
+// feed - id
 export const fetchPostsByFeedId = async (feedId: FeedId): Promise<PostsDTO> => {
   const apiFunction = FEED_API_MAP[feedId];
 
@@ -39,3 +39,31 @@ export const fetchPostsByFeedId = async (feedId: FeedId): Promise<PostsDTO> => {
 
   return apiFunction();
 };
+
+//post detail
+export const fetchPostDetail = async (
+  postId: string,
+): Promise<PostWithUserDTO> => {
+  console.log(`[postApi] 게시글 상세 조회 요청: ${postId}`);
+
+  const res = await instance.get<BaseResponse<PostWithUserDTO>>(
+    `/api/posts/${postId}`,
+  );
+
+  console.log(`[postApi] 게시글 상세 조회 응답:`, res.data);
+
+  if (!res.data.success) {
+    throw new Error('게시글을 불러오는데 실패했습니다.');
+  }
+
+  return res.data.data;
+};
+
+// # CRUD operations for post
+// add post
+// del post
+
+// # post stats
+// like
+// comment
+// bookmark

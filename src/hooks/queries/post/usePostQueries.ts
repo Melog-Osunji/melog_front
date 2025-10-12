@@ -1,9 +1,11 @@
 import {useQuery} from '@tanstack/react-query';
-import {fetchPostsByFeedId} from '@/api/post/postApi';
+import {fetchPostsByFeedId, fetchPostDetail} from '@/api/post/postApi';
+import type {PostWithUserDTO} from '@/types';
 import {PostsDTO} from '@/types';
 import {UseQueryCustomOptions} from '@/types';
 
-// 쿼리 키 상수
+// # feed
+// query 키 상수
 export const POST_QUERY_KEYS = {
   posts: ['posts'] as const,
   popular: () => [...POST_QUERY_KEYS.posts, 'popular'] as const,
@@ -13,7 +15,7 @@ export const POST_QUERY_KEYS = {
     [...POST_QUERY_KEYS.posts, 'feedId', feedId] as const,
 } as const;
 
-// ID 기반 통합 훅
+// feed - id
 export const usePostsByFeedId = (
   feedId: string,
   options?: UseQueryCustomOptions<PostsDTO>,
@@ -25,5 +27,16 @@ export const usePostsByFeedId = (
     staleTime: 3 * 60 * 1000,
     gcTime: 5 * 60 * 1000,
     ...options,
+  });
+};
+
+// # post detail
+export const usePostDetail = (postId: string) => {
+  return useQuery<PostWithUserDTO, Error>({
+    queryKey: ['post', 'detail', postId],
+    queryFn: () => fetchPostDetail(postId),
+    enabled: !!postId, // postId가 있을 때만 쿼리 실행
+    staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
+    gcTime: 1000 * 60 * 10, // 10분간 가비지 컬렉션 방지
   });
 };

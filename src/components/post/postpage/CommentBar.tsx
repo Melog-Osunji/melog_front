@@ -3,9 +3,6 @@ import {
   StyleSheet,
   View,
   TextInput,
-  TouchableOpacity,
-  Text,
-  Image,
 } from 'react-native';
 import {colors} from '@/constants';
 
