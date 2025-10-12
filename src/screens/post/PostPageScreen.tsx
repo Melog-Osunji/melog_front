@@ -15,6 +15,8 @@ import {StackScreenProps} from '@react-navigation/stack';
 import {postNavigations} from '@/constants';
 import {colors} from '@/constants';
 import {mockPosts, mockComments} from '@/constants/dummyData';
+//types
+import type {CommentsDTO} from '@/types';
 //api
 import axiosInstance from '@/api/axiosInstance';
 //utils
@@ -30,6 +32,7 @@ import IconButton from '@/components/common/IconButton';
 import PostCard from '@/components/post/PostCard';
 import GradientBg from '@/components/common/styles/GradientBg';
 import {usePostDetail} from '@/hooks/queries/post/usePostQueries';
+import {usePostComments} from '@/hooks/queries/post/usePostQueries';
 
 // 네비게이션 param 타입 정의
 type PostPageScreenProp = StackScreenProps<
@@ -40,14 +43,35 @@ type PostPageScreenProp = StackScreenProps<
 const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   const {postId} = route.params;
 
-  // 탭 바 숨기기
-  useHideTabBarOnFocus();
-
   // API 호출
-  const {data: postData, isLoading, error, isError} = usePostDetail(postId);
+  const {
+    data: postData,
+    isLoading: postLoading,
+    error: postError,
+    isError: isPostError,
+  } = usePostDetail(postId);
+  const {
+    data: commentsData,
+    isLoading: commentsLoading,
+    error: commentsError,
+  } = usePostComments(postId);
+
+  // CommentsDTO 전체를 전달
+  console.log('[PostPageScreen] commentsData:', commentsData);
+
+  // CommentsDTO에서 CommentDTO[] 추출
+  const comments = commentsData?.comments || [];
+  const displayComments: CommentsDTO = {
+    comments: comments.length === 0 ? mockComments : comments,
+  };
+
+  // displayComments 출력
+  useEffect(() => {
+    console.log('[PostPageScreen] displayComments:', displayComments);
+  }, [displayComments]);
 
   // 로딩 상태 처리
-  if (isLoading) {
+  if (postLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
@@ -58,8 +82,8 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   }
 
   // 에러 상태 처리
-  if (isError || !postData) {
-    console.error('[PostPageScreen] 게시글 로드 실패:', error);
+  if (isPostError || !postData) {
+    console.error('[PostPageScreen] 게시글 로드 실패:', postError);
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
@@ -71,8 +95,9 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   }
 
   console.log('[PostPageScreen] 게시글 데이터 로드 완료:', postData);
+  console.log('[PostPageScreen] 댓글 데이터 로드 완료:', commentsData);
+  console.log('[PostPageScreen] 댓글 배열:', comments);
 
-  // postData.post와 postData.user로 접근
   const {post, user} = postData;
 
   return (
@@ -155,10 +180,23 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
           </View>
 
           {/* 댓글 섹션 */}
-          {/* <CommentList
-            comments={comments}
-            totalCommentCount={post.commentCount}
-          /> */}
+          <View style={styles.commentsSection}>
+            {commentsLoading ? (
+              <View style={styles.commentsLoading}>
+                <ActivityIndicator size="small" color={colors.BLUE_600} />
+                <Text>댓글을 불러오는 중...</Text>
+              </View>
+            ) : commentsError ? (
+              <Text style={styles.commentsError}>
+                댓글을 불러올 수 없습니다.
+              </Text>
+            ) : commentsData ? (
+              <CommentList
+                commentsData={displayComments}
+                totalCommentCount={post.commentCount || 0}
+              />
+            ) : null}
+          </View>
 
           {/* 관련 포스트 섹션 */}
           {/* <View style={styles.relatedPostsSection}>
@@ -171,8 +209,6 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
               ))}
           </View> */}
         </ScrollView>
-
-        {/* <LikeAndComment onSend={handleAddComment} /> */}
       </GradientBg>
     </SafeAreaView>
   );
@@ -210,11 +246,11 @@ const styles = StyleSheet.create({
   },
   postContainer: {
     backgroundColor: colors.WHITE,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
     gap: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.GRAY_200,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   userSection: {
     flexDirection: 'row',
@@ -281,6 +317,24 @@ const styles = StyleSheet.create({
     color: colors.BLACK,
     marginBottom: 8,
     paddingHorizontal: 20,
+  },
+  commentsSection: {
+    backgroundColor: colors.WHITE,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 0.5,
+    borderTopColor: colors.GRAY_200,
+  },
+  commentsLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 16,
+  },
+  commentsError: {
+    color: 'red',
+    textAlign: 'center',
+    paddingVertical: 16,
   },
 });
 

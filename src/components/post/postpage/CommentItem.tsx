@@ -1,16 +1,16 @@
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
-import {Comment} from '@/constants/types';
+import type {CommentDTO} from '@/types';
 
 interface CommentItemProps {
-  comment: Comment;
+  comment: CommentDTO;
   isReply?: boolean;
 }
 
 const CommentItem = ({comment, isReply = false}: CommentItemProps) => {
   const [isLiked, setIsLiked] = useState(false);
-  const [currentLikeCount, setCurrentLikeCount] = useState(comment.likeCount);
+  const [currentLikeCount, setCurrentLikeCount] = useState(comment.likes);
 
   const handleLikePress = () => {
     if (isLiked) {
@@ -22,55 +22,74 @@ const CommentItem = ({comment, isReply = false}: CommentItemProps) => {
   };
 
   return (
-    <View style={[styles.commentContainer, isReply && styles.replyContainer]}>
-      <View style={styles.commentContent}>
-        {/* 프로필 섹션 */}
-        <View style={styles.profileSection}>
-          <Image
-            source={{uri: comment.userProfileImg}}
-            style={styles.profileImage}
-          />
-          <View style={styles.userInfo}>
-            <View style={styles.nameTimeRow}>
-              <Text style={styles.userName}>{comment.userName}</Text>
-              <View style={styles.dot} />
-              <Text style={styles.timeText}>{comment.createdAgo}시간 전</Text>
+    <>
+      <View style={[styles.commentContainer, isReply && styles.replyContainer]}>
+        <View style={styles.commentContent}>
+          {/* 프로필 섹션 */}
+          <View style={styles.profileSection}>
+            <Image
+              source={{uri: comment.profileUrl}}
+              style={styles.profileImage}
+            />
+            <View style={styles.userInfo}>
+              <View style={styles.nameTimeRow}>
+                <Text style={styles.userName}>사용자</Text>
+                <View style={styles.dot} />
+                <Text style={styles.timeText}>방금 전</Text>
+              </View>
+              <Text style={styles.commentText}>{comment.content}</Text>
             </View>
-            <Text style={styles.commentText}>{comment.content}</Text>
+          </View>
+
+          {/* 액션 버튼들 */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={styles.IconButton}
+              onPress={handleLikePress}>
+              <Image
+                source={
+                  isLiked
+                    ? require('@/assets/icons/post/Like_activate.png')
+                    : require('@/assets/icons/post/Like.png')
+                }
+                style={styles.actionIcon}
+              />
+              <Text style={styles.actionText}>{currentLikeCount}</Text>
+            </TouchableOpacity>
+            <View style={styles.IconButton}>
+              <Image
+                source={require('@/assets/icons/post/Comment.png')}
+                style={styles.actionIcon}
+              />
+              <Text style={styles.actionText}>
+                {comment.recomments ? comment.recomments.length : 0}
+              </Text>
+            </View>
           </View>
         </View>
 
-        {/* 액션 버튼들 */}
-        <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.IconButton} onPress={handleLikePress}>
-            <Image
-              source={
-                isLiked
-                  ? require('@/assets/icons/post/Like_activate.png')
-                  : require('@/assets/icons/post/Like.png')
-              }
-              style={styles.actionIcon}
-            />
-            <Text style={styles.actionText}>{currentLikeCount}</Text>
-          </TouchableOpacity>
-          <View style={styles.IconButton}>
-            <Image
-              source={require('@/assets/icons/post/Comment.png')}
-              style={styles.actionIcon}
-            />
-            <Text style={styles.actionText}>{comment.commentCount || 0}</Text>
-          </View>
-        </View>
+        {/* 더보기 버튼 */}
+        <TouchableOpacity style={styles.moreButton}>
+          <Image
+            source={require('@/assets/icons/post/Info.png')}
+            style={styles.moreIcon}
+          />
+        </TouchableOpacity>
       </View>
 
-      {/* 더보기 버튼 */}
-      <TouchableOpacity style={styles.moreButton}>
-        <Image
-          source={require('@/assets/icons/post/Info.png')}
-          style={styles.moreIcon}
-        />
-      </TouchableOpacity>
-    </View>
+      {/* 대댓글 렌더링 */}
+      {comment.recomments && comment.recomments.length > 0 && (
+        <View>
+          {comment.recomments.map((reply, index) => (
+            <CommentItem
+              key={`${reply.userID}-${index}`}
+              comment={reply}
+              isReply={true}
+            />
+          ))}
+        </View>
+      )}
+    </>
   );
 };
 
@@ -79,10 +98,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     width: '100%',
+    paddingBottom: 16,
   },
   replyContainer: {
-    paddingLeft: 48,
-    gap: 12,
+    paddingLeft: 40, // 대댓글일 경우 왼쪽 여백 추가
   },
   commentContent: {
     flexDirection: 'column',
@@ -118,7 +137,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     lineHeight: 20,
-    letterSpacing: 0.2,
     color: colors.GRAY_600,
   },
   dot: {
@@ -131,14 +149,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '400',
     lineHeight: 16,
-    letterSpacing: 0.2,
     color: colors.GRAY_200,
   },
   commentText: {
     fontSize: 14,
     fontWeight: '400',
     lineHeight: 20,
-    letterSpacing: 0.2,
     color: colors.GRAY_600,
   },
   actionButtons: {

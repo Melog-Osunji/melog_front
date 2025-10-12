@@ -12,7 +12,7 @@ import {colors, postNavigations} from '@/constants';
 import {createFeedTypes} from '@/constants/PostConstant';
 import {harmonyRooms as DUMMY_HARMONY_ROOMS} from '@/constants/dummyData'; // 임시
 //types
-import type {FeedType, PostWithUserDTO} from '@/types';
+import type {FeedID, PostWithUserDTO} from '@/types';
 //navigation
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
@@ -37,7 +37,7 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
 
   // 피드 타입들과 초기 선택 상태
   const feedTypes = createFeedTypes([]);
-  const [selectedFeed, setSelectedFeed] = useState<FeedType>(feedTypes[0]);
+  const [selectedFeed, setSelectedFeed] = useState<FeedID>(feedTypes[0]);
   const [selectedRoomId, setSelectedRoomId] = useState<string>('room1');
 
   // 선택된 피드 ID에 따른 포스트 조회
@@ -46,11 +46,7 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
     isLoading,
     error,
     refetch,
-  } = usePostsByFeedId(selectedFeed.id, {
-    retry: 2,
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5분
-  });
+  } = usePostsByFeedId(selectedFeed.id);
 
   // 표시할 포스트 결정 (API 데이터 우선, 없으면 Context 데이터)
   const getDisplayPosts = useCallback((): PostWithUserDTO[] => {
@@ -62,7 +58,7 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
 
   // 피드 선택 핸들러
   const handleFeedSelect = useCallback(
-    (feed: FeedType) => {
+    (feed: FeedID) => {
       console.log(`피드 변경: ${selectedFeed.label} → ${feed.label}`);
       setSelectedFeed(feed);
     },

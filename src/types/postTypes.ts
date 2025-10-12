@@ -32,24 +32,20 @@ export type UserDTO = {
   profileImg: string;
 };
 
-export type UserMiniDTO = Pick<UserDTO, 'id' | 'profileImg'>;
-
 //comment
 export interface CommentDTO {
-  id: string;
-  user: UserMiniDTO;
+  userID: string;
+  profileUrl: string;
   content: string;
   likes: number;
-  createdAgo?: number;
-  recomments: CommentDTO[];
-  parentId?: string;
-  depth?: number;
-  isDeleted?: boolean;
-  editedAt?: string;
-  // profileImg?: string; 이후추가요청
+  recomments?: CommentDTO[];
 }
 
-export type BestCommentDTO = Pick<CommentDTO, 'id' | 'content' | 'profileImg'>;
+export type CommentsDTO = {
+  comments: CommentDTO[];
+};
+
+export type BestCommentDTO = Pick<CommentDTO, 'userID' | 'content'>;
 
 // feed
 export interface FeedType {
