@@ -1,49 +1,21 @@
-import {FeedType, PostWithUserDTO} from '@/types';
+import type {FeedId, FeedType, PostWithUserDTO} from '@/types';
 
-// 피드 ID 상수
+export const FEED_INFOS = [
+  {id: 'popular' as const, label: '인기 피드'},
+  {id: 'follow' as const, label: '내 팔로우'},
+  {id: 'recommend' as const, label: '추천 피드'},
+] satisfies {id: FeedId; label: string}[];
+
 export const FEED_IDS = {
-  POPULAR: 'popular',
-  FOLLOW: 'follow',
-  RECOMMEND: 'recommend',
-} as const;
+  POPULAR: 'popular' as const,
+  FOLLOW: 'follow' as const,
+  RECOMMEND: 'recommend' as const,
+} satisfies Record<string, FeedId>;
 
-// 피드 라벨 상수
-export const FEED_LABELS = {
-  [FEED_IDS.POPULAR]: '인기 피드',
-  [FEED_IDS.FOLLOW]: '내 팔로우',
-  [FEED_IDS.RECOMMEND]: '추천 피드',
-} as const;
+export const createFeedTypes = (posts: PostWithUserDTO[]): FeedType[] =>
+  FEED_INFOS.map(info => ({
+    ...info,
+    posts,
+  }));
 
-// 피드 타입 데이터 생성 함수
-export const createFeedTypes = (newPosts: PostWithUserDTO[]): FeedType[] => [
-  {
-    id: FEED_IDS.POPULAR,
-    label: FEED_LABELS[FEED_IDS.POPULAR],
-    posts: newPosts,
-  },
-  {
-    id: FEED_IDS.FOLLOW,
-    label: FEED_LABELS[FEED_IDS.FOLLOW],
-    posts: newPosts,
-  },
-  {
-    id: FEED_IDS.RECOMMEND,
-    label: FEED_LABELS[FEED_IDS.RECOMMEND],
-    posts: newPosts,
-  },
-];
-
-// 기본 피드 타입
 export const defaultFeedTypes: FeedType[] = createFeedTypes([]);
-
-// 유틸 함수들
-export const getFeedTypeById = (id: string, feedTypes: FeedType[]) => {
-  return feedTypes.find(feed => feed.id === id);
-};
-
-export const getFeedTypeLabels = (feedTypes: FeedType[]) => {
-  return feedTypes.map(feed => feed.label);
-};
-
-// 피드 ID 배열 (API 매핑 등에서 유용)
-export const getAllFeedIds = () => Object.values(FEED_IDS);

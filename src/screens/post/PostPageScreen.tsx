@@ -8,17 +8,11 @@ import {
   ActivityIndicator,
   Button,
 } from 'react-native';
-import {RouteProp, useRoute} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StackScreenProps} from '@react-navigation/stack';
 //constants
 import {postNavigations} from '@/constants';
 import {colors} from '@/constants';
-import {mockPosts, mockComments} from '@/constants/dummyData';
-//types
-import type {CommentsDTO} from '@/types';
-//api
-import axiosInstance from '@/api/axiosInstance';
 //utils
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 //navigation
@@ -29,7 +23,6 @@ import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
 import CommentList from '@/components/post/postpage/CommentList';
 import CustomButton from '@/components/common/CustomButton';
 import IconButton from '@/components/common/IconButton';
-import PostCard from '@/components/post/PostCard';
 import GradientBg from '@/components/common/styles/GradientBg';
 import {usePostDetail} from '@/hooks/queries/post/usePostQueries';
 import {usePostComments} from '@/hooks/queries/post/usePostQueries';
@@ -43,6 +36,8 @@ type PostPageScreenProp = StackScreenProps<
 const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   const {postId} = route.params;
 
+  useHideTabBarOnFocus();
+
   // API 호출
   const {
     data: postData,
@@ -55,20 +50,6 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     isLoading: commentsLoading,
     error: commentsError,
   } = usePostComments(postId);
-
-  // CommentsDTO 전체를 전달
-  console.log('[PostPageScreen] commentsData:', commentsData);
-
-  // CommentsDTO에서 CommentDTO[] 추출
-  const comments = commentsData?.comments || [];
-  const displayComments: CommentsDTO = {
-    comments: comments.length === 0 ? mockComments : comments,
-  };
-
-  // displayComments 출력
-  useEffect(() => {
-    console.log('[PostPageScreen] displayComments:', displayComments);
-  }, [displayComments]);
 
   // 로딩 상태 처리
   if (postLoading) {
@@ -96,7 +77,6 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
 
   console.log('[PostPageScreen] 게시글 데이터 로드 완료:', postData);
   console.log('[PostPageScreen] 댓글 데이터 로드 완료:', commentsData);
-  console.log('[PostPageScreen] 댓글 배열:', comments);
 
   const {post, user} = postData;
 
@@ -192,7 +172,7 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
               </Text>
             ) : commentsData ? (
               <CommentList
-                commentsData={displayComments}
+                commentsData={commentsData}
                 totalCommentCount={post.commentCount || 0}
               />
             ) : null}

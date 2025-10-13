@@ -1,12 +1,7 @@
 import instance from '../axiosInstance';
 import type {BaseResponse} from '../baseResponse';
-import type {
-  PostsDTO,
-  CommentsDTO,
-  FeedType,
-  FeedId,
-  PostWithUserDTO,
-} from '@/types';
+import type {PostsDTO, CommentsDTO, FeedId, PostWithUserDTO} from '@/types';
+import {FEED_IDS} from '@/constants/PostConstant';
 
 // # feed
 export const fetchPopularPosts = async (): Promise<PostsDTO> => {
@@ -27,10 +22,10 @@ export const fetchRecommendPosts = async (): Promise<PostsDTO> => {
 };
 
 // feed - id
-const FEED_API_MAP: Record<FeedType['id'], () => Promise<PostsDTO>> = {
-  popular: fetchPopularPosts,
-  follow: fetchFollowPosts,
-  recommend: fetchRecommendPosts,
+const FEED_API_MAP: Record<FeedId, () => Promise<PostsDTO>> = {
+  [FEED_IDS.POPULAR]: fetchPopularPosts,
+  [FEED_IDS.FOLLOW]: fetchFollowPosts,
+  [FEED_IDS.RECOMMEND]: fetchRecommendPosts,
 } as const;
 
 export const fetchPostsByFeedId = async (feedId: FeedId): Promise<PostsDTO> => {

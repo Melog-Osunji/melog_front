@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 //constants
 import {colors, postNavigations} from '@/constants';
-import {createFeedTypes} from '@/constants/PostConstant';
+import {defaultFeedTypes} from '@/constants/PostConstant';
 import {harmonyRooms as DUMMY_HARMONY_ROOMS} from '@/constants/dummyData'; // 임시
 //types
-import type {FeedID, PostWithUserDTO} from '@/types';
+import type {FeedType, PostWithUserDTO} from '@/types';
 //navigation
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
@@ -35,9 +35,9 @@ type PostHomeScreenProps = StackScreenProps<
 function PostHomeScreen({navigation}: PostHomeScreenProps) {
   const {posts: contextPosts} = usePostContext();
 
-  // 피드 타입들과 초기 선택 상태
-  const feedTypes = createFeedTypes([]);
-  const [selectedFeed, setSelectedFeed] = useState<FeedID>(feedTypes[0]);
+  const [selectedFeed, setSelectedFeed] = useState<FeedType>(
+    defaultFeedTypes[0],
+  );
   const [selectedRoomId, setSelectedRoomId] = useState<string>('room1');
 
   // 선택된 피드 ID에 따른 포스트 조회
@@ -58,8 +58,7 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
 
   // 피드 선택 핸들러
   const handleFeedSelect = useCallback(
-    (feed: FeedID) => {
-      console.log(`피드 변경: ${selectedFeed.label} → ${feed.label}`);
+    (feed: FeedType) => {
       setSelectedFeed(feed);
     },
     [selectedFeed.label],
@@ -68,7 +67,9 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
   // 하모니룸 선택 핸들러
   const handleRoomSelect = useCallback(
     (roomId: string) => {
-      console.log(`하모니룸 변경: ${selectedRoomId} → ${roomId}`);
+      console.log(
+        `[PostHomeScreen] 하모니룸 변경: ${selectedRoomId} → ${roomId}`,
+      );
       setSelectedRoomId(roomId);
     },
     [selectedRoomId],
@@ -76,11 +77,11 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
 
   // 재시도 핸들러
   const handleRetry = useCallback(() => {
-    console.log('포스트 다시 불러오기 시도');
+    console.log('[PostHomeScreen] 포스트 다시 불러오기 시도');
     refetch();
   }, [refetch]);
 
-  console.log('🔍 현재 상태:', {
+  console.log('[PostHomeScreen] 현재 상태:', {
     selectedFeedId: selectedFeed.id,
     selectedFeedLabel: selectedFeed.label,
     apiPostsCount: apiPosts?.results?.length || 0,
@@ -99,7 +100,7 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
           <FeedSelector
             selectedFeed={selectedFeed}
             onFeedSelect={handleFeedSelect}
-            feedTypes={feedTypes}
+            feedTypes={defaultFeedTypes}
           />
           <View style={styles.headerIconRow}>
             <IconButton<PostStackParamList>
@@ -142,7 +143,7 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
       <FeedSelector
         selectedFeed={selectedFeed}
         onFeedSelect={handleFeedSelect}
-        feedTypes={feedTypes}
+        feedTypes={defaultFeedTypes}
       />
       <View style={styles.headerIconRow}>
         <IconButton<PostStackParamList>
@@ -159,7 +160,7 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
 
   // 에러 상태 처리
   if (error) {
-    console.error('포스트 조회 에러:', error);
+    console.error('[PostHomeScreen] 포스트 조회 에러:', error);
     return renderError();
   }
 
@@ -244,7 +245,7 @@ const styles = StyleSheet.create({
   retryButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    backgroundColor: colors.WHITE,
+    backgroundColor: colors.GRAY_200,
     borderRadius: 8,
   },
   retryText: {

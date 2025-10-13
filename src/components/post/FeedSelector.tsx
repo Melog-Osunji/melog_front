@@ -2,18 +2,17 @@ import React, {useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import {colors} from '@/constants';
-import {FeedType} from '@/constants/types';
+import {FeedType} from '@/types';
+import {defaultFeedTypes} from '@/constants/PostConstant';
 
 interface FeedSelectorProps {
   selectedFeed: FeedType;
   onFeedSelect: (feed: FeedType) => void;
-  feedTypes: FeedType[];
 }
 
 const FeedSelector: React.FC<FeedSelectorProps> = ({
   selectedFeed,
   onFeedSelect,
-  feedTypes,
 }) => {
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
@@ -40,7 +39,7 @@ const FeedSelector: React.FC<FeedSelectorProps> = ({
         onClose={() => setIsBottomSheetVisible(false)}
         height="30%">
         <View>
-          {feedTypes.map(feed => (
+          {defaultFeedTypes.map(feed => (
             <TouchableOpacity
               key={feed.id}
               style={styles.feedOption}

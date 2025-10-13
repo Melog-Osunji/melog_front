@@ -1,6 +1,4 @@
-// 포스트 관련 모든 타입 정의
-import {FEED_IDS} from '@/constants';
-
+// src/types/postTypes.ts
 //post
 export type PostDTO = {
   id: string;
@@ -48,10 +46,10 @@ export type CommentsDTO = {
 export type BestCommentDTO = Pick<CommentDTO, 'userID' | 'content'>;
 
 // feed
+export type FeedId = 'popular' | 'follow' | 'recommend';
+
 export interface FeedType {
-  id: string;
+  id: FeedId;
   label: string;
   posts?: PostWithUserDTO[];
 }
-
-export type FeedId = (typeof FEED_IDS)[keyof typeof FEED_IDS]; // 'popular' | 'follow' | 'recommend'

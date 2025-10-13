@@ -14,13 +14,14 @@ export const POST_QUERY_KEYS = {
   popular: () => [...POST_QUERY_KEYS.posts, 'popular'] as const,
   follows: () => [...POST_QUERY_KEYS.posts, 'follows'] as const,
   recommends: () => [...POST_QUERY_KEYS.posts, 'recommends'] as const,
-  byFeedId: (feedId: FeedId) => [...POST_QUERY_KEYS.posts, 'feedId'] as const,
+  byFeedId: (feedId: FeedId) =>
+    [...POST_QUERY_KEYS.posts, 'feedId', feedId] as const,
 } as const;
 
 // feed - id
 export const usePostsByFeedId = (feedId: FeedId) => {
   return useQuery({
-    queryKey: POST_QUERY_KEYS.byFeedId(feedId),
+    queryKey: POST_QUERY_KEYS.byFeedId(feedId), // 이제 각 feedId마다 다른 키 생성
     queryFn: () => fetchPostsByFeedId(feedId),
     enabled: !!feedId,
     staleTime: 3 * 60 * 1000,
