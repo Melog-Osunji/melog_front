@@ -3,7 +3,7 @@ import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import {colors} from '@/constants';
 import {FeedType} from '@/types';
-import {defaultFeedTypes} from '@/constants/PostConstant';
+import {defaultFeedTypes} from '@/constants/postConstant';
 
 interface FeedSelectorProps {
   selectedFeed: FeedType;

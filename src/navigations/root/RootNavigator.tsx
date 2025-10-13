@@ -33,8 +33,7 @@ function RootNavigator() {
   }, []);
 
   if (isLoading) {
-    // 로딩 화면 표시
-    return null; // 또는 로딩 컴포넌트
+    return null;
   }
 
   // 로그인되지 않은 경우 -> 로그인 화면

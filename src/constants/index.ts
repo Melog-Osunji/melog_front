@@ -4,5 +4,5 @@ export * from './navigations';
 export * from './numbers';
 export * from './types';
 export * from './dummyData';
-export * from './PostConstant';
+export * from './postConstant';
 export * from './styles';

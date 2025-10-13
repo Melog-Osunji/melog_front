@@ -1,7 +1,7 @@
 import instance from '../axiosInstance';
 import type {BaseResponse} from '../baseResponse';
 import type {PostsDTO, CommentsDTO, FeedId, PostWithUserDTO} from '@/types';
-import {FEED_IDS} from '@/constants/PostConstant';
+import {FEED_IDS} from '@/constants/postConstant';
 
 // # feed
 export const fetchPopularPosts = async (): Promise<PostsDTO> => {

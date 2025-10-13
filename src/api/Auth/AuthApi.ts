@@ -32,7 +32,7 @@ export async function socialLogin(
   }
 
   return {
-    data: response.data, // 실제 응답 데이터
+    data: response.data,
     tokens: {
       accessToken: accessToken.replace('Bearer ', ''),
       refreshToken,
