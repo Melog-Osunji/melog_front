@@ -72,7 +72,13 @@ export const uploadHarmonyImage = async (
 
   const res = await instance.post<UploadHarmonyImageResponse>(
     `/api/images/harmony/${encodeURIComponent(harmonyId)}`,
-    form
+    form,
+    {
+        headers: {
+        // boundary는 axios가 자동으로 붙입니다
+        'Content-Type': 'multipart/form-data',
+      },
+  }
   );
   return (res.data as any).data;
 };

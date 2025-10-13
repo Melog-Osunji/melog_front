@@ -4,22 +4,35 @@ import type { BaseResponse } from '../baseResponse';
 export type MyPageDTO = {
     profileImg: string;
     nickname: string;
-    introuction: string;
+    introduction: string;
     profileMusic: {
         youtube: string;
         title: string;
     };
     followers: number;
     followings: number;
-    HarmonyRoom: MyRoomDTO[];
+    harmonyRooms: MyRoomDTO[];
+    posts: {
+        results: MyPagePostDTO[];
+    };
 };
 
 export type MyRoomDTO = {
     roomId: number;
     roomName: string;
-    isManger: boolean;
+    manager: boolean;
     roomImg: string;
-    BookMark: boolean;
+    bookmark: boolean;
+};
+
+
+export type MyPagePostDTO = {
+    id: string;
+    title: string;
+    content: string;
+    mediaType: string;
+    mediaUrl: string;
+    tags: string[];
 };
 
 export const fetchMyPage = async (): Promise<MyPageDTO> => {

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {StyleSheet,
     Text,
     View,
@@ -10,10 +10,11 @@ import {StyleSheet,
     TouchableOpacity,
     Keyboard,
     Platform,
-    KeyboardAvoidingView
+    KeyboardAvoidingView,
+    Alert
     } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {useNavigation, useFocusEffect, useRoute} from '@react-navigation/native';
 import {StackScreenProps} from '@react-navigation/stack';
 import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
 import styled from 'styled-components/native';
@@ -27,6 +28,8 @@ import { useHarmonyRoomContext } from '@/contexts/HarmonyRoomContext';
 import CustomButton from '@/components/common/CustomButton';
 import {launchImageLibrary} from 'react-native-image-picker';
 import CheckPopup from '@/components/common/CheckPopup';
+import { useUpdateHarmonyRoom, useUploadHarmonyImage } from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
+import { useHarmonyRoomDetailInfo } from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
@@ -37,28 +40,61 @@ const ALL_KEYWORDS = [
   '집중','공부','아침','저녁','명상','수면','봄','여름','가을','겨울'
 ];
 
+type HarmonySettingRouteProp = StackScreenProps<
+  HarmonyStackParamList,
+  'HARMONY_EDIT'
+>['route'];
+
 function HarmonyEditScreen() {
+
+    const route = useRoute<HarmonyPageScreenRouteProp>();
     const navigation = useNavigation<NavigationProp>();
     const { addRoom } = useHarmonyRoomContext();
+    const {roomID} = route.params;
 
     useHideTabBarOnFocus();
 
+    const { data: detail, isLoading: isDetailLoading, isError } = useHarmonyRoomDetailInfo(roomID);
+    const updateMutation = useUpdateHarmonyRoom(roomID);
+    const uploadMutation = useUploadHarmonyImage(roomID);
+
+
     const [roomName, setRoomName] = useState('');
     const [description, setDescription] = useState('');
-    const [personCount, setPersonCount] = useState(0);
     const [tags, setTags] = useState([]);
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedImage, setSelectedImage] = useState<{
+        uri: string; name?: string; type?: string; isLocal?: boolean;
+    } | null>(null);
 
     const [showExitPopup, setShowExitPopup] = useState(false);
 
+    const didInitRef = useRef(false);
+      useEffect(() => {
+        if (!detail || didInitRef.current) return;
+
+        setRoomName(detail.name ?? '');
+        setDescription(detail.intro ?? '');
+        setTags(Array.isArray(detail.category) ? detail.category : []);
+        if (detail.profileImg) {
+          setSelectedImage({ uri: detail.profileImg, isLocal: false });
+        }
+
+        didInitRef.current = true;
+    }, [detail]);
+
     const handleSelectImage = () => {
-        launchImageLibrary({mediaType: 'photo', quality: 0.8}, response => {
-          if (response.assets && response.assets.length > 0) {
-            setSelectedImage(response.assets[0].uri || null);
-          }
+        launchImageLibrary({ mediaType: 'photo', quality: 0.9 }, (response) => {
+          const a = response.assets?.[0];
+          if (!a?.uri) return;
+          setSelectedImage({
+            uri: a.uri,
+            name: a.fileName ?? undefined,
+            type: a.type ?? undefined,
+            isLocal: true,
+          });
         });
-    };
+      };
 
     const handleBackPress = () => {
         setShowExitPopup(true);
@@ -75,18 +111,6 @@ function HarmonyEditScreen() {
         setShowExitPopup(false);
     };
 
-    const handleMusicPress = () => {
-        setIsMusicSearchVisible(true);
-    };
-
-    const handleVideoSelect = (video: YouTubeVideo) => {
-      setIsMusicSearchVisible(false);
-      setSelectedVideo(video);
-    };
-    const handleRemoveVideo = () => {
-        setSelectedVideo(null);
-    };
-
     useEffect(() => {
         const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
           setKeyboardVisible(true);
@@ -101,30 +125,44 @@ function HarmonyEditScreen() {
         };
     }, []);
 
-    const handleCreateRoom = () => {
-        if (!roomName.trim()) {
+    console.log(roomID);
+
+    const handleSave = async () => {
+        try {
+          if (!roomName.trim()) {
             Alert.alert('알림', '방 이름을 입력해주세요.');
             return;
+          }
+
+          // 1) 이미지가 새로 선택된 로컬이면 업로드
+          let profileImgUrl: string | undefined = undefined;
+          if (selectedImage?.isLocal && selectedImage.uri) {
+            profileImgUrl = await uploadMutation.mutateAsync({
+              uri: selectedImage.uri,
+              name: selectedImage.name,
+              type: selectedImage.type,
+            });
+          } else if (selectedImage?.uri) {
+            profileImgUrl = selectedImage.uri; // 기존 서버 URL 유지
+          }
+
+          console.log(profileImgUrl);
+          // 2) PATCH 업데이트
+          await updateMutation.mutateAsync({
+            name: roomName.trim(),
+            intro: description.trim(),
+            category: tags,
+            profileImg: profileImgUrl,
+          });
+
+          navigation.navigate(harmonyNavigations.HARMONY_PAGE, { roomID: roomID });
+        } catch (e: any) {
+          const msg = e?.response?.data?.message || e?.message || '수정에 실패했습니다.';
+          Alert.alert('에러', msg);
+          console.log(msg);
         }
-
-        const newRoom = {
-            roomID: `room_${Date.now()}`,
-            title: roomName,
-            description,
-            tags,
-            seeNum: personCount,
-            mediaURL: selectedVideo
-              ? `https://www.youtube.com/watch?v=${extractVideoId(selectedVideo.thumbnail)}`
-              : null,
-            ownerId: '럽클',
-        };
-
-        addRoom(newRoom);
-        navigation.navigate(harmonyNavigations.HARMONY_PAGE, {
-                    roomID: newRoom.roomID,
-                    roomData: newRoom
-                });
     };
+
     return (
         <>
         <KeyboardAvoidingView
@@ -145,6 +183,13 @@ function HarmonyEditScreen() {
             {/* 이미지 수정 */}
             <View style={styles.profileWrap}>
                 <TouchableOpacity style={styles.profile} onPress={() => {handleSelectImage();}}>
+                    {selectedImage?.uri ? (
+                        <Image
+                          source={{ uri: selectedImage.uri }}
+                          style={{ width: '100%', height: '100%', borderRadius: 999 }}
+                        />
+                      ) : null
+                    }
                     <Image source={require('@/assets/icons/mypage/ProfileCamera.png')} style={styles.icon} />
                 </TouchableOpacity>
             </View>
@@ -230,10 +275,13 @@ function HarmonyEditScreen() {
             {!isKeyboardVisible && (
                 <View style={styles.bottom}>
                     <CustomButton
-                        label="변경하기"
-                        onPress={() => {
-                          navigation.navigate(harmonyNavigations.HARMONY_HOME);
-                        }}
+                        label={
+                              uploadMutation.isPending || updateMutation.isPending
+                                ? '변경 중…'
+                                : '변경하기'
+                        }
+                        disabled={uploadMutation.isPending || updateMutation.isPending}
+                        onPress={handleSave}
                         style={{backgroundColor:colors.BLUE_500}}
                     />
                 </View>

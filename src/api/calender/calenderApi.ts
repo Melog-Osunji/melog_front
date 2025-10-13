@@ -28,7 +28,7 @@ export type CalendarItem = {
   venue: string;
   startDateTime: string;
   endDateTime: string;
-  dDay: number;
+  dday: number;
   bookmarked: boolean;
 };
 
