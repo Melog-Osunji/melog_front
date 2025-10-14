@@ -10,7 +10,7 @@ import {socialLogin} from '@/api/Auth/AuthApi';
 import {
   setTokens,
   setUserInfo as setUserInfoStorage,
-} from '@/utils/storage/tokenStorage';
+} from '@/utils/storage/UserStorage';
 import {SocialProvider, SocialLoginResponse} from '@/types';
 import {useAuthContext} from '@/contexts/AuthContext'; // AuthContext 추가
 

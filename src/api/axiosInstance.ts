@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {getAccessToken} from '@/utils/storage/tokenStorage';
+import {getAccessToken} from '@/utils/storage/UserStorage';
 
 export const BASE_URL = 'https://melog.org';
 

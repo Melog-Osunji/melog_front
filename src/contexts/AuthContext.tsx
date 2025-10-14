@@ -5,7 +5,7 @@ import {
   clearAuthData,
   getRegistrationStatus,
   setRegistrationStatus,
-} from '@/utils/storage/tokenStorage';
+} from '@/utils/storage/UserStorage';
 
 import {ProfileDTO} from '@/types';
 

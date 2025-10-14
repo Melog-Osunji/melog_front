@@ -13,7 +13,7 @@ import {colors} from '@/constants';
 import PhotoBottomSheet from './PhotoBottomSheet';
 import MusicSearchBottomSheet from './MusicSearchBottomSheet';
 import RecommendTags from './RecommendTags';
-import {YouTubeVideo} from '@/constants/types';
+import {YouTubeVideo} from '@/types';
 
 interface PostActionButtonsProps {
   onVideoSelect?: (video: YouTubeVideo) => void;

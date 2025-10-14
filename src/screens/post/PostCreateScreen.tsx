@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 //constants
 import {colors} from '@/constants';
-import {YouTubeVideo, Post} from '@/constants/types';
+//types
+import {YouTubeVideo, PostDTO, ProfileDTO} from '@/types';
 //navigation
 import {useNavigation} from '@react-navigation/native';
 //utils
@@ -24,10 +25,16 @@ import PostActionButtons from '@/components/post/postcreate/PostActionButtons';
 import CustomButton from '@/components/common/CustomButton';
 import Toast from '@/components/common/Toast';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
+//hooks
+import {useUserInfo} from '@/hooks/common/useUserInfo';
 
 export default function PostCreateScreen() {
   const navigation = useNavigation();
   const {addPost} = usePostContext();
+
+  // ✅ 간단하고 깔끔하게 사용자 정보 가져오기
+  const {userInfo, isLoading: userLoading, error: userError} = useUserInfo();
+
   const [content, setContent] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -36,6 +43,22 @@ export default function PostCreateScreen() {
   const [inputHeight, setInputHeight] = useState(50);
 
   useHideTabBarOnFocus();
+
+  // ✅ 로딩 상태 처리
+  if (userLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text>사용자 정보를 불러오는 중...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ✅ 에러 상태 처리
+  if (userError) {
+    console.error('[PostCreateScreen] 사용자 정보 오류:', userError);
+  }
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -66,27 +89,27 @@ export default function PostCreateScreen() {
       return;
     }
 
+    console.log('[PostCreateScreen] 게시글 작성 시작');
+    console.log('[PostCreateScreen] 작성자 정보:', userInfo);
+
     // 새로운 포스트 생성
-    const newPost: Post = {
+    const newPost: PostDTO = {
       id: `post_${Date.now()}`, // 임시 ID 생성
-      userId: 'current_user',
-      title: '', // 포스트에 제목 필드가 없어서 빈 문자열
+      userId: userInfo?.id || 'anonymous',
       content: content.trim(),
       mediaType: selectedVideo ? 'youtube' : 'text',
-      mediaUrl: selectedVideo
-        ? `https://www.youtube.com/watch?v=${extractVideoId(
-            selectedVideo.thumbnail,
-          )}`
-        : undefined,
+      mediaUrl: selectedVideo ? extractVideoUrl(selectedVideo) : undefined,
       createdAgo: 0, // 방금 생성됨
       likeCount: 0,
       commentCount: 0,
       tags: selectedTags, // 선택된 태그들 사용
       user: {
-        profileImg: '', // TODO: 실제 사용자 프로필 이미지
-        nickName: '홍길동', // TODO: 실제 사용자 닉네임
+        profileImg: userInfo?.profileImg || '',
+        nickName: userInfo?.nickName || '익명',
       },
     };
+
+    console.log('[PostCreateScreen] 생성된 포스트:', newPost);
 
     // Context에 포스트 추가
     addPost(newPost);
@@ -137,7 +160,9 @@ export default function PostCreateScreen() {
         {/* User Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileImage} />
-          <Text style={styles.userId}>홍길동</Text>
+          <Text style={styles.userId}>
+            {userInfo?.nickName || '사용자'}
+          </Text>
         </View>
 
         {/* Content Input */}
@@ -212,6 +237,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.WHITE,
+  },
+  loadingContainer:{
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   keyboardAvoidingView: {
     flex: 1,
