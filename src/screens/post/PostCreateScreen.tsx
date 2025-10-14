@@ -32,7 +32,6 @@ export default function PostCreateScreen() {
   const navigation = useNavigation();
   const {addPost} = usePostContext();
 
-  // ✅ 간단하고 깔끔하게 사용자 정보 가져오기
   const {userInfo, isLoading: userLoading, error: userError} = useUserInfo();
 
   const [content, setContent] = useState('');
@@ -44,7 +43,6 @@ export default function PostCreateScreen() {
 
   useHideTabBarOnFocus();
 
-  // ✅ 로딩 상태 처리
   if (userLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -55,7 +53,6 @@ export default function PostCreateScreen() {
     );
   }
 
-  // ✅ 에러 상태 처리
   if (userError) {
     console.error('[PostCreateScreen] 사용자 정보 오류:', userError);
   }
@@ -160,9 +157,7 @@ export default function PostCreateScreen() {
         {/* User Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileImage} />
-          <Text style={styles.userId}>
-            {userInfo?.nickName || '사용자'}
-          </Text>
+          <Text style={styles.userId}>{userInfo?.nickName || '사용자'}</Text>
         </View>
 
         {/* Content Input */}
@@ -238,7 +233,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.WHITE,
   },
-  loadingContainer:{
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
