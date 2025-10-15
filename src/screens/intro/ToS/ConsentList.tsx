@@ -5,7 +5,7 @@ import {StackScreenProps} from '@react-navigation/stack';
 
 import {colors} from '@/constants';
 import CustomButton from '@/components/common/CustomButton';
-import {AGREEMENTS} from '@/types/agreements';
+import {AGREEMENTS} from '@/constants/agreements';
 import {IntroStackParamList} from '@/navigations/stack/IntroStackNavigator';
 import {introNavigations} from '@/constants';
 

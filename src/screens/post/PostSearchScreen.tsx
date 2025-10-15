@@ -24,9 +24,9 @@ import SearchInstrumentTab from '@/components/search/SearchInstrumentTab';
 import SearchInputField from '@/components/search/SearchInputField';
 import RecentSearchList from '@/components/search/RecentSearchList';
 import AutoCompleteList from '@/components/search/AutoCompleteList';
-import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
-import { useDebounce } from '@/hooks/useDebounce';
-import { useSearching } from '@/hooks/queries/search/useSearching';
+import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
+import {useDebounce} from '@/hooks/useDebounce';
+import {useSearching} from '@/hooks/queries/search/useSearching';
 
 type IntroScreenProps = StackScreenProps<
   PostStackParamList,
@@ -50,15 +50,22 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
   ]);
 
   // 자동완성 데이터
-  const { data, isFetching, isError } = useSearching(debounced);
+  const {data, isFetching, isError} = useSearching(debounced);
   const suggestions = data?.suggestions ?? [];
 
   console.log(data);
 
   useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setShowOverlay(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setShowOverlay(false));
-    return () => { showSub.remove(); hideSub.remove(); };
+    const showSub = Keyboard.addListener('keyboardDidShow', () =>
+      setShowOverlay(true),
+    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setShowOverlay(false),
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
   }, []);
 
   const handleSubmit = (keyword: string) => {
@@ -66,7 +73,7 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
     if (!q) return;
     // 최근검색 갱신 (중복 제거 + 앞쪽 삽입)
     setRecentKeywords(prev => [q, ...prev.filter(k => k !== q)].slice(0, 10));
-    navigation.navigate(postNavigations.POST_SEARCH_RESULT, { searchKeyword: q });
+    navigation.navigate(postNavigations.POST_SEARCH_RESULT, {searchKeyword: q});
   };
 
   const handleClearOne = (keyword: string) => {
@@ -88,8 +95,8 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{flex: 1}}>
-        <SafeAreaView style={styles.container}>
-          {/* Header */}
+      <SafeAreaView style={styles.container}>
+        {/* Header */}
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.header}>
             <IconButton<PostStackParamList>
@@ -107,185 +114,198 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
           </View>
         </TouchableWithoutFeedback>
 
+        {/* 최근검색/자동완성 (포커스 상태) */}
+        {showOverlay ? (
+          <View style={styles.focusContent}>
+            {searchText.trim() === '' ? (
+              <RecentSearchList
+                keywords={recentKeywords}
+                onClearOne={handleClearOne}
+                onClearAll={handleClearAll}
+              />
+            ) : (
+              <AutoCompleteList
+                suggestions={isError ? [] : suggestions}
+                searchText={searchText}
+                onSelect={text => {
+                  setSearchText(text);
+                  Keyboard.dismiss();
+                  handleSubmit(text);
+                }}
+              />
+            )}
+            {/* 로딩/에러 뱃지 정도만 보조적으로 */}
+            {isFetching && (
+              <Text style={{marginTop: 8, color: colors.GRAY_400}}>
+                불러오는 중…
+              </Text>
+            )}
+            {isError && (
+              <Text style={{marginTop: 8, color: colors.RED_500}}>
+                자동완성 로딩 실패
+              </Text>
+            )}
+          </View>
+        ) : (
+          <>
+            {/* 탭 스크롤 바 */}
+            <View style={styles.tabRowScroll}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.tabScrollContent}>
+                <TouchableOpacity
+                  style={[
+                    styles.tabButton,
+                    selectedTab === 'all' && styles.tabButtonActive,
+                  ]}
+                  onPress={() => setSelectedTab('all')}>
+                  <Text
+                    style={[
+                      styles.tabText,
+                      selectedTab === 'all' && styles.tabTextActive,
+                    ]}>
+                    통합
+                  </Text>
+                </TouchableOpacity>
 
-          {/* 최근검색/자동완성 (포커스 상태) */}
-          {showOverlay ? (
-            <View style={styles.focusContent}>
-              {searchText.trim() === '' ? (
-                <RecentSearchList
-                  keywords={recentKeywords}
-                  onClearOne={handleClearOne}
-                  onClearAll={handleClearAll}
-                />
-              ) : (
-                <AutoCompleteList
-                  suggestions={isError ? [] : suggestions}
-                  searchText={searchText}
-                  onSelect={(text) => {
+                <TouchableOpacity
+                  style={[
+                    styles.tabButton,
+                    selectedTab === 'composer' && styles.tabButtonActive,
+                  ]}
+                  onPress={() => setSelectedTab('composer')}>
+                  <Text
+                    style={[
+                      styles.tabText,
+                      selectedTab === 'composer' && styles.tabTextActive,
+                    ]}>
+                    작곡가
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.tabButton,
+                    selectedTab === 'performer' && styles.tabButtonActive,
+                  ]}
+                  onPress={() => setSelectedTab('performer')}>
+                  <Text
+                    style={[
+                      styles.tabText,
+                      selectedTab === 'performer' && styles.tabTextActive,
+                    ]}>
+                    연주가
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.tabButton,
+                    selectedTab === 'genre' && styles.tabButtonActive,
+                  ]}
+                  onPress={() => setSelectedTab('genre')}>
+                  <Text
+                    style={[
+                      styles.tabText,
+                      selectedTab === 'genre' && styles.tabTextActive,
+                    ]}>
+                    장르
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.tabButton,
+                    selectedTab === 'period' && styles.tabButtonActive,
+                  ]}
+                  onPress={() => setSelectedTab('period')}>
+                  <Text
+                    style={[
+                      styles.tabText,
+                      selectedTab === 'period' && styles.tabTextActive,
+                    ]}>
+                    시대
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.tabButton,
+                    selectedTab === 'instrument' && styles.tabButtonActive,
+                  ]}
+                  onPress={() => setSelectedTab('instrument')}>
+                  <Text
+                    style={[
+                      styles.tabText,
+                      selectedTab === 'instrument' && styles.tabTextActive,
+                    ]}>
+                    악기
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+
+            {/* 탭 콘텐츠 */}
+            <View style={styles.tabContent}>
+              {selectedTab === 'all' && (
+                <SearchAllTab
+                  onSelect={text => {
                     setSearchText(text);
                     Keyboard.dismiss();
                     handleSubmit(text);
                   }}
                 />
               )}
-                {/* 로딩/에러 뱃지 정도만 보조적으로 */}
-                {isFetching && <Text style={{marginTop:8, color: colors.GRAY_400}}>불러오는 중…</Text>}
-                {isError && <Text style={{marginTop:8, color: colors.RED_500}}>자동완성 로딩 실패</Text>}
+              {selectedTab === 'composer' && (
+                <SearchComposerTab
+                  onSelect={text => {
+                    setSearchText(text);
+                    Keyboard.dismiss();
+                    handleSubmit(text);
+                  }}
+                />
+              )}
+              {selectedTab === 'performer' && (
+                <SearchPerformerTab
+                  onSelect={text => {
+                    setSearchText(text);
+                    Keyboard.dismiss();
+                    handleSubmit(text);
+                  }}
+                />
+              )}
+              {selectedTab === 'genre' && (
+                <SearchGenreTab
+                  onSelect={text => {
+                    setSearchText(text);
+                    Keyboard.dismiss();
+                    handleSubmit(text);
+                  }}
+                />
+              )}
+              {selectedTab === 'period' && (
+                <SearchPeriodTab
+                  onSelect={text => {
+                    setSearchText(text);
+                    Keyboard.dismiss();
+                    handleSubmit(text);
+                  }}
+                />
+              )}
+              {selectedTab === 'instrument' && (
+                <SearchInstrumentTab
+                  onSelect={text => {
+                    setSearchText(text);
+                    Keyboard.dismiss();
+                    handleSubmit(text);
+                  }}
+                />
+              )}
             </View>
-          ) : (
-            <>
-              {/* 탭 스크롤 바 */}
-              <View style={styles.tabRowScroll}>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.tabScrollContent}>
-                  <TouchableOpacity
-                    style={[
-                      styles.tabButton,
-                      selectedTab === 'all' && styles.tabButtonActive,
-                    ]}
-                    onPress={() => setSelectedTab('all')}>
-                    <Text
-                      style={[
-                        styles.tabText,
-                        selectedTab === 'all' && styles.tabTextActive,
-                      ]}>
-                      통합
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.tabButton,
-                      selectedTab === 'composer' && styles.tabButtonActive,
-                    ]}
-                    onPress={() => setSelectedTab('composer')}>
-                    <Text
-                      style={[
-                        styles.tabText,
-                        selectedTab === 'composer' && styles.tabTextActive,
-                      ]}>
-                      작곡가
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.tabButton,
-                      selectedTab === 'performer' && styles.tabButtonActive,
-                    ]}
-                    onPress={() => setSelectedTab('performer')}>
-                    <Text
-                      style={[
-                        styles.tabText,
-                        selectedTab === 'performer' && styles.tabTextActive,
-                      ]}>
-                      연주가
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.tabButton,
-                      selectedTab === 'genre' && styles.tabButtonActive,
-                    ]}
-                    onPress={() => setSelectedTab('genre')}>
-                    <Text
-                      style={[
-                        styles.tabText,
-                        selectedTab === 'genre' && styles.tabTextActive,
-                      ]}>
-                      장르
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.tabButton,
-                      selectedTab === 'period' && styles.tabButtonActive,
-                    ]}
-                    onPress={() => setSelectedTab('period')}>
-                    <Text
-                      style={[
-                        styles.tabText,
-                        selectedTab === 'period' && styles.tabTextActive,
-                      ]}>
-                      시대
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.tabButton,
-                      selectedTab === 'instrument' && styles.tabButtonActive,
-                    ]}
-                    onPress={() => setSelectedTab('instrument')}>
-                    <Text
-                      style={[
-                        styles.tabText,
-                        selectedTab === 'instrument' && styles.tabTextActive,
-                      ]}>
-                      악기
-                    </Text>
-                  </TouchableOpacity>
-                </ScrollView>
-              </View>
-
-              {/* 탭 콘텐츠 */}
-              <View style={styles.tabContent}>
-                {selectedTab === 'all' && <SearchAllTab
-                    onSelect={(text) => {
-                        setSearchText(text);
-                        Keyboard.dismiss();
-                        handleSubmit(text);
-                        }}
-                    />
-                }
-                {selectedTab === 'composer' && <SearchComposerTab
-                    onSelect={(text) => {
-                        setSearchText(text);
-                        Keyboard.dismiss();
-                        handleSubmit(text);
-                        }}
-                    />
-                }
-                {selectedTab === 'performer' && <SearchPerformerTab
-                    onSelect={(text) => {
-                        setSearchText(text);
-                        Keyboard.dismiss();
-                        handleSubmit(text);
-                        }}
-                    />
-                }
-                {selectedTab === 'genre' && <SearchGenreTab
-                    onSelect={(text) => {
-                        setSearchText(text);
-                        Keyboard.dismiss();
-                        handleSubmit(text);
-                        }}
-                    />
-                }
-                {selectedTab === 'period' && <SearchPeriodTab
-                    onSelect={(text) => {
-                        setSearchText(text);
-                        Keyboard.dismiss();
-                        handleSubmit(text);
-                        }}
-                    />
-                }
-                {selectedTab === 'instrument' && <SearchInstrumentTab
-                    onSelect={(text) => {
-                        setSearchText(text);
-                        Keyboard.dismiss();
-                        handleSubmit(text);
-                        }}
-                    />
-                }
-              </View>
-            </>
-          )}
-        </SafeAreaView>
+          </>
+        )}
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }

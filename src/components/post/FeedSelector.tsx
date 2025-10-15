@@ -1,19 +1,17 @@
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
-import {colors} from '@/constants';
-import {FeedType} from '@/constants/types';
+import {colors,defaultFeedTypes} from '@/constants';
+import {FeedType} from '@/types';
 
 interface FeedSelectorProps {
   selectedFeed: FeedType;
   onFeedSelect: (feed: FeedType) => void;
-  feedTypes: FeedType[];
 }
 
 const FeedSelector: React.FC<FeedSelectorProps> = ({
   selectedFeed,
   onFeedSelect,
-  feedTypes,
 }) => {
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
@@ -27,7 +25,7 @@ const FeedSelector: React.FC<FeedSelectorProps> = ({
       <TouchableOpacity
         style={styles.headerTitle}
         onPress={() => setIsBottomSheetVisible(true)}>
-        <Text style={styles.headerTitleText}>{selectedFeed.name}</Text>
+        <Text style={styles.headerTitleText}>{selectedFeed.label}</Text>
         <Image
           source={require('@/assets/icons/post/UpArrow.png')}
           style={styles.dropdownIcon}
@@ -40,12 +38,12 @@ const FeedSelector: React.FC<FeedSelectorProps> = ({
         onClose={() => setIsBottomSheetVisible(false)}
         height="30%">
         <View>
-          {feedTypes.map(feed => (
+          {defaultFeedTypes.map(feed => (
             <TouchableOpacity
               key={feed.id}
               style={styles.feedOption}
               onPress={() => handleFeedSelect(feed)}>
-              <Text style={styles.feedOptionText}>{feed.name}</Text>
+              <Text style={styles.feedOptionText}>{feed.label}</Text>
             </TouchableOpacity>
           ))}
         </View>

@@ -1,79 +1,200 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import axiosInstance from '@/api/axiosInstance';
-import {Post, FeedType, createFeedTypes} from '@/constants/types';
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
+//constants
+import {colors, postNavigations, defaultFeedTypes} from '@/constants';
+import {harmonyRooms as DUMMY_HARMONY_ROOMS} from '@/constants/dummyData'; // 임시
+//types
+import type {FeedType, PostWithUserDTO} from '@/types';
+//navigation
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
-import IconButton from '@/components/common/IconButton';
-import PostList from '@/components/post/PostList';
-import FeedSelector from '@/components/post/FeedSelector';
-import {View, StyleSheet} from 'react-native';
-import {colors, postNavigations} from '@/constants';
+//context
 import {usePostContext} from '@/contexts/PostContext';
+//hooks
+import {usePostsByFeedId} from '@/hooks/queries/post/usePostQueries';
+//components
+import PostList from '@/components/post/PostList';
+import IconButton from '@/components/common/IconButton';
+import FeedSelector from '@/components/post/FeedSelector';
+import GradientBg from '@/components/common/styles/GradientBg';
+import HaryroomNaviBtn from '@/components/post/HaryroomNaviBtn';
 
-type IntroScreenProps = StackScreenProps<
+type PostHomeScreenProps = StackScreenProps<
   PostStackParamList,
   typeof postNavigations.POST_HOME
 >;
 
-function PostHomeScreen({navigation}: IntroScreenProps) {
-  const {posts: newPosts} = usePostContext();
-  const feedTypes = createFeedTypes(newPosts);
-  const [selectedFeed, setSelectedFeed] = useState<FeedType>(feedTypes[0]);
+function PostHomeScreen({navigation}: PostHomeScreenProps) {
+  const {posts: contextPosts} = usePostContext();
 
-  // 선택된 피드의 포스트를 표시, 없으면 새 포스트 표시
-  const allPosts =
-    selectedFeed.posts && selectedFeed.posts.length > 0
-      ? selectedFeed.posts
-      : newPosts.length > 0
-      ? newPosts
-      : selectedFeed.posts || [];
+  const [selectedFeed, setSelectedFeed] = useState<FeedType>(
+    defaultFeedTypes[0],
+  );
+  const [selectedRoomId, setSelectedRoomId] = useState<string>('room1');
 
-  // 디버깅용 로그
-  console.log('PostHomeScreen - selectedFeed:', selectedFeed);
-  console.log('PostHomeScreen - allPosts length:', allPosts.length);
-  console.log('PostHomeScreen - newPosts length:', newPosts.length);
-  console.log(
-    'PostHomeScreen - selectedFeed.posts length:',
-    selectedFeed.posts?.length || 0,
+  // 선택된 피드 ID에 따른 포스트 조회
+  const {
+    data: apiPosts,
+    isLoading,
+    error,
+    refetch,
+  } = usePostsByFeedId(selectedFeed.id);
+
+  // 표시할 포스트 결정 (API 데이터 우선, 없으면 Context 데이터)
+  const getDisplayPosts = useCallback((): PostWithUserDTO[] => {
+    if (apiPosts?.results && apiPosts.results.length > 0) {
+      return apiPosts.results;
+    }
+    return contextPosts || [];
+  }, [apiPosts?.results, contextPosts]);
+
+  // 피드 선택 핸들러
+  const handleFeedSelect = useCallback(
+    (feed: FeedType) => {
+      setSelectedFeed(feed);
+    },
+    [selectedFeed.label],
   );
 
-  const handleFeedSelect = (feed: FeedType) => {
-    setSelectedFeed(feed);
-  };
+  // 하모니룸 선택 핸들러
+  const handleRoomSelect = useCallback(
+    (roomId: string) => {
+      console.log(
+        `[PostHomeScreen] 하모니룸 변경: ${selectedRoomId} → ${roomId}`,
+      );
+      setSelectedRoomId(roomId);
+    },
+    [selectedRoomId],
+  );
+
+  // 재시도 핸들러
+  const handleRetry = useCallback(() => {
+    console.log('[PostHomeScreen] 포스트 다시 불러오기 시도');
+    refetch();
+  }, [refetch]);
+
+  console.log('[PostHomeScreen] 현재 상태:', {
+    selectedFeedId: selectedFeed.id,
+    selectedFeedLabel: selectedFeed.label,
+    apiPostsCount: apiPosts?.results?.length || 0,
+    contextPostsCount: contextPosts?.length || 0,
+    displayPostsCount: getDisplayPosts().length,
+    isLoading,
+    hasError: !!error,
+  });
+
+  // 에러 상태 컴포넌트
+  const renderError = () => (
+    <GradientBg>
+      <SafeAreaView style={styles.container}>
+        {/* 헤더 - 에러 상태에서도 표시 */}
+        <View style={styles.header}>
+          <FeedSelector
+            selectedFeed={selectedFeed}
+            onFeedSelect={handleFeedSelect}
+            feedTypes={defaultFeedTypes}
+          />
+          <View style={styles.headerIconRow}>
+            <IconButton<PostStackParamList>
+              imageSource={require('@/assets/icons/post/Search.png')}
+              target={[postNavigations.POST_SEARCH]}
+            />
+            <IconButton<PostStackParamList>
+              imageSource={require('@/assets/icons/post/Notice.png')}
+              target={[postNavigations.POST_SEARCH]}
+            />
+          </View>
+        </View>
+
+        {/* 에러 메시지 */}
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            {selectedFeed.label} 피드를 불러오는데 실패했습니다
+          </Text>
+          <TouchableOpacity onPress={handleRetry} style={styles.retryButton}>
+            <Text style={styles.retryText}>다시 시도</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </GradientBg>
+  );
+
+  // 로딩 상태 컴포넌트
+  const renderLoading = () => (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color={colors.WHITE} />
+      <Text style={styles.loadingText}>
+        {selectedFeed.label} 피드를 불러오는 중...
+      </Text>
+    </View>
+  );
+
+  // 메인 헤더 컴포넌트
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <FeedSelector
+        selectedFeed={selectedFeed}
+        onFeedSelect={handleFeedSelect}
+        feedTypes={defaultFeedTypes}
+      />
+      <View style={styles.headerIconRow}>
+        <IconButton<PostStackParamList>
+          imageSource={require('@/assets/icons/post/Search.png')}
+          target={[postNavigations.POST_SEARCH]}
+        />
+        <IconButton<PostStackParamList>
+          imageSource={require('@/assets/icons/post/Notice.png')}
+          target={[postNavigations.POST_SEARCH]}
+        />
+      </View>
+    </View>
+  );
+
+  // 에러 상태 처리
+  if (error) {
+    console.error('[PostHomeScreen] 포스트 조회 에러:', error);
+    return renderError();
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <FeedSelector
-          selectedFeed={selectedFeed}
-          onFeedSelect={handleFeedSelect}
-          feedTypes={feedTypes}
-        />
-        <View style={styles.headerIconRow}>
-          <IconButton<PostStackParamList>
-            imageSource={require('@/assets/icons/post/Search.png')}
-            target={[postNavigations.POST_SEARCH]}
+    <GradientBg>
+      <SafeAreaView style={styles.container}>
+        {/* 헤더 */}
+        {renderHeader()}
+
+        {/* 메인 콘텐츠 */}
+        {isLoading ? (
+          renderLoading()
+        ) : (
+          <PostList
+            data={getDisplayPosts()}
+            ListHeaderComponent={
+              <HaryroomNaviBtn
+                rooms={DUMMY_HARMONY_ROOMS}
+                selectedRoomId={selectedRoomId}
+                onRoomSelect={handleRoomSelect}
+              />
+            }
           />
+        )}
+
+        {/* 글쓰기 버튼 */}
+        <View style={styles.writeButton}>
           <IconButton<PostStackParamList>
-            imageSource={require('@/assets/icons/post/Notice.png')}
-            target={[postNavigations.POST_SEARCH]}
+            imageSource={require('@/assets/icons/post/Write.png')}
+            target={[postNavigations.POST_CREATE]}
+            size={72}
           />
         </View>
-      </View>
-
-      <PostList data={allPosts} />
-
-      {/* Write 버튼 */}
-      <View style={styles.writeButton}>
-        <IconButton<PostStackParamList>
-          imageSource={require('@/assets/icons/post/Write.png')}
-          target={[postNavigations.POST_CREATE]}
-          size={72}
-        />
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </GradientBg>
   );
 }
 
@@ -81,7 +202,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: colors.WHITE,
+    backgroundColor: 'transparent',
   },
   header: {
     width: '100%',
@@ -96,6 +217,40 @@ const styles = StyleSheet.create({
   headerIconRow: {
     flexDirection: 'row',
     gap: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: colors.GRAY_500,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: colors.BLACK,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  retryButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: colors.GRAY_200,
+    borderRadius: 8,
+  },
+  retryText: {
+    fontSize: 16,
+    color: colors.WHITE,
+    fontWeight: '600',
   },
   writeButton: {
     position: 'absolute',

@@ -1,17 +1,20 @@
 import React from 'react';
-import {NavigationContainer} from '@react-navigation/native';
-import {QueryClientProvider} from '@tanstack/react-query';
 import queryClient from './src/api/queryClient';
-import RootNavigator from '@/navigations/root/RootNavigator'; //auth부터
+import {QueryClientProvider} from '@tanstack/react-query';
 import {AuthProvider} from '@/contexts/AuthContext';
+import {ToastProvider} from '@/contexts/ToastContext';
+import {NavigationContainer} from '@react-navigation/native';
+import RootNavigator from '@/navigations/root/RootNavigator'; //auth부터
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <NavigationContainer>
-          <RootNavigator />
-        </NavigationContainer>
+        <ToastProvider>
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

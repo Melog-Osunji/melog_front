@@ -37,7 +37,7 @@ const DATA = [
 const {width: SCREEN_W} = Dimensions.get('window');
 
 function Onboarding3Screen({navigation, route}: IntroScreenProps) {
-  const {setIsLogin} = useAuthContext();
+  const {completeRegistration} = useAuthContext();
 
   const [selected, setSelected] = useState<string[]>([]);
   const canNext = selected.length > 0;
@@ -104,13 +104,13 @@ function Onboarding3Screen({navigation, route}: IntroScreenProps) {
           label="다음"
           inValid={!canNext}
           onPress={() => {
-              setIsLogin(true);
+            completeRegistration();
           }}
         />
         <Text
           style={styles.skip}
           onPress={() => {
-            setIsLogin(true);
+            completeRegistration();
           }}>
           건너뛰기
         </Text>

@@ -2,9 +2,9 @@ import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import {InitProfileNavigations} from '@/constants';
 
-import InitProfileImg from '@/screens/intro/InitProfile/InitProfileImg';
-import InitProfileNickname from '@/screens/intro/InitProfile/InitProfileNickname';
-import InitProfileIntroduction from '@/screens/intro/InitProfile/InitProfileIntroduction';
+import InitProfileImg from '@/screens/intro/InitProfile/InitProfileImgScreen';
+import InitProfileNickname from '@/screens/intro/InitProfile/InitProfileNicknameScreen';
+import InitProfileIntroduction from '@/screens/intro/InitProfile/InitProfileIntroductionScreen';
 
 export type InitProfileNavigatorParamList = {
   [InitProfileNavigations.INIT_PROFILE_IMG]: undefined;

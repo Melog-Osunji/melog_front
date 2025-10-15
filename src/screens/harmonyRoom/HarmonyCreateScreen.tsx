@@ -1,17 +1,18 @@
 import React, {useState, useEffect} from 'react';
-import {StyleSheet,
-    Text,
-    View,
-    ScrollView,
-    Image,
-    Dimensions,
-    FlatList,
-    TextInput,
-    TouchableOpacity,
-    Keyboard,
-    Platform,
-    KeyboardAvoidingView
-    } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  Image,
+  Dimensions,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  Keyboard,
+  Platform,
+  KeyboardAvoidingView,
+} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {StackScreenProps} from '@react-navigation/stack';
@@ -19,342 +20,370 @@ import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
 import styled from 'styled-components/native';
 import {colors, harmonyNavigations} from '@/constants';
 import IconButton from '@/components/common/IconButton';
-import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
+import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import TagInputBox from '@/components/harmonyRoom/TagInputBox';
-import { useHarmonyRoomContext } from '@/contexts/HarmonyRoomContext';
+import {useHarmonyRoomContext} from '@/contexts/HarmonyRoomContext';
 import CustomButton from '@/components/common/CustomButton';
 import {harmonyRoomInfo} from '@/api/harmonyRoom/harmonyRoomApi';
-import { useCreateHarmonyRoom } from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
-
+import {useCreateHarmonyRoom} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
 type NavigationProp = StackNavigationProp<HarmonyStackParamList>;
 
 const ALL_KEYWORDS = [
-  '키워드','키큰플레이리스트','키스신OST','피아노','현악','관현악','낭만주의',
-  '집중','공부','아침','저녁','명상','수면','봄','여름','가을','겨울'
+  '키워드',
+  '키큰플레이리스트',
+  '키스신OST',
+  '피아노',
+  '현악',
+  '관현악',
+  '낭만주의',
+  '집중',
+  '공부',
+  '아침',
+  '저녁',
+  '명상',
+  '수면',
+  '봄',
+  '여름',
+  '가을',
+  '겨울',
 ];
 
 function HarmonyCreateScreen() {
-    const navigation = useNavigation<NavigationProp>();
-    const { addRoom } = useHarmonyRoomContext();
-    const { mutateAsync, isPending } = useCreateHarmonyRoom();
+  const navigation = useNavigation<NavigationProp>();
+  const {addRoom} = useHarmonyRoomContext();
+  const {mutateAsync, isPending} = useCreateHarmonyRoom();
 
-    useHideTabBarOnFocus();
+  useHideTabBarOnFocus();
 
-    const [roomName, setRoomName] = useState('');
-    const [description, setDescription] = useState('');
-    const [tags, setTags] = useState([]);
-    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [roomName, setRoomName] = useState('');
+  const [description, setDescription] = useState('');
+  const [tags, setTags] = useState([]);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
-    useEffect(() => {
-        const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-          setKeyboardVisible(true);
-        });
-        const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-          setKeyboardVisible(false);
-        });
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
 
-        return () => {
-          showSubscription.remove();
-          hideSubscription.remove();
-        };
-    }, []);
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
-    const handleCreateRoom = async () => {
-        if (!roomName.trim()) {
-            Alert.alert('알림', '방 이름을 입력해주세요.');
-            return;
-        }
-        if (tags.length === 0) {
-            Alert.alert('알림', '카테고리를 최소 1개 선택해주세요.');
-            return;
-        }
+  const handleCreateRoom = async () => {
+    if (!roomName.trim()) {
+      Alert.alert('알림', '방 이름을 입력해주세요.');
+      return;
+    }
+    if (tags.length === 0) {
+      Alert.alert('알림', '카테고리를 최소 1개 선택해주세요.');
+      return;
+    }
 
-        const payload = {
-            name: roomName.trim(),
-            category: tags,
-            intro: description.trim(),
-            profileImg: '',
-        };
-
-        try {
-            await mutateAsync(payload); // 서버 생성
-
-            // 2) 컨텍스트에 새 타입(harmonyRoomInfo)으로 저장 (기본값 포함)
-            const now = new Date().toISOString();
-            const ownerId = "f4c475f1-9016-4b01-91a8-1880cf749903"; // TODO: 로그인 사용자로 교체
-            const room: harmonyRoomInfo = {
-                profileImgLink: '',       // 필요시 서버/업로드 값으로 교체
-                name: roomName.trim(),
-                category: tags,
-                intro: description.trim(),
-                isRunning: false,
-                isPrivate: false,
-                createdAt: now,
-                members: [ownerId],
-                owner: ownerId,
-                isDirectAssign: false,
-            };
-
-            addRoom(room);
-
-            // 3) 이동 (홈으로)
-            navigation.navigate(harmonyNavigations.HARMONY_HOME as any);
-            // 상세로 가고 싶다면:
-            // navigation.navigate(harmonyNavigations.HARMONY_PAGE as any, { roomData: room });
-        } catch (e: any) {
-            console.error(e);
-            Alert.alert('생성 실패', e?.message ?? '하모니룸 생성 중 오류가 발생했습니다.');
-        }
+    const payload = {
+      name: roomName.trim(),
+      category: tags,
+      intro: description.trim(),
+      profileImg: '',
     };
 
-    return (
-        <>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <IconButton<PostStackParamList>
-                  imageSource={require('@/assets/icons/post/BackArrow.png')}
-                  target={'goBack'}
-                  size={24}
-                />
-                <Text style={styles.sectionTitle}>하모니룸 제작하기</Text>
-            </View>
+    try {
+      await mutateAsync(payload); // 서버 생성
 
-            {/* 방 이름 */}
-            <View style={styles.section1}>
-                <Text style={styles.label}>하모니룸 이름</Text>
-                <View style={styles.shortInputBar}>
-                <TextInput
-                  value={roomName}
-                  onChangeText={text => {
-                    if (text.length <= 25) setRoomName(text);
-                  }}
-                  maxLength={25}
-                  style={{height: 44}}
-                  placeholderTextColor={colors.GRAY_200}
-                  placeholder="어떤 하모니룸을 만들고 싶나요?"
-                />
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: colors.GRAY_400,
-                    position: 'absolute',
-                    top: 14,
-                    right: 16,
-                  }}>
-                  {roomName.length}/25
+      // 2) 컨텍스트에 새 타입(harmonyRoomInfo)으로 저장 (기본값 포함)
+      const now = new Date().toISOString();
+      const ownerId = 'f4c475f1-9016-4b01-91a8-1880cf749903'; // TODO: 로그인 사용자로 교체
+      const room: harmonyRoomInfo = {
+        profileImgLink: '', // 필요시 서버/업로드 값으로 교체
+        name: roomName.trim(),
+        category: tags,
+        intro: description.trim(),
+        isRunning: false,
+        isPrivate: false,
+        createdAt: now,
+        members: [ownerId],
+        owner: ownerId,
+        isDirectAssign: false,
+      };
+
+      addRoom(room);
+
+      // 3) 이동 (홈으로)
+      navigation.navigate(harmonyNavigations.HARMONY_HOME as any);
+      // 상세로 가고 싶다면:
+      // navigation.navigate(harmonyNavigations.HARMONY_PAGE as any, { roomData: room });
+    } catch (e: any) {
+      console.error(e);
+      Alert.alert(
+        '생성 실패',
+        e?.message ?? '하모니룸 생성 중 오류가 발생했습니다.',
+      );
+    }
+  };
+
+  return (
+    <>
+      <KeyboardAvoidingView
+        style={{flex: 1}}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.header}>
+            <IconButton<PostStackParamList>
+              imageSource={require('@/assets/icons/post/BackArrow.png')}
+              target={'goBack'}
+              size={24}
+            />
+            <Text style={styles.sectionTitle}>하모니룸 제작하기</Text>
+          </View>
+
+          {/* 방 이름 */}
+          <View style={styles.section1}>
+            <Text style={styles.label}>하모니룸 이름</Text>
+            <View style={styles.shortInputBar}>
+              <TextInput
+                value={roomName}
+                onChangeText={text => {
+                  if (text.length <= 25) setRoomName(text);
+                }}
+                maxLength={25}
+                style={{height: 44}}
+                placeholderTextColor={colors.GRAY_200}
+                placeholder="어떤 하모니룸을 만들고 싶나요?"
+              />
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: colors.GRAY_400,
+                  position: 'absolute',
+                  top: 14,
+                  right: 16,
+                }}>
+                {roomName.length}/25
+              </Text>
+            </View>
+          </View>
+
+          {/* 카테고리 */}
+          <View style={styles.section}>
+            <Text style={styles.label}>카테고리 생성</Text>
+            <TagInputBox
+              tags={tags}
+              setTags={setTags}
+              allKeywords={ALL_KEYWORDS}
+              maxTags={3}
+            />
+          </View>
+
+          {/* 방 설명 */}
+          <View style={styles.section1}>
+            <Text style={styles.label}>하모니룸 소개</Text>
+            <View style={[styles.inputbar, {position: 'relative'}]}>
+              <TextInput
+                value={description}
+                onChangeText={text => {
+                  if (text.length <= 100) setDescription(text);
+                }}
+                multiline
+                maxLength={100}
+                style={{minHeight: 123, textAlignVertical: 'top', padding: 0}}
+              />
+              {description === '' && (
+                <Text style={styles.placeholder_text}>
+                  하모니룸에 대해서 소개해주세요.
                 </Text>
+              )}
+              <Text
+                style={{
+                  position: 'absolute',
+                  right: 12,
+                  bottom: 8,
+                  fontSize: 12,
+                  color: colors.GRAY_400,
+                }}>
+                {description.length}/100
+              </Text>
+            </View>
+          </View>
+
+          {/* 규칙 */}
+          <View
+            style={{paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16}}>
+            <View style={styles.inputBarWrap}>
+              <Text
+                style={{color: colors.GRAY_200, fontSize: 14, lineHeight: 20}}>
+                멜로그 내 하모니룸 규칙
+              </Text>
+              <View style={styles.confirmWrap}>
+                <Text style={styles.confirmText}>확인 필수</Text>
+                <Image
+                  source={require('@/assets/icons/mypage/RightArrow.png')}
+                  style={styles.confirmBtn}
+                />
               </View>
             </View>
+          </View>
 
-            {/* 카테고리 */}
-            <View style={styles.section}>
-                <Text style={styles.label}>카테고리 생성</Text>
-                <TagInputBox
-                    tags={tags}
-                    setTags={setTags}
-                    allKeywords={ALL_KEYWORDS}
-                    maxTags={3}
-                />
+          {/* 고정된 버튼 */}
+          {!isKeyboardVisible && (
+            <View style={styles.bottom}>
+              <CustomButton
+                label={isPending ? '제작 중...' : '제작하기'}
+                onPress={handleCreateRoom}
+                disabled={isPending}
+                style={{
+                  backgroundColor: colors.BLUE_500,
+                  opacity: isPending ? 0.6 : 1,
+                }}
+              />
             </View>
-
-            {/* 방 설명 */}
-            <View style={styles.section1}>
-                <Text style={styles.label}>하모니룸 소개</Text>
-                <View style={[styles.inputbar, {position: 'relative'}]}>
-                    <TextInput
-                      value={description}
-                      onChangeText={text => {
-                        if (text.length <= 100) setDescription(text);
-                      }}
-                      multiline
-                      maxLength={100}
-                      style={{minHeight: 123, textAlignVertical: 'top', padding: 0}}
-                    />
-                    {description === '' && (
-                      <Text style={styles.placeholder_text}>하모니룸에 대해서 소개해주세요.</Text>
-                    )}
-                    <Text
-                      style={{
-                        position: 'absolute',
-                        right: 12,
-                        bottom: 8,
-                        fontSize: 12,
-                        color: colors.GRAY_400,
-                      }}>
-                      {description.length}/100
-                    </Text>
-                </View>
-            </View>
-
-            {/* 규칙 */}
-            <View style={{paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16,}}>
-                <View style={styles.inputBarWrap}>
-                    <Text style={{color: colors.GRAY_200, fontSize: 14, lineHeight: 20,}}>멜로그 내 하모니룸 규칙</Text>
-                    <View style={styles.confirmWrap}>
-                        <Text style={styles.confirmText}>확인 필수</Text>
-                        <Image source={require('@/assets/icons/mypage/RightArrow.png')} style={styles.confirmBtn}/>
-                    </View>
-                </View>
-            </View>
-
-            {/* 고정된 버튼 */}
-            {!isKeyboardVisible && (
-                <View style={styles.bottom}>
-                    <CustomButton
-                        label={isPending ? '제작 중...' : '제작하기'}
-                        onPress={handleCreateRoom}
-                        disabled={isPending}
-                        style={{backgroundColor:colors.BLUE_500, opacity: isPending ? 0.6 : 1}}
-                    />
-                </View>
-            )}
+          )}
         </SafeAreaView>
-        </KeyboardAvoidingView>
-        </>
-        );
-};
+      </KeyboardAvoidingView>
+    </>
+  );
+}
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.WHITE,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        height:58,
-        gap: 12,
-    },
-    sectionTitle: {
-        fontSize: 17,
-        lineHeight:24,
-        fontWeight: '600',
-        color: colors.GRAY_600,
-    },
-    searchContainer: {
-        marginBottom: 24,
-        paddingHorizontal:20,
-    },
-    searchInputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: colors.GRAY_100,
-        borderRadius: 8,
-        paddingHorizontal: 8,
-        height: 44,
-        gap: 8,
-        marginBottom: 6,
-    },
-    searchIcon: {
-        width: 24,
-        height: 24,
-    },
-    searchInput: {
-        flex: 1,
-        fontSize: 14,
-        lineHeight: 20,
-        letterSpacing: 0.2,
-        color: colors.GRAY_300,
-        fontFamily: 'Noto Sans KR',
-    },
-    searchGuide: {
-        fontSize:12,
-        fontWeight:'400',
-        color: '#659CC7',
-        lineHeight:16,
-    },
-    section1: {
-        flexDirection:"column",
-        gap:8,
-        paddingHorizontal: 20,
-        paddingTop: 16,
-        paddingBottom: 8,
-    },
-    section: {
-        paddingHorizontal: 20,
-        flexDirection:"column",
-        gap: 8,
-        paddingTop: 16,
-    },
-    label: {
-        fontSize:14,
-        lineHeight:20,
-        fontFamily: 'Noto Sans KR',
-        color:colors.GRAY_600,
-        fontWeight:'bold',
-    },
-    input: {
-        height:44,
-        padding:12,
-        borderWidth: 1,
-        borderColor: colors.GRAY_200,
-        borderRadius: 8,
-    },
-    shortInputBar: {
-        borderRadius: 8,
-        backgroundColor: colors.GRAY_100,
-        color: colors.GRAY_600,
-        fontSize: 14,
-        lineHeight: 20,
-        paddingHorizontal: 16,
-        justifyContent: 'space-between',
-        position: 'relative',
-    },
-    inputbar: {
-        borderRadius: 8,
-        backgroundColor: colors.GRAY_100,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        color: colors.GRAY_600,
-        fontSize: 14,
-        lineHeight: 20,
-    },
-    placeholder_text: {
-        position: 'absolute',
-        left: 12,
-        top: 10,
-        color: colors.GRAY_200,
-        fontSize: 14,
-        zIndex: 1,
-        lineHeight: 24,
-    },
-    inputBarWrap: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor:colors.GRAY_100,
-        borderRadius: 8,
-        paddingHorizontal: 16,
-        paddingVertical:12,
-    },
-    confirmWrap: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    confirmText: {
-        fontWeight: '400',
-        fontSize: 12,
-        lineHeight: 16,
-        letterSpacing: 0.2,
-        color: colors.GRAY_600,
-    },
-    bottom : {
-        marginBottom: 30,
-        paddingHorizontal: 20,
-        marginTop: 'auto',
-        paddingTop: 6,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: colors.WHITE,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    height: 58,
+    gap: 12,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    lineHeight: 24,
+    fontWeight: '600',
+    color: colors.GRAY_600,
+  },
+  searchContainer: {
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.GRAY_100,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    height: 44,
+    gap: 8,
+    marginBottom: 6,
+  },
+  searchIcon: {
+    width: 24,
+    height: 24,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: 0.2,
+    color: colors.GRAY_300,
+    fontFamily: 'Noto Sans KR',
+  },
+  searchGuide: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#659CC7',
+    lineHeight: 16,
+  },
+  section1: {
+    flexDirection: 'column',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  section: {
+    paddingHorizontal: 20,
+    flexDirection: 'column',
+    gap: 8,
+    paddingTop: 16,
+  },
+  label: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: 'Noto Sans KR',
+    color: colors.GRAY_600,
+    fontWeight: 'bold',
+  },
+  input: {
+    height: 44,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.GRAY_200,
+    borderRadius: 8,
+  },
+  shortInputBar: {
+    borderRadius: 8,
+    backgroundColor: colors.GRAY_100,
+    color: colors.GRAY_600,
+    fontSize: 14,
+    lineHeight: 20,
+    paddingHorizontal: 16,
+    justifyContent: 'space-between',
+    position: 'relative',
+  },
+  inputbar: {
+    borderRadius: 8,
+    backgroundColor: colors.GRAY_100,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: colors.GRAY_600,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  placeholder_text: {
+    position: 'absolute',
+    left: 12,
+    top: 10,
+    color: colors.GRAY_200,
+    fontSize: 14,
+    zIndex: 1,
+    lineHeight: 24,
+  },
+  inputBarWrap: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.GRAY_100,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  confirmWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  confirmText: {
+    fontWeight: '400',
+    fontSize: 12,
+    lineHeight: 16,
+    letterSpacing: 0.2,
+    color: colors.GRAY_600,
+  },
+  bottom: {
+    marginBottom: 30,
+    paddingHorizontal: 20,
+    marginTop: 'auto',
+    paddingTop: 6,
+  },
 });
 
 export default HarmonyCreateScreen;
