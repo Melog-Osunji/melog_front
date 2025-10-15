@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   },
   content: {
     width: '100%',
-    flex: 1, alignItems: 'center'
+    flex: 1,
   },
   header: {
     width: '100%',

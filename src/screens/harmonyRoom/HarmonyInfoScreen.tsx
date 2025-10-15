@@ -79,7 +79,7 @@ export default function HarmonyInfoScreen() {
       }, [refetch])
     );
 
-    const currentUserId = "f4c475f1-9016-4b01-91a8-1880cf749903";
+    const currentUserId = "1f3eefd5-ba10-4848-a161-04b014bb9cee";
 
     const { data: isMemberDTO } = useHarmonyIsMember(roomID);
     const isMember = isMemberDTO?.isMember ?? false;

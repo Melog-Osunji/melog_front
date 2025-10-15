@@ -12,9 +12,8 @@ export type MyPageDTO = {
     followers: number;
     followings: number;
     harmonyRooms: MyRoomDTO[];
-    posts: {
-        results: MyPagePostDTO[];
-    };
+    posts: MyPagePostDTO[];
+    mediaPosts:MyPageDTO[];
 };
 
 export type MyRoomDTO = {
@@ -33,6 +32,12 @@ export type MyPagePostDTO = {
     mediaType: string;
     mediaUrl: string;
     tags: string[];
+};
+
+export type MyPageBookmarkDTO={
+    postId: string;
+    title: string;
+    createdAt: string;
 };
 
 export const fetchMyPage = async (): Promise<MyPageDTO> => {

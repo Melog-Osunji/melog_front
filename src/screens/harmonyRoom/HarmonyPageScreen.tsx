@@ -73,7 +73,7 @@ export default function HarmonyPageScreen() {
 
     const { mutateAsync: requestJoin, isPending: requestLoading } = useRequestJoinHarmonyRoom(roomID);
 
-    const currentUserId = "f4c475f1-9016-4b01-91a8-1880cf749903"; // TODO: auth context 등에서 가져오면 owner 비교 가능
+    const currentUserId = "1f3eefd5-ba10-4848-a161-04b014bb9cee"; // TODO: auth context 등에서 가져오면 owner 비교 가능
 
     const isOwner = useMemo(() => {
       if (!roomInfo) return false;

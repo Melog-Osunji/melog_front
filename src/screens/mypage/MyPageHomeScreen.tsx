@@ -22,6 +22,12 @@ function MyPageHomeScreen() {
 
   const { data, isLoading, isError, refetch, isRefetching } = useMyPage();
 
+  useFocusEffect(
+      useCallback(() => {
+        refetch();
+      }, [refetch])
+  );
+
   const communities = useMemo<Community[]>(() => {
       if (!data?.harmonyRooms) return [];
       return data.harmonyRooms.map(room => ({
@@ -33,7 +39,7 @@ function MyPageHomeScreen() {
       }));
     }, [data]);
 
-  const feedCount = data?.posts?.results?.length ?? 0;
+  const feedCount = data?.posts?.length ?? 0;
 
   if (isLoading) {
       return (
@@ -80,7 +86,7 @@ function MyPageHomeScreen() {
                 </View>
                 <View style={styles.musicWrap}>
                     <Image source={require('@/assets/icons/mypage/Music.png')}/>
-                    <Text style={styles.musicText}>클래식 제목 - 작곡가(연주가)</Text>
+                    <Text style={styles.musicText}>{data.profileMusic.title}</Text>
                 </View>
             </View>
 
@@ -226,6 +232,7 @@ const styles = StyleSheet.create({
     color: colors.BLUE_700,
   },
   musicWrap: {
+    width: SCREEN_W-100,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
