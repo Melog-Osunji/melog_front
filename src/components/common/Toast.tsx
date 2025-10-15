@@ -4,22 +4,23 @@ import {
   Text,
   StyleSheet,
   Animated,
-  Dimensions,
   SafeAreaView,
   Image,
 } from 'react-native';
 
+export type ToastType = 'none' | 'success' | 'error' | 'info';
+
 interface ToastProps {
   message: string;
+  type?: ToastType;
   visible: boolean;
   onHide: () => void;
   duration?: number;
 }
 
-const {width: SCREEN_WIDTH} = Dimensions.get('window');
-
 const Toast: React.FC<ToastProps> = ({
   message,
+  type = 'none',
   visible,
   onHide,
   duration = 3000,
@@ -48,11 +49,11 @@ const Toast: React.FC<ToastProps> = ({
         hideToast();
       }, duration);
 
-      return () => clearTimeout(timer);
-    } else {
-      hideToast();
+      return () => {
+        clearTimeout(timer);
+      };
     }
-  }, [visible]);
+  }, [visible, duration]);
 
   const hideToast = () => {
     Animated.parallel([
@@ -71,27 +72,69 @@ const Toast: React.FC<ToastProps> = ({
     });
   };
 
-  if (!visible) return null;
+  const getToastIcon = () => {
+    try {
+      switch (type) {
+        case 'none':
+          return;
+        case 'success':
+          return require('@/assets/icons/Check.png');
+        case 'error':
+          return require('@/assets/icons/Check.png');
+        case 'info':
+          return require('@/assets/icons/Check.png');
+        default:
+          return require('@/assets/icons/Check.png');
+      }
+    } catch (error) {
+      return require('@/assets/icons/Check.png');
+    }
+  };
 
-  return (
-    <View style={styles.container}>
-      <SafeAreaView>
-        <Animated.View
-          style={[
-            styles.toast,
+  const getToastStyle = () => {
+    const baseStyle = styles.toast;
+    switch (type) {
+      case 'success':
+        return [baseStyle];
+      case 'success':
+        return [baseStyle, styles.successToast];
+      case 'error':
+        return [baseStyle, styles.errorToast];
+      case 'info':
+        return [baseStyle, styles.infoToast];
+      default:
+        return [baseStyle, styles.successToast];
+    }
+  };
+
+  if (!visible) {
+    return null;
+  }
+
+  return React.createElement(
+    View,
+    {style: styles.container},
+    React.createElement(
+      SafeAreaView,
+      null,
+      React.createElement(
+        Animated.View,
+        {
+          style: [
+            getToastStyle(),
             {
               transform: [{translateY}],
               opacity,
             },
-          ]}>
-          <Image
-            source={require('@/assets/icons/Check.png')}
-            style={styles.checkIcon}
-          />
-          <Text style={styles.message}>{message}</Text>
-        </Animated.View>
-      </SafeAreaView>
-    </View>
+          ],
+        },
+        React.createElement(Image, {
+          source: getToastIcon(),
+          style: styles.checkIcon,
+        }),
+        React.createElement(Text, {style: styles.message}, message),
+      ),
+    ),
   );
 };
 
@@ -112,16 +155,18 @@ const styles = StyleSheet.create({
     gap: 10,
     height: 48,
     width: '90%',
-    backgroundColor: 'rgba(99, 108, 115, 0.7)',
     borderRadius: 8,
+    backgroundColor: 'rgba(99, 108, 115, 0.7)',
   },
+  successToast: {},
+  errorToast: {},
+  warningToast: {},
+  infoToast: {},
   checkIcon: {
     width: 24,
     height: 24,
   },
   message: {
-    width: 238,
-    height: 22,
     fontFamily: 'Noto Sans KR',
     fontWeight: '600',
     fontSize: 15,

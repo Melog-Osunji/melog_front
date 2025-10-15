@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">melog_front</string>
+    <string name="kakao_app_key">f128b5577e075ab54e57d47c7f386643</string>
 </resources>

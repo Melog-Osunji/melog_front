@@ -1,9 +1,8 @@
 import React from 'react';
 import {Image, Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
-import {Post} from '@/constants/types';
+import {PostDTO, UserDTO} from '@/types';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
-import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
 import PostStats from '@/components/post/PostStats';
 import IconButton from '@/components/common/IconButton';
 import {useNavigation} from '@react-navigation/native';
@@ -13,23 +12,17 @@ import {postNavigations} from '@/constants';
 
 type PostCardNavigationProp = StackNavigationProp<PostStackParamList>;
 
-function PostCard(post: Post) {
-  const {
-    id,
-    user,
-    createdAgo,
-    content,
-    mediaUrl,
-    tags,
-    likeCount,
-    commentCount,
-  } = post;
+type PostCardProps = {
+  post: PostDTO;
+  user: UserDTO;
+};
+
+function PostCard({post, user}: PostCardProps) {
   const navigation = useNavigation<PostCardNavigationProp>();
 
   const handlePress = () => {
     navigation.navigate(postNavigations.POST_PAGE, {
-      postId: id,
-      postData: post,
+      postId: post.id,
     });
   };
 
@@ -45,7 +38,7 @@ function PostCard(post: Post) {
           <Image source={{uri: user.profileImg}} style={styles.profileImage} />
           <View style={styles.userInfo}>
             <Text style={styles.nickName}>{user.nickName}</Text>
-            <Text style={styles.timeText}>{createdAgo}시간 전</Text>
+            <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
           </View>
         </View>
         <IconButton
@@ -55,11 +48,11 @@ function PostCard(post: Post) {
       </View>
 
       {/* 본문 */}
-      <Text style={styles.content}>{content}</Text>
+      <Text style={styles.content}>{post.content}</Text>
 
       {/* 태그 */}
       <View style={styles.tags}>
-        {tags.map((tag, index) => (
+        {post.tags.map((tag, index) => (
           <Text key={index} style={styles.tag}>
             #{tag}
           </Text>
@@ -67,21 +60,22 @@ function PostCard(post: Post) {
       </View>
 
       {/* 유튜브 영상 */}
-      {mediaUrl &&
-        (mediaUrl.includes('youtube.com') || mediaUrl.includes('youtu.be')) && (
-          <YouTubeEmbed url={mediaUrl} />
+      {post.mediaUrl &&
+        (post.mediaUrl.includes('youtube.com') ||
+          post.mediaUrl.includes('youtu.be')) && (
+          <YouTubeEmbed url={post.mediaUrl} />
         )}
 
       {/* 상태바 */}
-      <PostStats likeCount={likeCount} commentCount={commentCount} />
+      <PostStats likeCount={post.likeCount} commentCount={post.commentCount} />
 
       {/* 베스트 댓글 */}
       {post.bestComment && (
         <View style={styles.bestCommentContainer}>
-          <Image
+          {/* <Image
             source={{uri: post.bestComment.profileImg}}
             style={styles.bestCommentProfileImage}
-          />
+          /> */}
           <Text
             style={styles.bestCommentContent}
             numberOfLines={1}

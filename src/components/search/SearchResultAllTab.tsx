@@ -1,77 +1,85 @@
 import React from 'react';
-import { FlatList, Text, View, StyleSheet, ActivityIndicator } from 'react-native';
-import { colors } from '@/constants';
-import { realTimeData } from '@/constants/types'; // 더미 데이터
+import {
+  FlatList,
+  Text,
+  View,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
+import {colors} from '@/constants';
+import {realTimeData} from '@/constants/types'; // 더미 데이터
 import PopularMediaCard from '@/components/search/PopularMediaCard';
-import { PopularMediaData } from '@/constants/dummyData';
+import {PopularMediaData} from '@/constants/dummyData';
 import PostCard from '@/components/post/PostCard';
-import EmptyTab from '@/components/search/EmptyTab'
-import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
-import { useSearchResult } from '@/hooks/queries/search/useSearchResult';
+import EmptyTab from '@/components/search/EmptyTab';
+import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
+import {useSearchResult} from '@/hooks/queries/search/useSearchResult';
 
-type Props = { keyword?: string };
+type Props = {keyword?: string};
 
 const SearchResultAllTab: React.FC<Props> = ({keyword}) => {
-    useHideTabBarOnFocus();
+  useHideTabBarOnFocus();
 
-    const { data, isLoading, isError } = useSearchResult(keyword);
+  const {data, isLoading, isError} = useSearchResult(keyword);
 
-    console.log(data);
-    if (isLoading) {
-        return (
-          <View style={styles.center}>
-            <ActivityIndicator />
-            <Text style={{ marginTop: 8, color: colors.GRAY_400 }}>불러오는 중…</Text>
-          </View>
-        );
-    }
-
-    if (isError || !data) {
-        return (
-          <EmptyTab keyword={keyword} fullScreen />
-        );
-    }
-
-    const feeds = data.results ?? [];
-    const medias = data.popularMedia ?? [];
-
-    if (feeds.length === 0 && medias.length === 0) {
-        return <EmptyTab keyword={keyword} fullScreen />;
-    }
-
+  console.log(data);
+  if (isLoading) {
     return (
+      <View style={styles.center}>
+        <ActivityIndicator />
+        <Text style={{marginTop: 8, color: colors.GRAY_400}}>불러오는 중…</Text>
+      </View>
+    );
+  }
+
+  if (isError || !data) {
+    return <EmptyTab keyword={keyword} fullScreen />;
+  }
+
+  const feeds = data.results ?? [];
+  const medias = data.popularMedia ?? [];
+
+  if (feeds.length === 0 && medias.length === 0) {
+    return <EmptyTab keyword={keyword} fullScreen />;
+  }
+
+  return (
     <FlatList
-        data={feeds}
-        keyExtractor={(item) => item.post.id}
-        renderItem={({ item }) => <PostCard {...item.post} />}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-            <View style={styles.headerContainer}>
-            <View style={styles.section}>
-            <Text style={[styles.sectionTitle, {marginBottom: 24}]}>인기 미디어</Text>
+      data={feeds}
+      keyExtractor={item => item.post.id}
+      renderItem={({item}) => <PostCard {...item.post} />}
+      showsVerticalScrollIndicator={false}
+      ListHeaderComponent={
+        <View style={styles.headerContainer}>
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, {marginBottom: 24}]}>
+              인기 미디어
+            </Text>
 
             {medias.length === 0 ? (
-                <EmptyTab keyword={keyword} />
-              ) : (
-                <FlatList
-                  data={medias}
-                  keyExtractor={(item, index) => `${item.postID}_${index}`}
-                  renderItem={({ item }) => <PopularMediaCard data={item} />}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.horizontalListContent}
-                  ItemSeparatorComponent={() => <View style={{ width: 16 }} />}
-                />
-              )}
-            </View>
+              <EmptyTab keyword={keyword} />
+            ) : (
+              <FlatList
+                data={medias}
+                keyExtractor={(item, index) => `${item.postID}_${index}`}
+                renderItem={({item}) => <PopularMediaCard data={item} />}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.horizontalListContent}
+                ItemSeparatorComponent={() => <View style={{width: 16}} />}
+              />
+            )}
+          </View>
 
-            <Text style={[styles.sectionTitle, { marginTop: 24 }]}>실시간 인기 피드</Text>
-            </View>
-        }
-    ListEmptyComponent={<EmptyTab keyword={keyword} />}
-    contentContainerStyle={{ paddingBottom: 48 }}
+          <Text style={[styles.sectionTitle, {marginTop: 24}]}>
+            실시간 인기 피드
+          </Text>
+        </View>
+      }
+      ListEmptyComponent={<EmptyTab keyword={keyword} />}
+      contentContainerStyle={{paddingBottom: 48}}
     />
-    );
+  );
 };
 
 const styles = StyleSheet.create({
@@ -85,9 +93,9 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   section: {
-      paddingBottom:24,
-      borderBottomWidth: StyleSheet.hairlineWidth, // 또는 1
-      borderBottomColor: colors.GRAY_200,
+    paddingBottom: 24,
+    borderBottomWidth: StyleSheet.hairlineWidth, // 또는 1
+    borderBottomColor: colors.GRAY_200,
   },
   horizontalListContent: {
     paddingHorizontal: 20,

@@ -10,27 +10,35 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-
+//constants
 import {colors} from '@/constants';
-import axiosInstance from '@/api/axiosInstance';
+//types
+import {YouTubeVideo, NewPostDTO} from '@/types';
+//navigation
 import {useNavigation} from '@react-navigation/native';
-import {postNavigations} from '@/constants';
-import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
-import PostActionButtons from '@/components/post/PostActionButtons';
+//utils
+import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
+import {getAccessToken} from '@/utils/storage/UserStorage';
+//hooks
+import {useUserInfo} from '@/hooks/common/useUserInfo';
+import {useCreatePost} from '@/hooks/queries/post/usePostQueries';
+//components
+import PostActionButtons from '@/components/post/postcreate/PostActionButtons';
 import CustomButton from '@/components/common/CustomButton';
 import Toast from '@/components/common/Toast';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
-import {YouTubeVideo, Post} from '@/constants/types';
-import {usePostContext} from '@/contexts/PostContext';
 
 export default function PostCreateScreen() {
   const navigation = useNavigation();
-  const {addPost} = usePostContext();
+  const {userInfo, isLoading: userLoading, error: userError} = useUserInfo();
+  const createPostMutation = useCreatePost();
+
   const [content, setContent] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [inputHeight, setInputHeight] = useState(50);
 
   useHideTabBarOnFocus();
 
@@ -57,48 +65,53 @@ export default function PostCreateScreen() {
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
-    setSelectedTags(prev => prev.filter(tag => tag !== tagToRemove));
-  };
-
-  const handlePost = () => {
+  const handlePost = async () => {
     if (!content.trim()) {
       showToast('내용을 입력해주세요.');
       return;
     }
 
-    // 새로운 포스트 생성
-    const newPost: Post = {
-      id: `post_${Date.now()}`, // 임시 ID 생성
-      userId: 'current_user',
-      title: '', // 포스트에 제목 필드가 없어서 빈 문자열
+    const accessToken = await getAccessToken();
+    console.log(
+      '[PostCreateScreen] Access Token:',
+      accessToken ? '존재함' : '없음',
+    );
+
+    if (!accessToken) {
+      console.error('[PostCreateScreen] 토큰이 없습니다. 로그인이 필요합니다.');
+      showToast('로그인이 필요합니다.');
+      return;
+    }
+
+    console.log('[PostCreateScreen] 게시글 작성 시작');
+    console.log('[PostCreateScreen] 작성자 정보:', userInfo);
+
+    const postData: NewPostDTO = {
+      title: '',
       content: content.trim(),
-      mediaType: selectedVideo ? 'youtube' : 'text',
+      mediaType: 'youtube',
       mediaUrl: selectedVideo
         ? `https://www.youtube.com/watch?v=${extractVideoId(
             selectedVideo.thumbnail,
           )}`
-        : undefined,
-      createdAgo: 0, // 방금 생성됨
-      likeCount: 0,
-      commentCount: 0,
-      tags: selectedTags, // 선택된 태그들 사용
-      user: {
-        profileImg: '', // TODO: 실제 사용자 프로필 이미지
-        nickName: '홍길동', // TODO: 실제 사용자 닉네임
-      },
+        : '',
+      tags: selectedTags,
     };
 
-    // Context에 포스트 추가
-    addPost(newPost);
+    console.log('[PostCreateScreen] 전송할 데이터:', postData);
 
-    console.log('게시 내용:', content);
-    console.log('선택된 비디오:', selectedVideo);
-    console.log('생성된 포스트:', newPost);
+    try {
+      await createPostMutation.mutateAsync(postData);
+      console.log('[PostCreateScreen] 게시글 작성 완료');
+      showToast('게시되었습니다.');
 
-    navigation.goBack();
-
-    showToast('게시되었습니다.');
+      setTimeout(() => {
+        navigation.goBack();
+      }, 1000);
+    } catch (error) {
+      console.error('[PostCreateScreen] 게시글 작성 실패:', error);
+      showToast('게시글 작성에 실패했습니다.');
+    }
   };
 
   const handleVideoSelect = (video: YouTubeVideo) => {
@@ -117,6 +130,18 @@ export default function PostCreateScreen() {
     return match ? match[1] : 'dQw4w9WgXcQ'; // 기본값
   };
 
+  const isSubmitting = createPostMutation.isPending;
+
+  if (userLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text>사용자 정보를 불러오는 중...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -126,14 +151,21 @@ export default function PostCreateScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
-            <Text style={styles.cancelText}>취소</Text>
+          <TouchableOpacity
+            onPress={handleCancel}
+            style={styles.cancelButton}
+            disabled={isSubmitting}>
+            <Text
+              style={[styles.cancelText, isSubmitting && styles.disabledText]}>
+              취소
+            </Text>
           </TouchableOpacity>
 
           <CustomButton
-            label="게시"
+            label={isSubmitting ? '게시 중...' : '게시'}
             variant="filled"
             size="small"
+            inValid={!content.trim() || isSubmitting}
             onPress={handlePost}
           />
         </View>
@@ -141,31 +173,42 @@ export default function PostCreateScreen() {
         {/* User Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileImage} />
-          <Text style={styles.userId}>홍길동</Text>
+          <Text style={styles.userId}>{userInfo?.nickName || '사용자'}</Text>
         </View>
 
         {/* Content Input */}
         <View style={styles.contentSection}>
           <TextInput
-            style={styles.contentInput}
+            style={[
+              styles.contentInput,
+              {height: content.trim() ? Math.max(100, inputHeight + 50) : 100},
+            ]}
             placeholder="오늘은 어떤 클래식을 감상했나요?"
-            placeholderTextColor="#8C9CAA"
+            placeholderTextColor={colors.GRAY_300}
             multiline
             textAlignVertical="top"
             value={content}
-            onChangeText={setContent}
+            onChangeText={text => {
+              setContent(text);
+            }}
+            onContentSizeChange={event => {
+              const newHeight = event.nativeEvent.contentSize.height;
+              // 텍스트가 있을 때만 높이 업데이트
+              if (content.trim()) {
+                setInputHeight(newHeight);
+              }
+            }}
+            editable={!isSubmitting}
           />
 
-          {/* Selected Tags Display */}
           {selectedTags.length > 0 && (
             <View style={styles.selectedTagsContainer}>
-              {selectedTags.map((tag, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.selectedTag}
-                  onPress={() => removeTag(tag)}>
-                  <Text style={styles.selectedTagText}>#{tag}</Text>
-                </TouchableOpacity>
+              {selectedTags.map(tag => (
+                <View key={tag} style={styles.selectedTag}>
+                  <TouchableOpacity onPress={() => handleTagSelect(tag)}>
+                    <Text style={styles.selectedTagText}>#{tag}</Text>
+                  </TouchableOpacity>
+                </View>
               ))}
             </View>
           )}
@@ -181,7 +224,8 @@ export default function PostCreateScreen() {
                 />
                 <TouchableOpacity
                   style={styles.removeVideoButton}
-                  onPress={handleRemoveVideo}>
+                  onPress={handleRemoveVideo}
+                  disabled={isSubmitting}>
                   <Text style={styles.removeVideoText}>✕</Text>
                 </TouchableOpacity>
               </View>
@@ -205,7 +249,12 @@ export default function PostCreateScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.WHITE,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -233,13 +282,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 60,
   },
-  postText: {
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 20,
-    letterSpacing: 0.2,
-    color: '#FBFBFC',
-  },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -261,18 +303,16 @@ const styles = StyleSheet.create({
     color: colors.BLACK,
   },
   contentSection: {
-    flex: 1,
     paddingHorizontal: 18,
-    paddingTop: 20,
   },
   contentInput: {
-    flex: 1,
     fontSize: 14,
     fontWeight: '400',
     lineHeight: 20,
     letterSpacing: 0.2,
     color: colors.BLACK,
     textAlignVertical: 'top',
+    paddingHorizontal: 6,
   },
   selectedVideoContainer: {
     backgroundColor: '#F8F9FA',
@@ -304,27 +344,22 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   selectedTagsContainer: {
+    marginTop: -40,
+    marginHorizontal: 4,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 12,
-    gap: 8,
+    gap: 10,
   },
   selectedTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderColor: colors.BLUE_600,
   },
   selectedTagText: {
     fontSize: 14,
-    color: colors.BLUE_600,
+    color: colors.BLACK,
     fontWeight: '500',
   },
-  removeTagText: {
-    fontSize: 12,
-    color: colors.BLUE_600,
-    marginLeft: 4,
+  disabledText: {
+    color: colors.GRAY_300,
   },
 });
