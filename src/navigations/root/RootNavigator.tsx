@@ -14,7 +14,7 @@ function RootNavigator() {
       const TEST_SCENARIO = 'LOGIN'; // 'LOGIN' | 'REGISTRATION' | 'MAIN'
 
       switch (TEST_SCENARIO) {
-        case 'LOGIN':
+        case 'REGISTRATION':
           setIsLogin(false);
           setIsRegistered(false);
           console.log('[dev] 회원가입 프로세스 상태로 설정됨');

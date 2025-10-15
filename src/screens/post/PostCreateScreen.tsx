@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {
   StyleSheet,
   View,
@@ -13,26 +13,25 @@ import {
 //constants
 import {colors} from '@/constants';
 //types
-import {YouTubeVideo, PostDTO, ProfileDTO} from '@/types';
+import {YouTubeVideo, NewPostDTO} from '@/types';
 //navigation
 import {useNavigation} from '@react-navigation/native';
 //utils
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
-//contexts
-import {usePostContext} from '@/contexts/PostContext';
+import {getAccessToken} from '@/utils/storage/UserStorage';
+//hooks
+import {useUserInfo} from '@/hooks/common/useUserInfo';
+import {useCreatePost} from '@/hooks/queries/post/usePostQueries';
 //components
 import PostActionButtons from '@/components/post/postcreate/PostActionButtons';
 import CustomButton from '@/components/common/CustomButton';
 import Toast from '@/components/common/Toast';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
-//hooks
-import {useUserInfo} from '@/hooks/common/useUserInfo';
 
 export default function PostCreateScreen() {
   const navigation = useNavigation();
-  const {addPost} = usePostContext();
-
   const {userInfo, isLoading: userLoading, error: userError} = useUserInfo();
+  const createPostMutation = useCreatePost();
 
   const [content, setContent] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
@@ -42,20 +41,6 @@ export default function PostCreateScreen() {
   const [inputHeight, setInputHeight] = useState(50);
 
   useHideTabBarOnFocus();
-
-  if (userLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text>사용자 정보를 불러오는 중...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (userError) {
-    console.error('[PostCreateScreen] 사용자 정보 오류:', userError);
-  }
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -80,40 +65,53 @@ export default function PostCreateScreen() {
     }
   };
 
-  const handlePost = () => {
+  const handlePost = async () => {
     if (!content.trim()) {
       showToast('내용을 입력해주세요.');
+      return;
+    }
+
+    const accessToken = await getAccessToken();
+    console.log(
+      '[PostCreateScreen] Access Token:',
+      accessToken ? '존재함' : '없음',
+    );
+
+    if (!accessToken) {
+      console.error('[PostCreateScreen] 토큰이 없습니다. 로그인이 필요합니다.');
+      showToast('로그인이 필요합니다.');
       return;
     }
 
     console.log('[PostCreateScreen] 게시글 작성 시작');
     console.log('[PostCreateScreen] 작성자 정보:', userInfo);
 
-    // 새로운 포스트 생성
-    const newPost: PostDTO = {
-      id: `post_${Date.now()}`, // 임시 ID 생성
-      userId: userInfo?.id || 'anonymous',
+    const postData: NewPostDTO = {
+      title: '',
       content: content.trim(),
-      mediaType: selectedVideo ? 'youtube' : 'text',
-      mediaUrl: selectedVideo ? extractVideoUrl(selectedVideo) : undefined,
-      createdAgo: 0, // 방금 생성됨
-      likeCount: 0,
-      commentCount: 0,
-      tags: selectedTags, // 선택된 태그들 사용
-      user: {
-        profileImg: userInfo?.profileImg || '',
-        nickName: userInfo?.nickName || '익명',
-      },
+      mediaType: 'youtube',
+      mediaUrl: selectedVideo
+        ? `https://www.youtube.com/watch?v=${extractVideoId(
+            selectedVideo.thumbnail,
+          )}`
+        : '',
+      tags: selectedTags,
     };
 
-    console.log('[PostCreateScreen] 생성된 포스트:', newPost);
+    console.log('[PostCreateScreen] 전송할 데이터:', postData);
 
-    // Context에 포스트 추가
-    addPost(newPost);
+    try {
+      await createPostMutation.mutateAsync(postData);
+      console.log('[PostCreateScreen] 게시글 작성 완료');
+      showToast('게시되었습니다.');
 
-    navigation.goBack();
-
-    showToast('게시되었습니다.');
+      setTimeout(() => {
+        navigation.goBack();
+      }, 1000);
+    } catch (error) {
+      console.error('[PostCreateScreen] 게시글 작성 실패:', error);
+      showToast('게시글 작성에 실패했습니다.');
+    }
   };
 
   const handleVideoSelect = (video: YouTubeVideo) => {
@@ -132,6 +130,18 @@ export default function PostCreateScreen() {
     return match ? match[1] : 'dQw4w9WgXcQ'; // 기본값
   };
 
+  const isSubmitting = createPostMutation.isPending;
+
+  if (userLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text>사용자 정보를 불러오는 중...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -141,15 +151,21 @@ export default function PostCreateScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
-            <Text style={styles.cancelText}>취소</Text>
+          <TouchableOpacity
+            onPress={handleCancel}
+            style={styles.cancelButton}
+            disabled={isSubmitting}>
+            <Text
+              style={[styles.cancelText, isSubmitting && styles.disabledText]}>
+              취소
+            </Text>
           </TouchableOpacity>
 
           <CustomButton
-            label="게시"
+            label={isSubmitting ? '게시 중...' : '게시'}
             variant="filled"
             size="small"
-            inValid={!content.trim()}
+            inValid={!content.trim() || isSubmitting}
             onPress={handlePost}
           />
         </View>
@@ -182,6 +198,7 @@ export default function PostCreateScreen() {
                 setInputHeight(newHeight);
               }
             }}
+            editable={!isSubmitting}
           />
 
           {selectedTags.length > 0 && (
@@ -207,7 +224,8 @@ export default function PostCreateScreen() {
                 />
                 <TouchableOpacity
                   style={styles.removeVideoButton}
-                  onPress={handleRemoveVideo}>
+                  onPress={handleRemoveVideo}
+                  disabled={isSubmitting}>
                   <Text style={styles.removeVideoText}>✕</Text>
                 </TouchableOpacity>
               </View>
@@ -340,5 +358,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.BLACK,
     fontWeight: '500',
+  },
+  disabledText: {
+    color: colors.GRAY_300,
   },
 });

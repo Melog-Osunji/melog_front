@@ -23,6 +23,11 @@ export type PostsDTO = {
   results: PostWithUserDTO[];
 };
 
+export type NewPostDTO = Pick<
+  PostDTO,
+  'title' | 'content' | 'mediaType' | 'mediaUrl' | 'tags'
+>;
+
 //user
 export type UserDTO = {
   id: string;

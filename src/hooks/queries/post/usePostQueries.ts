@@ -1,10 +1,11 @@
-import {useQuery} from '@tanstack/react-query';
+import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
 import {
   fetchPostsByFeedId,
   fetchPostDetail,
   fetchPostComments,
+  createPost,
 } from '@/api/post/postApi';
-import type {PostWithUserDTO, CommentsDTO} from '@/types';
+import type {PostsDTO, PostWithUserDTO, CommentsDTO, NewPostDTO} from '@/types';
 import {FeedId} from '@/types';
 
 // # feed
@@ -20,7 +21,7 @@ export const POST_QUERY_KEYS = {
 
 // feed - id
 export const usePostsByFeedId = (feedId: FeedId) => {
-  return useQuery({
+  return useQuery<PostsDTO, Error>({
     queryKey: POST_QUERY_KEYS.byFeedId(feedId), // 이제 각 feedId마다 다른 키 생성
     queryFn: () => fetchPostsByFeedId(feedId),
     enabled: !!feedId,
@@ -49,3 +50,31 @@ export const usePostComments = (postId: string) => {
     gcTime: 1000 * 60 * 5,
   });
 };
+
+// # CRUD operations for post
+// create post
+export const useCreatePost = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (postData: NewPostDTO) => createPost(postData),
+    onSuccess: () => {
+      console.log('[useCreatePost] 게시글 작성 성공');
+
+      // 모든 피드 쿼리 무효화
+      queryClient.invalidateQueries({
+        queryKey: POST_QUERY_KEYS.posts,
+      });
+    },
+    onError: error => {
+      console.error('[useCreatePost] 게시글 작성 실패:', error);
+    },
+  });
+};
+
+// del post
+
+// # post stats
+// like
+// comment
+// bookmark
