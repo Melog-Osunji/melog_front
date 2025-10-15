@@ -14,7 +14,7 @@ import {StackScreenProps} from '@react-navigation/stack';
 import {postNavigations} from '@/constants';
 import {colors} from '@/constants';
 //utils
-import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
+import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 //navigation
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 //components

@@ -17,7 +17,7 @@ import {YouTubeVideo, NewPostDTO} from '@/types';
 //navigation
 import {useNavigation} from '@react-navigation/native';
 //utils
-import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
+import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import {getAccessToken} from '@/utils/storage/UserStorage';
 //hooks
 import {useUserInfo} from '@/hooks/common/useUserInfo';

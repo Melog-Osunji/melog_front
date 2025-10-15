@@ -4,12 +4,11 @@ import {
   Text,
   StyleSheet,
   Animated,
-  Dimensions,
   SafeAreaView,
   Image,
 } from 'react-native';
 
-export type ToastType = 'success' | 'error' | 'warning' | 'info';
+export type ToastType = 'none' | 'success' | 'error' | 'info';
 
 interface ToastProps {
   message: string;
@@ -21,7 +20,7 @@ interface ToastProps {
 
 const Toast: React.FC<ToastProps> = ({
   message,
-  type = 'success',
+  type = 'none',
   visible,
   onHide,
   duration = 3000,
@@ -76,11 +75,11 @@ const Toast: React.FC<ToastProps> = ({
   const getToastIcon = () => {
     try {
       switch (type) {
+        case 'none':
+          return;
         case 'success':
           return require('@/assets/icons/Check.png');
         case 'error':
-          return require('@/assets/icons/Check.png');
-        case 'warning':
           return require('@/assets/icons/Check.png');
         case 'info':
           return require('@/assets/icons/Check.png');
@@ -96,11 +95,11 @@ const Toast: React.FC<ToastProps> = ({
     const baseStyle = styles.toast;
     switch (type) {
       case 'success':
+        return [baseStyle];
+      case 'success':
         return [baseStyle, styles.successToast];
       case 'error':
         return [baseStyle, styles.errorToast];
-      case 'warning':
-        return [baseStyle, styles.warningToast];
       case 'info':
         return [baseStyle, styles.infoToast];
       default:

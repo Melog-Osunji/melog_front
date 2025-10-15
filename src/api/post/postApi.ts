@@ -7,7 +7,7 @@ import type {
   PostWithUserDTO,
   NewPostDTO,
 } from '@/types';
-import {FEED_IDS} from '@/constants/postConstant';
+import {FEED_IDS} from '@/constants';
 
 // # feed
 export const fetchPopularPosts = async (): Promise<PostsDTO> => {

@@ -1,8 +1,8 @@
 import React, {useEffect} from 'react';
-import IntroStackNavigator from '@/navigations/stack/IntroStackNavigator';
-import MainTabNavigator from '@/navigations/tab/MainTabNavigator';
-import RegistrationStackNavigator from '@/navigations/stack/RegistrationStackNavigator';
 import {useAuthContext} from '@/contexts/AuthContext';
+import IntroStackNavigator from '@/navigations/stack/IntroStackNavigator';
+import RegistrationStackNavigator from '@/navigations/stack/RegistrationStackNavigator';
+import MainTabNavigator from '@/navigations/tab/MainTabNavigator';
 
 function RootNavigator() {
   const {isLogin, isRegistered, isLoading, setIsLogin, setIsRegistered} =
@@ -11,7 +11,7 @@ function RootNavigator() {
   useEffect(() => {
     // 개발 환경에서만 테스트 상태 설정
     if (__DEV__) {
-      const TEST_SCENARIO = 'LOGIN'; // 'LOGIN' | 'REGISTRATION' | 'MAIN'
+      const TEST_SCENARIO = 'REGISTRATION'; // 'LOGIN' | 'REGISTRATION' | 'MAIN'
 
       switch (TEST_SCENARIO) {
         case 'REGISTRATION':

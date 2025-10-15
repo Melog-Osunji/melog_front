@@ -8,8 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 //constants
-import {colors, postNavigations} from '@/constants';
-import {defaultFeedTypes} from '@/constants/postConstant';
+import {colors, postNavigations, defaultFeedTypes} from '@/constants';
 import {harmonyRooms as DUMMY_HARMONY_ROOMS} from '@/constants/dummyData'; // 임시
 //types
 import type {FeedType, PostWithUserDTO} from '@/types';

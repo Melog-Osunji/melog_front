@@ -17,7 +17,7 @@ import SearchResultProfileTab from '@/components/search/SearchResultProfileTab';
 import SearchResultFeedTab from '@/components/search/SearchResultFeedTab';
 import SearchResultHarmonyTab from '@/components/search/SearchResultHarmonyTab';
 import SearchInputField from '@/components/search/SearchInputField';
-import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
+import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 
 type IntroScreenProps = StackScreenProps<
   PostStackParamList,
@@ -40,12 +40,11 @@ function PostSearchResultScreen({navigation, route}: IntroScreenProps) {
 
   // 다른 화면에서 새 키워드로 다시 진입했을 때 반영
   useEffect(() => {
-      if (route.params?.searchKeyword && route.params.searchKeyword !== keyword) {
-        setText(route.params.searchKeyword);
-        setKeyword(route.params.searchKeyword);
-      }
-    }, [route.params?.searchKeyword]);
-
+    if (route.params?.searchKeyword && route.params.searchKeyword !== keyword) {
+      setText(route.params.searchKeyword);
+      setKeyword(route.params.searchKeyword);
+    }
+  }, [route.params?.searchKeyword]);
 
   const handleSearchSubmit = () => {
     const q = text.trim();
@@ -89,7 +88,10 @@ function PostSearchResultScreen({navigation, route}: IntroScreenProps) {
             ]}
             onPress={() => setSelectedTab('all')}>
             <Text
-              style={[styles.tabText, selectedTab === 'all' && styles.tabTextActive]}>
+              style={[
+                styles.tabText,
+                selectedTab === 'all' && styles.tabTextActive,
+              ]}>
               전체
             </Text>
           </TouchableOpacity>
@@ -143,10 +145,14 @@ function PostSearchResultScreen({navigation, route}: IntroScreenProps) {
 
       {/* Tab Content */}
       <View style={styles.tabContent}>
-        {selectedTab === 'all' && <SearchResultAllTab keyword={keyword}/>}
-        {selectedTab === 'profile' && <SearchResultProfileTab keyword={keyword}/>}
-        {selectedTab === 'feed' && <SearchResultFeedTab keyword={keyword}/>}
-        {selectedTab === 'harmony' && <SearchResultHarmonyTab keyword={keyword}/>}
+        {selectedTab === 'all' && <SearchResultAllTab keyword={keyword} />}
+        {selectedTab === 'profile' && (
+          <SearchResultProfileTab keyword={keyword} />
+        )}
+        {selectedTab === 'feed' && <SearchResultFeedTab keyword={keyword} />}
+        {selectedTab === 'harmony' && (
+          <SearchResultHarmonyTab keyword={keyword} />
+        )}
       </View>
     </SafeAreaView>
   );

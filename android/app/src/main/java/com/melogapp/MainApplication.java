@@ -1,4 +1,4 @@
-package com.melog.app;
+package com.melogapp;
 
 import android.app.Application;
 import com.facebook.react.PackageList;

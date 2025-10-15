@@ -1,9 +1,8 @@
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
-import {colors} from '@/constants';
+import {colors,defaultFeedTypes} from '@/constants';
 import {FeedType} from '@/types';
-import {defaultFeedTypes} from '@/constants/postConstant';
 
 interface FeedSelectorProps {
   selectedFeed: FeedType;
