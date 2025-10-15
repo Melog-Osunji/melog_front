@@ -13,7 +13,7 @@ const mock: any[] = []; // ← 비었을 때 EmptyState가 보이도록 가정
 const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
     useHideTabBarOnFocus();
     const { data, isLoading, isError } = useSearchProfile(keyword ?? '');
-
+    console.log(data);
     if (isLoading) {
         return (
           <View style={styles.center}>
@@ -38,7 +38,10 @@ const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
 
     return (
     <ScrollView contentContainerStyle={styles.content}>
-        {data.user.map((user, idx) => (
+        {data.user.map((user, idx) => {
+            const isFollowed = user.follow === 'T';
+
+            return (
             <View
               key={user.userNickname + idx}
               style={[
@@ -54,10 +57,11 @@ const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
               </View>
 
               <Pressable style={styles.followBtn}>
-                <Text style={styles.followLabel}>팔로우</Text>
+                <Text style={styles.followLabel}>{isFollowed ? '언팔로우' : '팔로우'}</Text>
               </Pressable>
             </View>
-          ))}
+            );
+          })}
     </ScrollView>
     );
 };

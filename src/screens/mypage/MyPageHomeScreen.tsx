@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Dimensions} from 'react-native';
+import React, {useState, useMemo, useCallback} from 'react';
+import {StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Dimensions, RefreshControl, ActivityIndicator} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import {MyPageStackParamList} from '@/navigations/stack/MyPageStackNavigator';
@@ -9,7 +9,8 @@ import IconButton from '@/components/common/IconButton';
 import MyPageFeedTab from '@/components/mypage/MyPageFeedTab';
 import MyPageMediaTab from '@/components/mypage/MyPageMediaTab';
 import MyPageBookmarkTab from '@/components/mypage/MyPageBookmarkTab';
-import HarmonyRoomStrip from '@/components/harmonyRoom/HarmonyRoomStrip';
+import HarmonyRoomStrip, { type Community } from '@/components/harmonyRoom/HarmonyRoomStrip';
+import { useMyPage } from '@/hooks/queries/myPage/useMyPage'
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
@@ -19,13 +20,29 @@ function MyPageHomeScreen() {
       'feed' | 'media' | 'bookmarkFeed'
     >('feed');
 
-  const communities: Community[] = [
-    { id: 'c1', name: '내 클래식 운영방', isOwner: true },
-    { id: 'c2', name: '바흐 클럽', isFavorite: true },
-    { id: 'c3', name: '가곡 연구회' },
-    { id: 'c4', name: '첼로 애호가' },
-    { id: 'c5', name: '피아노 살롱' },
-  ];
+  const { data, isLoading, isError, refetch, isRefetching } = useMyPage();
+
+  const communities = useMemo<Community[]>(() => {
+      if (!data?.harmonyRooms) return [];
+      return data.harmonyRooms.map(room => ({
+        id: String(room.roomId),
+        name: room.roomName,
+        coverUri: room.roomImg,
+        isOwner: room.manager,
+        isFavorite: room.bookmark,
+      }));
+    }, [data]);
+
+  const feedCount = data?.posts?.results?.length ?? 0;
+
+  if (isLoading) {
+      return (
+        <SafeAreaView style={[styles.container, {justifyContent:'center', alignItems:'center'}]}>
+          <ActivityIndicator />
+          <Text style={{marginTop:8, color:colors.GRAY_500}}>불러오는 중…</Text>
+        </SafeAreaView>
+      );
+    }
 
   return (
     <LinearGradient
@@ -34,25 +51,32 @@ function MyPageHomeScreen() {
           end={{x: 1, y: 0.3}}
           style={styles.container}
         >
-          <SafeAreaView style={styles.content}>
+          <SafeAreaView style={styles.content}
+          refreshControl={
+               <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.BLUE_500} />
+             }>
             {/* 헤더 */}
             <View style={styles.header}>
                 <IconButton<MyPageStackParamList>
                     imageSource={require('@/assets/icons/post/Notice.png')}
-                    target={[myPageNavigations.MYPAGE_EDIT]}
+//                     target={[myPageNavigations.MYPAGE_EDIT]}
                 />
                 <IconButton<MyPageStackParamList>
                     imageSource={require('@/assets/icons/mypage/Hamburger.png')}
-                    target={[myPageNavigations.MYPAGE_EDIT]}
+//                     target={[myPageNavigations.MYPAGE_EDIT]}
                 />
             </View>
             <ScrollView>
             {/* 기본 정보 */}
             <View style={styles.myInfoWrap}>
-                <View style={styles.infoImg}></View>
-                <Text style={styles.nickname}>닉네임</Text>
+                {data.profileImg ? (
+                  <Image source={{ uri: data.profileImg }} style={styles.infoImg} />
+                ) : (
+                  <View style={[styles.infoImg, { backgroundColor: colors.GRAY_200 }]} />
+                )}
+                <Text style={styles.nickname}>{data.nickname}</Text>
                 <View style={styles.bioWrap}>
-                    <Text style={styles.bioText}>한줄소개한줄소개한줄소개한줄소개한줄소개한줄소개</Text>
+                    <Text style={styles.bioText}>{data.introduction}</Text>
                 </View>
                 <View style={styles.musicWrap}>
                     <Image source={require('@/assets/icons/mypage/Music.png')}/>
@@ -65,11 +89,11 @@ function MyPageHomeScreen() {
                 <View style={styles.followWrap}>
                     <View style={styles.follow}>
                         <Text style={styles.followText}>팔로워</Text>
-                        <Text style={styles.countText}>00명</Text>
+                        <Text style={styles.countText}>{data.followers ?? 0}명</Text>
                     </View>
                     <View style={styles.follow}>
                         <Text style={styles.followText}>팔로잉</Text>
-                        <Text style={styles.countText}>00명</Text>
+                        <Text style={styles.countText}>{data.followings ?? 0}명</Text>
                     </View>
                 </View>
                 <View style={styles.buttonWrap}>
@@ -84,9 +108,7 @@ function MyPageHomeScreen() {
 
             <HarmonyRoomStrip
               communities={communities}
-              onChange={(id) => {
-                // TODO: id === 'all' 이면 전체 피드, 아니면 해당 커뮤니티 필터링 로직 호출
-              }}
+              onChange={(id) => {}}
             />
 
             {/* 마이페이지 피드 */}
@@ -102,7 +124,7 @@ function MyPageHomeScreen() {
                     styles.tabText,
                     selectedTab === 'feed' && styles.tabTextActive,
                   ]}>
-                  피드<Text style={{color:colors.GRAY_400, fontWeight: '400'}}> (000)</Text>
+                  피드<Text style={{color:colors.GRAY_400, fontWeight: '400'}}>{' '}({feedCount.toString().padStart(3, '0')})</Text>
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity

@@ -10,23 +10,23 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {RecommendRoom} from '@/constants/types';
 import {harmonyRoomNavigation} from '@/constants';
-import {colors} from '@/constants';
+import {colors, harmonyNavigations} from '@/constants';
 import LinearGradient from 'react-native-linear-gradient';
+import {recommendRoom} from '@/api/harmonyRoom/harmonRoomApi';
 
 type Props = {
-  data: RecommendRoom;
+  data: recommendRoom;
 };
 
 export default function RecommendCard({data}: Props) {
   const navigation = useNavigation<StackNavigationProp<HarmonyStackParamList>>();
 
-  const {roomID, title, tags, memberNum, roomProfileImgLink, content, memberProfileImg} = data;
+  const {id, name, category, profileImgLink, intro, memberNum, userProfileImgsUrl} = data;
 
   const handlePress = () => {
-    navigation.navigate(harmonyRoomNavigation.HARMONY_PAGE, {
-      roomID: roomID,
+    navigation.navigate(harmonyNavigations.HARMONY_PAGE, {
+      roomID: id,
     });
   };
 
@@ -42,25 +42,25 @@ export default function RecommendCard({data}: Props) {
              style={styles.container}
       >
         <View style={styles.roomInfoWrap}>
-          <Image source={{uri: roomProfileImgLink}} style={styles.thumbnail}/>
+          <Image source={{uri: profileImgLink}} style={styles.thumbnail}/>
           <View style={styles.roomInfo}>
-            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.title}>{name}</Text>
             <View style={styles.infoTagRow}>
                 <Text style={styles.tag} numberOfLines={1}>
-                    {tags.map(tag => `#${tag}`).join(' ')}
+                    {category.map(tag => `#${tag}`).join(' ')}
                 </Text>
             </View>
            </View>
         </View>
-        <Text style={styles.content}>{content}</Text>
+        <Text style={styles.content}>{intro}</Text>
         <View style={styles.memberInfo}>
             <View style={styles.numWrap}>
                 <Image source={require('@/assets/icons/harmonyRoom/FollowIcon.png')} style={styles.seeIcon}/>
                 <Text style={styles.seeNum}>{memberNum}</Text>
             </View>
             <View style={styles.imgWrap}>
-                <Image source={{uri: memberProfileImg[0]}} style={styles.profileFirst}/>
-                <Image source={{uri: memberProfileImg[1]}} style={styles.profileLast}/>
+                <Image source={{uri: userProfileImgsUrl[0]}} style={styles.profileFirst}/>
+                <Image source={{uri: userProfileImgsUrl[1]}} style={styles.profileLast}/>
             </View>
         </View>
       </LinearGradient>

@@ -9,41 +9,46 @@ import {
   Pressable
 } from 'react-native';
 import {colors} from '@/constants';
-import {PerformanceData} from '@/constants/dummyData';
+import type { CalendarItem } from '@/api/calendar/calendarApi';
 import LinearGradient from 'react-native-linear-gradient';
+import CheckPopupOneBtn from '@/components/common/CheckPopupOneBtn';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 
-type Props = {
-  data: PerformanceData;
-};
-
 dayjs.locale('ko');
 
-const formatDate = (date:Date) => {
-  return dayjs(date).format('YYYY.MM.DD(ddd)');
-};
-const formatEndDate = (date:Date) => {
-  return dayjs(date).format('MM.DD(ddd)');
+type Props = { data: CalendarItem };
+
+const formatRange = (startISO: string, endISO?: string | null) => {
+  const s = dayjs(startISO);
+  if (!endISO) return `${s.format('YYYY.MM.DD(ddd)')}`;
+  const e = dayjs(endISO);
+  const sameYear = s.isSame(e, 'year');
+  return sameYear
+    ? `${s.format('YYYY.MM.DD(ddd)')} - ${e.format('MM.DD(ddd)')}`
+    : `${s.format('YYYY.MM.DD(ddd)')} - ${e.format('YYYY.MM.DD(ddd)')}`;
 };
 
 const SCREEN_W = Dimensions.get('window').width;
 
 export default function PerformanceCard({data}:Props) {
 
-    const {id, title, location, startDate, endDate, isBookmark, leftDate, category, imgUrl} = data;
+    const { id, title, venue, startDateTime, endDateTime, dddy, bookmarked, thumbnailUrl } = data;
 
     const [isBook, setIsBook] = useState(false);
+    const [showExitPopup,setShowExitPopup] = useState(false);
+
     // 북마크 추가 함수
     const handleBookmark = () => {
+        setShowExitPopup(true);
         setIsBook(prev => !prev);
     };
 
     return (
         <View style={styles.container}>
             <View style={styles.performanceInfoWrap}>
-                {imgUrl ? (
-                  <Image source={{ uri: imgUrl }} style={styles.img} />
+                {thumbnailUrl ? (
+                  <Image source={{ uri: thumbnailUrl }} style={styles.img} />
                 ) : (
                   <View style={[styles.img, styles.placeholderImg]} />
                 )}
@@ -53,14 +58,14 @@ export default function PerformanceCard({data}:Props) {
                                 start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }}
                                 style={styles.gradientWrap}
                     >
-                        { leftDate === 0 ? <Text style={styles.leftDate}>D-DAY</Text>
-                            : leftDate ? <Text style={styles.leftDate}>D-{String(leftDate)}</Text>
-                            : <Text style={styles.leftDate}>마감</Text>
-                            }
+                    >
+                    <Text style={styles.leftDate}>
+                        {typeof dday === 'number' ? (dday === 0 ? 'D-DAY' : dday > 0 ? `D-${dday}` : '마감') : '마감'}
+                    </Text>
                     </LinearGradient>
                     <Text style={styles.title}>{title}</Text>
-                    <Text style={styles.location}>{location}</Text>
-                    <Text style={styles.period}>{formatDate(startDate)}{endDate ? `-${formatEndDate(endDate)}` : null}</Text>
+                    <Text style={styles.location}>{venue}</Text>
+                    <Text style={styles.period}>{formatRange(startDateTime, endDateTime)}</Text>
                 </View>
             </View>
             <Pressable onPress={handleBookmark}>
@@ -68,6 +73,16 @@ export default function PerformanceCard({data}:Props) {
                     : <Image source={require('@/assets/icons/post/Bookmark.png')} style={styles.icon}/>
                 }
             </Pressable>
+
+            <CheckPopupOneBtn
+              visible={showExitPopup}
+              onClose={() => setShowExitPopup(false)}
+              iconImg={require('@/assets/icons/post/Notice.png')}
+              title='캘린더에 저장했어요.'
+              btnColor={colors.BLUE_400}
+              btnText="확인"
+              btnTextColor={colors.WHITE}
+            />
         </View>
     );
 
@@ -100,7 +115,6 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
     },
     gradientWrap: {
-        height: 20,
         paddingHorizontal: 8,
         borderRadius: 999,
         justifyContent: 'center',

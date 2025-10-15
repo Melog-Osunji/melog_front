@@ -52,7 +52,7 @@ export type SearchProfile = {
   userNickname: string;
   profileUrl: string;
   intro: string;
-  follow: string;
+  follow: "T" | "F";
 }
 
 export type SearchProfileDTO = {

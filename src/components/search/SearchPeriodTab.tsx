@@ -1,11 +1,15 @@
 import React from 'react';
-import { ScrollView, View, Text, Dimensions, StyleSheet, ActivityIndicator } from 'react-native';
+import { ScrollView, View, Text, Dimensions, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { colors } from '@/constants';
 import { useSearchPeriod } from '@/hooks/queries/search/useSearch';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
-const SearchPeriodTab = () => {
+type Props = {
+  onSelect: (keyword: string) => void; // ✅ 추가
+};
+
+const SearchPeriodTab: React.FC<Props> = ({ onSelect }) => {
 
   const { data, isLoading, isError } = useSearchPeriod();
 
@@ -20,7 +24,7 @@ const SearchPeriodTab = () => {
 
   if (isError || !data) {
       return (
-        <View style={styles.center}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ color: colors.GRAY_400 }}>데이터를 불러오지 못했습니다.</Text>
         </View>
       );
@@ -32,9 +36,9 @@ const SearchPeriodTab = () => {
         <Text style={styles.sectionTitle}>인기 검색어</Text>
         <View style={styles.keywordWrap}>
           {data.era.map((item, i) => (
-            <View key={i} style={styles.keyword}>
+            <TouchableOpacity key={i} style={styles.keyword} activeOpacity={0.7} onPress={() => onSelect(item)}>
               <Text style={styles.keywordText}>{item}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       </View>

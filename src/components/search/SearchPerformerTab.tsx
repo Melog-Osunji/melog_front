@@ -1,11 +1,16 @@
 import React from 'react';
-import { ScrollView, View, Text, Dimensions, StyleSheet, ActivityIndicator } from 'react-native';
+import { ScrollView, View, Text, Dimensions, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { colors } from '@/constants';
 import { useSearchPerformer } from '@/hooks/queries/search/useSearch';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
-const SearchPerformerTab = () => {
+type Props = {
+  onSelect: (keyword: string) => void; // ✅ 추가
+};
+
+
+const SearchPerformerTab: React.FC<Props> = ({ onSelect }) => {
 
   const { data, isLoading, isError } = useSearchPerformer();
 
@@ -20,7 +25,7 @@ const SearchPerformerTab = () => {
 
   if (isError || !data) {
       return (
-        <View style={styles.center}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ color: colors.GRAY_400 }}>데이터를 불러오지 못했습니다.</Text>
         </View>
       );
@@ -31,7 +36,7 @@ const SearchPerformerTab = () => {
       <Text style={styles.sectionTitle}>인기 검색어</Text>
       <View style={styles.container}>
         {data.map((performer, i) => (
-          <View key={i} style={styles.performerItem}>
+          <TouchableOpacity key={i} style={styles.performerItem} activeOpacity={0.7} onPress={() => onSelect(performer.name)}>
             <Text style={styles.name}>{performer.name}</Text>
             <View style={styles.keywordRow}>
               {performer.keyword.map((kw, idx) => (
@@ -40,7 +45,7 @@ const SearchPerformerTab = () => {
                 </Text>
               ))}
             </View>
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
     </ScrollView>

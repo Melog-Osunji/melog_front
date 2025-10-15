@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {StyleSheet,
     Text,
     View,
@@ -6,7 +6,9 @@ import {StyleSheet,
     Dimensions,
     Platform,
     FlatList,
-    Pressable
+    Pressable,
+    ActivityIndicator,
+    RefreshControl
     } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -18,6 +20,8 @@ import IconButton from '@/components/common/IconButton';
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 import { useHarmonyRoomContext } from '@/contexts/HarmonyRoomContext';
 import RoomApplyCard, { ApplyUser } from '@/components/harmonyRoom/RoomApplyCard';
+import { useQueryClient } from '@tanstack/react-query';
+import { useWaitingUserList, useUpdateHarmonyMembership } from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
@@ -28,26 +32,92 @@ type HarmonySettingRouteProp = StackScreenProps<
   'HARMONY_APPLY'
 >['route'];
 
-const MOCK_USERS: ApplyUser[] = [
-  { id: '1', name: '아이디1', intro: '자기소개하는 글입니다.' },
-  { id: '2', name: '아이디2', intro: '안녕하세요 반갑습니다.' },
-  { id: '3', name: '아이디3', intro: '저는 클래식을 좋아합니다.' },
-];
-
 function HarmonyApplyManageScreen(){
     useHideTabBarOnFocus();
 
     const navigation = useNavigation<NavigationProp>();
     const route = useRoute<HarmonySettingRouteProp>();
+    const { roomID } = route.params ?? {};
     const { rooms } = useHarmonyRoomContext(); // [{id,name,tags,...}[]] 라고 가정
+    const qc = useQueryClient();
 
-    const handleApprove = (id: string) => {
-        console.log('승인:', id);
-      };
+    // 1) 대기자 목록 조회
+    const {
+        data: waitingDTO,
+        isLoading,
+        isError,
+        refetch,
+        isRefetching,
+    } = useWaitingUserList(roomID);
 
-    const handleReject = (id: string) => {
-        console.log('거절:', id);
+    // 2) 승인/거부
+    const { mutateAsync: updateMembership, isPending } = useUpdateHarmonyMembership(roomID);
+
+    const [refreshing, setRefreshing] = useState(false);
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        try { await refetch(); } finally { setRefreshing(false); }
+    }, [refetch]);
+
+    const users: ApplyUser[] = useMemo(() => {
+        const src = waitingDTO?.user ?? [];
+        return src.map(u => ({
+          id: String(u.id),
+          name: u.nickname ?? '익명',
+          intro: u.intro ?? '',
+          profileImgLink: u.profileImgLink, // RoomApplyCard가 받는다면 그대로 전달
+        }));
+    }, [waitingDTO]);
+
+    const listKey = useMemo(() => ['harmony','waiting', roomID], [roomID]);
+
+
+    const handleApprove = async (userId: string) => {
+        if (isPending) return; // 중복 클릭 방지
+
+        // 스냅샷
+        const prev = qc.getQueryData<any>(listKey);
+
+        try {
+          qc.setQueryData<any>(listKey, (old) => {
+            if (!old) return old;
+            const next = Array.isArray(old.user) ? old.user.filter((u: any) => String(u.id) !== String(userId)) : [];
+            return { ...old, user: next };
+          });
+
+          // 서버 호출
+          await updateMembership({ action: 'approve', userID: userId });
+            } catch (e) {
+          // 롤백
+          qc.setQueryData(listKey, prev);
+        }
     };
+
+    const handleReject = async (userId: string) => {
+        if (isPending) return;
+
+        const prev = qc.getQueryData<any>(listKey);
+
+        try {
+          qc.setQueryData<any>(listKey, (old) => {
+            if (!old) return old;
+            const next = Array.isArray(old.user) ? old.user.filter((u: any) => String(u.id) !== String(userId)) : [];
+            return { ...old, user: next };
+          });
+
+          await updateMembership({ action: 'deny', userID: userId });
+        } catch (e) {
+          qc.setQueryData(listKey, prev);
+        }
+    };
+
+    if (isLoading && !waitingDTO) {
+        return (
+          <SafeAreaView style={styles.center}>
+            <ActivityIndicator />
+          </SafeAreaView>
+        );
+      }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -60,20 +130,29 @@ function HarmonyApplyManageScreen(){
                 <Text style={styles.sectionTitle}>가입 신청 관리</Text>
             </View>
             <View style={styles.subTitle}>
-                <Text style={styles.count}>가입 신청자 수 {String(MOCK_USERS.length).padStart(2,'0')}명</Text>
+                <Text style={styles.count}>가입 신청자 수 {String(users.length).padStart(2,'0')}명</Text>
             </View>
 
              <FlatList
-                data={MOCK_USERS}
+                data={users}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                   <RoomApplyCard
                     user={item}
-                    onApprove={handleApprove}
-                    onReject={handleReject}
+                    onApprove={() => handleApprove(item.id)}
+                    onReject={() => handleReject(item.id)}
+                    disabled={isPending}
                   />
                 )}
                 contentContainerStyle={{ paddingVertical: 10, }}
+                refreshControl={
+                  <RefreshControl refreshing={refreshing || isRefetching} onRefresh={onRefresh} />
+                }
+                ListEmptyComponent={
+                      <View style={styles.empty}>
+                        <Text style={styles.emptyText}>대기 중인 신청자가 없어요.</Text>
+                      </View>
+                }
               />
 
         </SafeAreaView>
@@ -113,7 +192,9 @@ const styles = StyleSheet.create({
         fontWeight: '400',
         color: colors.BLACK,
         letterSpacing: 0.2,
-    }
+    },
+    empty: { paddingVertical: 40, alignItems: 'center' },
+    emptyText: { color: colors.GRAY_400, fontSize: 13 },
 });
 
 export default HarmonyApplyManageScreen;

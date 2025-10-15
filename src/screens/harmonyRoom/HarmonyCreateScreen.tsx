@@ -19,12 +19,13 @@ import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
 import styled from 'styled-components/native';
 import {colors, harmonyNavigations} from '@/constants';
 import IconButton from '@/components/common/IconButton';
-import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 import TagInputBox from '@/components/harmonyRoom/TagInputBox';
-import MusicSearchBottomSheet from '@/components/post/MusicSearchBottomSheet';
 import { useHarmonyRoomContext } from '@/contexts/HarmonyRoomContext';
 import CustomButton from '@/components/common/CustomButton';
+import {harmonyRoomInfo} from '@/api/harmonyRoom/harmonyRoomApi';
+import { useCreateHarmonyRoom } from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
+
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
@@ -38,26 +39,14 @@ const ALL_KEYWORDS = [
 function HarmonyCreateScreen() {
     const navigation = useNavigation<NavigationProp>();
     const { addRoom } = useHarmonyRoomContext();
+    const { mutateAsync, isPending } = useCreateHarmonyRoom();
 
     useHideTabBarOnFocus();
 
     const [roomName, setRoomName] = useState('');
     const [description, setDescription] = useState('');
-    const [personCount, setPersonCount] = useState(0);
     const [tags, setTags] = useState([]);
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-
-    const handleMusicPress = () => {
-        setIsMusicSearchVisible(true);
-    };
-
-    const handleVideoSelect = (video: YouTubeVideo) => {
-      setIsMusicSearchVisible(false);
-      setSelectedVideo(video);
-    };
-    const handleRemoveVideo = () => {
-        setSelectedVideo(null);
-    };
 
     useEffect(() => {
         const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
@@ -73,39 +62,54 @@ function HarmonyCreateScreen() {
         };
     }, []);
 
-
-    // YouTube URL에서 비디오 ID 추출하는 함수
-      const extractVideoId = (url: string) => {
-        const regex =
-          /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-        const match = url.match(regex);
-        return match ? match[1] : 'dQw4w9WgXcQ'; // 기본값
-      };
-
-    const handleCreateRoom = () => {
+    const handleCreateRoom = async () => {
         if (!roomName.trim()) {
             Alert.alert('알림', '방 이름을 입력해주세요.');
             return;
         }
+        if (tags.length === 0) {
+            Alert.alert('알림', '카테고리를 최소 1개 선택해주세요.');
+            return;
+        }
 
-        const newRoom = {
-            roomID: `room_${Date.now()}`,
-            title: roomName,
-            description,
-            tags,
-            seeNum: personCount,
-            mediaURL: selectedVideo
-              ? `https://www.youtube.com/watch?v=${extractVideoId(selectedVideo.thumbnail)}`
-              : null,
-            ownerId: '럽클',
+        const payload = {
+            name: roomName.trim(),
+            category: tags,
+            intro: description.trim(),
+            profileImg: '',
         };
 
-        addRoom(newRoom);
-        navigation.navigate(harmonyNavigations.HARMONY_PAGE, {
-                    roomID: newRoom.roomID,
-                    roomData: newRoom
-                });
+        try {
+            await mutateAsync(payload); // 서버 생성
+
+            // 2) 컨텍스트에 새 타입(harmonyRoomInfo)으로 저장 (기본값 포함)
+            const now = new Date().toISOString();
+            const ownerId = "f4c475f1-9016-4b01-91a8-1880cf749903"; // TODO: 로그인 사용자로 교체
+            const room: harmonyRoomInfo = {
+                profileImgLink: '',       // 필요시 서버/업로드 값으로 교체
+                name: roomName.trim(),
+                category: tags,
+                intro: description.trim(),
+                isRunning: false,
+                isPrivate: false,
+                createdAt: now,
+                members: [ownerId],
+                owner: ownerId,
+                isDirectAssign: false,
+            };
+
+            addRoom(room);
+
+            // 3) 이동 (홈으로)
+            navigation.navigate(harmonyNavigations.HARMONY_HOME as any);
+            // 상세로 가고 싶다면:
+            // navigation.navigate(harmonyNavigations.HARMONY_PAGE as any, { roomData: room });
+        } catch (e: any) {
+            console.error(e);
+            Alert.alert('생성 실패', e?.message ?? '하모니룸 생성 중 오류가 발생했습니다.');
+        }
     };
+
     return (
         <>
         <KeyboardAvoidingView
@@ -204,11 +208,10 @@ function HarmonyCreateScreen() {
             {!isKeyboardVisible && (
                 <View style={styles.bottom}>
                     <CustomButton
-                        label="제작하기"
-                        onPress={() => {
-                          navigation.navigate(harmonyNavigations.HARMONY_HOME);
-                        }}
-                        style={{backgroundColor:colors.BLUE_500}}
+                        label={isPending ? '제작 중...' : '제작하기'}
+                        onPress={handleCreateRoom}
+                        disabled={isPending}
+                        style={{backgroundColor:colors.BLUE_500, opacity: isPending ? 0.6 : 1}}
                     />
                 </View>
             )}

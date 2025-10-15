@@ -1,9 +1,13 @@
 import React from 'react';
-import { ScrollView, Text, View, StyleSheet, ActivityIndicator } from 'react-native';
+import { ScrollView, Text, View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { colors } from '@/constants';
 import { useSearchAll } from '@/hooks/queries/search/useSearch';
 
-const SearchAllTab = () => {
+type Props = {
+  onSelect: (keyword: string) => void; // ✅ 추가
+};
+
+const SearchAllTab: React.FC<Props> = ({ onSelect }) => {
   const { data, isLoading, isError } = useSearchAll();
 
   if (isLoading) {
@@ -31,10 +35,12 @@ const SearchAllTab = () => {
         <Text style={styles.sectionTitle}>추천 키워드</Text>
         <View style={styles.keywordWrap}>
           {recommendKeyword.map((keyword, i) => (
-            <Text key={i} style={styles.keyword}>
-              <Text style={styles.sharp}># </Text>
-              {keyword}
-            </Text>
+            <TouchableOpacity key={i} activeOpacity={0.7} onPress={() => onSelect(keyword)}>
+                <Text key={i} style={styles.keyword}>
+                  <Text style={styles.sharp}># </Text>
+                  {keyword}
+                </Text>
+            </TouchableOpacity>
           ))}
         </View>
       </View>
@@ -47,10 +53,10 @@ const SearchAllTab = () => {
 
         <View style={styles.popularWrap}>
           {livePopularSearch.map((keyword, i) => (
-            <View key={i} style={styles.popularRow}>
+            <TouchableOpacity key={i} style={styles.popularRow} activeOpacity={0.6} onPress={() => onSelect(keyword)}>
               <Text style={styles.rankText}>{i + 1}</Text>
               <Text style={styles.contentText}>{keyword}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       </View>

@@ -19,7 +19,9 @@ import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
 import { useHarmonyRoomContext } from '@/contexts/HarmonyRoomContext';
 import SwitchToggle from '@/components/common/SwitchToggle';
 import CheckPopup from '@/components/common/CheckPopup';
-
+import DeleteReasonSheet from '@/components/harmonyRoom/DeleteReasonSheet';
+import DeleteSuccessSheet from '@/components/harmonyRoom/DeleteSuccessSheet';
+import { useDeleteHarmonyRoom } from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 type NavigationProp = StackNavigationProp<HarmonyStackParamList>;
@@ -37,10 +39,14 @@ function HarmonySettingScreen(){
     const route = useRoute<HarmonySettingRouteProp>();
     const { roomID } = route.params ?? {};
     const { rooms } = useHarmonyRoomContext();
+    const deleteMut = useDeleteHarmonyRoom(roomID);
+
+    const [showExitPopup, setShowExitPopup] = useState(false);
+    const [showReasonSheet, setShowReasonSheet] = useState(false);
+    const [showSuccessSheet, setShowSuccessSheet] = useState(false);
 
     const [isPublic, setIsPublic] = useState(true);
     const [needApproval, setNeedApproval] = useState(false);
-    const [showExitPopup, setShowExitPopup] = useState(false);
 
     const handleGoToEdit = () => {
         navigation.navigate(harmonyNavigations.HARMONY_EDIT, { roomID: roomID});
@@ -50,19 +56,36 @@ function HarmonySettingScreen(){
         navigation.navigate(harmonyNavigations.HARMONY_APPLY, { roomID: roomID});
     };
 
-    const handleDelete = () => {
-        setShowExitPopup(true);
-    };
+    const handleDelete = () => setShowExitPopup(true);
 
-    // 폐쇄하기 확인
+    // 1단계) 폐쇄하기 확인
     const handleConfirmExit = () => {
         setShowExitPopup(false);
-        navigation.goBack();
+        setShowReasonSheet(true);
+    };
+    const handleCancelExit = () => setShowExitPopup(false);
+
+    // 2단계) 사유 선택 후 API 호출
+    const handleSubmitReason = (reason: string) => {
+        setShowReasonSheet(false);
+        deleteMut.mutate(
+          { reason },
+          {
+            onSuccess: () => {
+              setShowSuccessSheet(true);
+            },
+            onError: (e: any) => {
+              // 실패 토스트/알럿
+              console.error(e);
+            },
+          }
+        );
     };
 
-    // 팝업에서 유지하기
-    const handleCancelExit = () => {
-        setShowExitPopup(false);
+    // 3단계) 완료 후 이동
+    const handleFinish = () => {
+        setShowSuccessSheet(false);
+        navigation.navigate(harmonyNavigations.HARMONY_HOME as any)
     };
 
     return (
@@ -152,6 +175,15 @@ function HarmonySettingScreen(){
             rightBtnTextColor={colors.WHITE}
             rightBtnText="유지하기"
         />
+        <DeleteReasonSheet
+            visible={showReasonSheet}
+            onClose={() => setShowReasonSheet(false)}
+            onConfirm={handleSubmitReason}
+          />
+        <DeleteSuccessSheet
+            visible={showSuccessSheet}
+            onClose={handleFinish}
+          />
         </SafeAreaView>
     );
 };
