@@ -1,10 +1,14 @@
 import React, {useMemo} from 'react';
-import { ScrollView, View, Text, StyleSheet, ActivityIndicator, Image} from 'react-native';
+import { ScrollView, View, Text, StyleSheet, ActivityIndicator, Image, TouchableOpacity} from 'react-native';
 import { colors } from '@/constants';
 import { useSearchInstrument } from '@/hooks/queries/search/useSearch';
 
+type Props = {
+  onSelect: (keyword: string) => void; // ✅ 추가
+};
 
-const SearchInstrumentTab = () => {
+
+const SearchInstrumentTab: React.FC<Props> = ({ onSelect }) => {
 
   const { data, isLoading, isError } = useSearchInstrument();
 
@@ -27,7 +31,7 @@ const SearchInstrumentTab = () => {
 
   if (isError || !data) {
     return (
-      <View style={styles.center}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ color: colors.GRAY_400 }}>데이터를 불러오지 못했습니다.</Text>
       </View>
     );
@@ -38,14 +42,14 @@ const SearchInstrumentTab = () => {
       <Text style={styles.sectionTitle}>인기 검색어</Text>
       <View style={styles.keywordWrap}>
         {instruments.map((item, i) => (
-          <View key={i} style={styles.keyword}>
+          <TouchableOpacity key={i} style={styles.keyword} activeOpacity={0.7} onPress={() => onSelect(item.name)}>
             <Image
               source={{ uri: item.image }}
               style={styles.circle}
               resizeMode="cover"
             />
             <Text style={styles.keywordText}>{item.name}</Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
     </ScrollView>

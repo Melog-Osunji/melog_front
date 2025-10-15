@@ -7,9 +7,11 @@ import {
   Animated,
   PanResponder,
   Dimensions,
-  Image
+  Image,
+  Easing,
 } from 'react-native';
 import {colors} from '@/constants';
+import { useWindowDimensions } from 'react-native';
 
 // (옵션) 이미 프로젝트에 있다면 사용. 없으면 useGradient=false로 사용하세요.
 let LG: any = View;
@@ -18,13 +20,12 @@ try {
   LG = require('react-native-linear-gradient').default;
 } catch {}
 
-const { width: SCREEN_W } = Dimensions.get('window');
 const COLS = 7;
-const CELL = Math.floor((SCREEN_W - 40) / COLS); // 좌우 24px 패딩 가정
-const GRID_ROW_H = 44; // 숫자 한 줄 높이
+const GRID_ROW_H = 44;
 const HEADER_H = 36;   // "YYYY.MM" + 좌우 화살표 영역
 const STRIP_H = 60;    // 주간 스트립 높이
 const PADDING_V = 8;
+const PADDING_H = 20;
 const HANDLE_H = 32; // handle 높이 4 + 상하 여백 16
 
 
@@ -36,6 +37,7 @@ type Props = {
   onDateChange?: (iso: string) => void;
   useGradient?: boolean;                 // 상단 그라데이션 사용 여부
   gradientColors?: string[];             // ['#EFFAFF', '#FFFFFF']
+  onDragStateChange?: (dragging: boolean) => void; // 드래그 시작/끝 알림
 };
 
 function toISO(d: Date) {
@@ -92,7 +94,13 @@ export default function CalendarTopSheet({
   onDateChange,
   useGradient = true,
   gradientColors = ['transparent', '#FFFFFF'],
+  onDragStateChange,
 }: Props) {
+  const { width: windowW } = useWindowDimensions();
+  const usableW = Math.max(0, windowW - PADDING_H * 2);
+  const CELL = Math.floor(usableW / COLS);
+  const gridWidth = CELL * COLS;
+
   const [currentMonth, setCurrentMonth] = useState(() => {
     const init = fromISO(initialDate);
     return new Date(init.getFullYear(), init.getMonth(), 1);
@@ -103,35 +111,61 @@ export default function CalendarTopSheet({
   const strip = useMemo(() => getWeekStrip(selected), [selected]);
 
   // expand/collapse
-  const EXPANDED_H = HEADER_H + PADDING_V * 2 + GRID_ROW_H * 6 + 8 + HANDLE_H + 16; // 6줄 그리드
+  const EXPANDED_H = HEADER_H + PADDING_V * 2 + GRID_ROW_H * 6 + 8 + HANDLE_H + 16;
   const COLLAPSED_H = HEADER_H + STRIP_H + PADDING_V * 2 + HANDLE_H + 24;
 
   const [isExpanded, setExpanded] = useState(true);
+  const expandedRef = useRef(isExpanded);
+  const startTs = useRef(0);
+  const startY = useRef(0);
   const animH = useRef(new Animated.Value(EXPANDED_H)).current;
   const startH = useRef(EXPANDED_H);
 
   const pan = useRef(
     PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 6,
+      onPanResponderTerminationRequest: () => false,
       onPanResponderGrant: () => {
         startH.current = (animH as any)._value ?? (isExpanded ? EXPANDED_H : COLLAPSED_H);
+        onDragStateChange?.(true);
+        startTs.current = Date.now();
+        startY.current = (animH as any)._value;
       },
       onPanResponderMove: (_, g) => {
         const next = clamp(startH.current + g.dy, COLLAPSED_H, EXPANDED_H);
         animH.setValue(next);
       },
       onPanResponderRelease: (_, g) => {
+        const duration = Date.now() - startTs.current;
+        const isTap = Math.abs(g.dy) < 6 && duration < 200;
+        if (isTap) {
+            const targetExpand = !expandedRef.current;
+            snapTo(targetExpand ? EXPANDED_H : COLLAPSED_H, targetExpand);
+            onDragStateChange?.(false);
+            return;
+        }
         const halfway = (EXPANDED_H + COLLAPSED_H) / 2;
         const shouldExpand =
           g.vy < -0.3 ? false : g.vy > 0.3 ? true : (animH as any)._value > halfway;
         snapTo(shouldExpand ? EXPANDED_H : COLLAPSED_H, shouldExpand);
+        onDragStateChange?.(false);
+      },
+      onPanResponderTerminate: () => {
+        onDragStateChange?.(false);
       },
     })
   ).current;
 
   function snapTo(height: number, expand: boolean) {
-    Animated.spring(animH, { toValue: height, useNativeDriver: false, damping: 15, stiffness: 140 })
-      .start(() => setExpanded(expand));
+    setExpanded(expand);
+    expandedRef.current = expand;
+    Animated.timing(animH, {
+      toValue: height,
+      duration: 180,    // 150~220ms 권장
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false, // height 애니메이션은 false 필수
+    }).start();
   }
 
   function clamp(n: number, min: number, max: number) {
@@ -157,7 +191,7 @@ export default function CalendarTopSheet({
   const selectedISO = toISO(selected);
 
   return (
-    <Animated.View style={[styles.container, { height: animH }]} {...pan.panHandlers}>
+    <Animated.View style={[styles.container, { height: animH }]}>
       {useGradient ? (
         <LG colors={gradientColors} start={{ x: 1, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fill}>
           <Header title={title} onPrev={() => moveMonth(-1)} onNext={() => moveMonth(1)} />
@@ -167,6 +201,8 @@ export default function CalendarTopSheet({
               selectedISO={selectedISO}
               onSelect={handleSelect}
               markedDates={markedDates}
+              cellW={CELL}
+              gridW={gridWidth}
             />
           ) : (
             <WeekStrip
@@ -174,9 +210,11 @@ export default function CalendarTopSheet({
               selectedISO={selectedISO}
               onSelect={handleSelect}
               markedDates={markedDates}
+              cellW={CELL}
+              gridW={gridWidth}
             />
           )}
-          <View style={styles.handleWrap}>
+          <View style={styles.handleWrap} {...pan.panHandlers} hitSlop={{top:10,bottom:10,left:20,right:20}}>
             <View style={styles.handle} />
           </View>
         </LG>
@@ -198,7 +236,7 @@ export default function CalendarTopSheet({
               markedDates={markedDates}
             />
           )}
-          <View style={styles.handle} />
+          <View style={styles.handle} {...pan.panHandlers} hitSlop={{top:10,bottom:10,left:20,right:20}}/>
         </View>
       )}
     </Animated.View>
@@ -227,16 +265,18 @@ function DayBubble({
   dimmed,
   showDot,
   onPress,
+  cellW,
 }: {
   date: Date;
   isSelected: boolean;
   dimmed?: boolean;
   showDot?: boolean;
   onPress: () => void;
+  cellW: number;
 }) {
   const day = date.getDate();
   return (
-    <TouchableOpacity style={styles.cell} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity style={[styles.cell, { width: cellW }]} onPress={onPress} activeOpacity={0.8}>
         {isSelected ? (
           <LG
             colors={['#08C6D3', '#A0B4E4']}
@@ -267,14 +307,18 @@ function MonthGrid({
   selectedISO,
   onSelect,
   markedDates,
+  cellW,
+  gridW,
 }: {
   grid: { date: Date; inMonth: boolean }[];
   selectedISO: string;
   onSelect: (d: Date) => void;
   markedDates: Marked;
+  cellW: number;
+  gridW: number;
 }) {
   return (
-    <View style={styles.grid}>
+    <View style={[styles.grid, { width: gridW, alignSelf: 'center' }]}>
       {grid.map(({ date, inMonth }) => {
         const iso = toISO(date);
         const isSel = iso === selectedISO;
@@ -287,6 +331,7 @@ function MonthGrid({
             dimmed={!inMonth}
             showDot={dot}
             onPress={() => onSelect(date)}
+            cellW={cellW}
           />
         );
       })}
@@ -299,14 +344,18 @@ function WeekStrip({
   selectedISO,
   onSelect,
   markedDates,
+  cellW,
+  gridW,
 }: {
   days: Date[];
   selectedISO: string;
   onSelect: (d: Date) => void;
   markedDates: Marked;
+  cellW: number;
+  gridW: number;
 }) {
   return (
-    <View style={styles.strip}>
+    <View style={[styles.strip, { width: gridW, alignSelf: 'center', justifyContent: 'flex-start' }]}>
       {days.map((d) => {
         const iso = toISO(d);
         const isSel = iso === selectedISO;
@@ -318,6 +367,7 @@ function WeekStrip({
             isSelected={isSel}
             showDot={dot}
             onPress={() => onSelect(d)}
+            cellW={cellW}
           />
         );
       })}
@@ -344,7 +394,6 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   header: {
-    height: HEADER_H - 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -367,7 +416,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   cell: {
-    width: CELL,
     height: GRID_ROW_H,
     alignItems: 'center',
     justifyContent: 'flex-start',
@@ -401,7 +449,6 @@ const styles = StyleSheet.create({
     height: STRIP_H,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingBottom: 12,
   },
   handleWrap: {

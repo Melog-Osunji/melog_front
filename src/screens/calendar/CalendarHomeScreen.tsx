@@ -1,45 +1,59 @@
-import React, {useState, useMemo} from 'react';
-import {StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Dimensions, FlatList} from 'react-native';
+import React, {useState, useMemo, useCallback} from 'react';
+import {StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Dimensions, FlatList, ActivityIndicator} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import {colors} from '@/constants';
 import IconButton from '@/components/common/IconButton';
 import PerformanceCard from '@/components/calender/PerformanceCard';
-import { PerformanceData } from '@/constants/dummyData';
-import CalendarExpandableSheet from '@/components/calender/CalendarExpandableSheet';
 import CalendarTopSheet from '@/components/calender/CalendarTopSheet';
+import {useCalendarMain, buildMarkedDates} from '@/hooks/queries/calender/useCalender';
+import { SERVER_TO_KOR } from '@/utils/calenderCategory';
 import dayjs from 'dayjs';
+import isBetween from 'dayjs/plugin/isBetween';
 import 'dayjs/locale/ko';
+dayjs.extend(isBetween);
 
 const SCREEN_W = Dimensions.get('window').width;
 
-const CATEGORIES = ['전체', '공연', '전시', '강연', '축제', '토크'];
+const CATEGORIES = ['전체', '연극', '뮤지컬', '오페라', '음악', '콘서트', '국악', '무용', '전시', '기타'];
 
 function CalenderHomeScreen() {
-
+  const today = dayjs();
+  const [listScrollEnabled, setListScrollEnabled] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('전체');
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(today.format('YYYY-MM-DD'));
 
-  const filteredData =
-      selectedCategory === '전체'
-        ? PerformanceData
-        : PerformanceData.filter(p => p.category === selectedCategory);
+  const { data, isLoading, isError, refetch } = useCalendarMain({});
 
-  const bookmarked = PerformanceData.filter(p => p.isBookmark);
+  const weeks = data?.calendar?.weeks ?? [];
+  const items = data?.items ?? [];
+  const markedDates = useMemo(() => buildMarkedDates(weeks), [weeks]);
 
-  const markedDates = useMemo(() => {
-      const m: Record<string, boolean> = {};
-      bookmarked.forEach(p => {
-        const key = dayjs(p.startDate).format('YYYY-MM-DD'); // 필요 시 dayjs(p.startDate).format('YYYY-MM-DD')
-        if (key) m[key] = true;
-      });
-      return m;
-  }, [bookmarked]);
+  const stats = useMemo(() => {
+    const total = items.length;
+    const bookmarked = items.filter(it => it.bookmarked).length;
+    const markedDays = Object.keys(markedDates).length;
+    return { total, bookmarked, markedDays, alarmOn: !!data?.meta?.alarm };
+  }, [items, markedDates, data?.meta?.alarm]);
 
-//   const finalData = useMemo(() => {
-//       if (!selectedDate) return filteredData;
-//       return filteredData.filter(p => p.startDate === selectedDate);
-//   }, [filteredData, selectedDate]);
+  const listData = useMemo(() => {
+    if (!data?.items) return [];
+    const filteredByCategory = selectedCategory === '전체'
+      ? data.items
+      : data.items.filter(it => SERVER_TO_KOR[it.category] === selectedCategory);
+
+    if (!selectedDate) return filteredByCategory;
+
+    return filteredByCategory.filter(it =>
+      dayjs(it.startDateTime).format('YYYY-MM-DD') === selectedDate
+      || (it.endDateTime && dayjs(selectedDate).isBetween(
+            dayjs(it.startDateTime).startOf('day'),
+            dayjs(it.endDateTime).endOf('day'),
+            null,
+            '[]'
+         ))
+    );
+  }, [data, selectedCategory, selectedDate]);
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
@@ -48,7 +62,7 @@ function CalenderHomeScreen() {
   };
 
   // 헤더(앱바) + 탑시트 + 카테고리
-    const Header = (
+    const Header = useMemo(() => (
       <>
         <View style={styles.header}>
           <View style={styles.headerTitle}>
@@ -62,12 +76,10 @@ function CalenderHomeScreen() {
         <CalendarTopSheet
             initialDate={selectedDate ?? undefined}
             markedDates={markedDates}
-            onDateChange={(iso) => {
-              setSelectedDate(iso);
-              console.log('Selected date:', iso);
-            }}
+            onDateChange={setSelectedDate}
             useGradient
             gradientColors={['transparent', colors.WHITE]}
+            onDragStateChange={(dragging) => setListScrollEnabled(!dragging)}
           />
 
         {/* 카테고리 칩 */}
@@ -83,17 +95,40 @@ function CalenderHomeScreen() {
           })}
         </ScrollView>
       </>
-    );
+    ),[markedDates, selectedCategory, selectedDate]);
 
+    if (isLoading) {
+      return (
+        <LinearGradient colors={['#EFFAFF', colors.WHITE]} start={{x:1,y:0}} end={{x:1,y:0.3}} style={styles.container}>
+          <SafeAreaView style={[styles.content, {alignItems:'center', justifyContent:'center'}]}>
+            <ActivityIndicator />
+            <Text style={{marginTop:8, color: colors.GRAY_400}}>불러오는 중…</Text>
+          </SafeAreaView>
+        </LinearGradient>
+      );
+    }
     return (
       <LinearGradient colors={['#EFFAFF', colors.WHITE]} start={{x:1,y:0}} end={{x:1,y:0.3}} style={styles.container}>
         <SafeAreaView style={styles.content}>
           <FlatList
-            data={filteredData}
+            data={listData}
             keyExtractor={(item) => String(item.id)}
             renderItem={({ item }) => <PerformanceCard data={item} />}
             ListHeaderComponent={Header}
             contentContainerStyle={{ paddingBottom: 60 }}
+            scrollEnabled={listScrollEnabled}
+            ListEmptyComponent={
+                isLoading ? (
+                  <View style={{padding: 20, alignItems: 'center'}}>
+                    <ActivityIndicator />
+                    <Text style={{marginTop:8, color: colors.GRAY_400}}>불러오는 중…</Text>
+                  </View>
+                ) : (
+                  <View style={{padding: 20}}>
+                    <Text style={{color: colors.GRAY_400}}>선택한 조건에 해당하는 일정이 없어요.</Text>
+                  </View>
+                )
+              }
           />
         </SafeAreaView>
       </LinearGradient>
@@ -103,7 +138,7 @@ function CalenderHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: SCREEN_W,
+//     width: SCREEN_W,
   },
   content: {
     width: '100%',
@@ -136,9 +171,9 @@ const styles = StyleSheet.create({
     paddingTop: 32,
     paddingHorizontal: 20,
     gap: 4,
+    paddingBottom: 16,
   },
   categoryBtn: {
-    height: 36,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 40,

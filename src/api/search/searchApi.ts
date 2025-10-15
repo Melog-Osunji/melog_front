@@ -33,6 +33,10 @@ export type SearchInstrumentDTO = {
   imgLink: string[];
 };
 
+export type SearchingDTO = {
+  suggestions: string[];
+};
+
 export const fetchSearchAll = async (): Promise<SearchAllDTO> => {
   const res = await instance.get<BaseResponse<SearchAllDTO>>('/api/search/all');
   return res.data.data;
@@ -61,4 +65,11 @@ export const fetchSearchPeriod = async ():Promise<SearchPeriodDTO> => {
 export const fetchSearchInstrument= async ():Promise<SearchInstrumentDTO> => {
   const res = await instance.get<BaseResponse<SearchInstrumentDTO>>('/api/search/instrument');
   return res.data.data;
+}
+
+export const fetchSearching= async (q:string):Promise<SearchingDTO> => {
+    const res = await instance.get<BaseResponse<SearchingDTO>>('/api/search/autocomplete', {
+        params: { q },
+      });
+    return res.data.data;
 }

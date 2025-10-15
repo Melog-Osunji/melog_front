@@ -25,6 +25,8 @@ import SearchInputField from '@/components/search/SearchInputField';
 import RecentSearchList from '@/components/search/RecentSearchList';
 import AutoCompleteList from '@/components/search/AutoCompleteList';
 import {useHideTabBarOnFocus} from '@/utils/roadBottomNavigationBar';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useSearching } from '@/hooks/queries/search/useSearching';
 
 type IntroScreenProps = StackScreenProps<
   PostStackParamList,
@@ -37,7 +39,8 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
     'all' | 'composer' | 'performer' | 'genre' | 'period' | 'instrument'
   >('all');
   const [searchText, setSearchText] = useState('');
-  const [showRecent, setShowRecent] = useState(false);
+  const debounced = useDebounce(searchText, 200);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   const [recentKeywords, setRecentKeywords] = useState<string[]>([
     '카페에서 듣기 좋은 클래식',
@@ -45,6 +48,26 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
     '멘델스존',
     'Hilary Hahn',
   ]);
+
+  // 자동완성 데이터
+  const { data, isFetching, isError } = useSearching(debounced);
+  const suggestions = data?.suggestions ?? [];
+
+  console.log(data);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setShowOverlay(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setShowOverlay(false));
+    return () => { showSub.remove(); hideSub.remove(); };
+  }, []);
+
+  const handleSubmit = (keyword: string) => {
+    const q = keyword.trim();
+    if (!q) return;
+    // 최근검색 갱신 (중복 제거 + 앞쪽 삽입)
+    setRecentKeywords(prev => [q, ...prev.filter(k => k !== q)].slice(0, 10));
+    navigation.navigate(postNavigations.POST_SEARCH_RESULT, { searchKeyword: q });
+  };
 
   const handleClearOne = (keyword: string) => {
     setRecentKeywords(prev => prev.filter(k => k !== keyword));
@@ -78,22 +101,15 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
               value={searchText}
               onChangeText={setSearchText}
               placeholder="작곡가, 연주가, 장르, 시대 등"
-              onFocus={() => setShowRecent(true)}
-              onSubmitEditing={() => {
-                if (searchText.trim() !== '') {
-                  navigation.navigate(postNavigations.POST_SEARCH_RESULT, {
-                    searchKeyword: searchText,
-                  });
-                  setShowRecent(false);
-                }
-              }}
+              onFocus={() => setShowOverlay(true)}
+              onSubmitEditing={() => handleSubmit(searchText)}
             />
           </View>
         </TouchableWithoutFeedback>
 
 
           {/* 최근검색/자동완성 (포커스 상태) */}
-          {showRecent ? (
+          {showOverlay ? (
             <View style={styles.focusContent}>
               {searchText.trim() === '' ? (
                 <RecentSearchList
@@ -103,14 +119,18 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
                 />
               ) : (
                 <AutoCompleteList
-                  suggestions={['Bach', 'Bach Classic', 'Beethoven']}
+                  suggestions={isError ? [] : suggestions}
                   searchText={searchText}
-                  onSelect={text => {
+                  onSelect={(text) => {
                     setSearchText(text);
                     Keyboard.dismiss();
+                    handleSubmit(text);
                   }}
                 />
               )}
+                {/* 로딩/에러 뱃지 정도만 보조적으로 */}
+                {isFetching && <Text style={{marginTop:8, color: colors.GRAY_400}}>불러오는 중…</Text>}
+                {isError && <Text style={{marginTop:8, color: colors.RED_500}}>자동완성 로딩 실패</Text>}
             </View>
           ) : (
             <>
@@ -214,12 +234,54 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
 
               {/* 탭 콘텐츠 */}
               <View style={styles.tabContent}>
-                {selectedTab === 'all' && <SearchAllTab />}
-                {selectedTab === 'composer' && <SearchComposerTab />}
-                {selectedTab === 'performer' && <SearchPerformerTab />}
-                {selectedTab === 'genre' && <SearchGenreTab />}
-                {selectedTab === 'period' && <SearchPeriodTab />}
-                {selectedTab === 'instrument' && <SearchInstrumentTab />}
+                {selectedTab === 'all' && <SearchAllTab
+                    onSelect={(text) => {
+                        setSearchText(text);
+                        Keyboard.dismiss();
+                        handleSubmit(text);
+                        }}
+                    />
+                }
+                {selectedTab === 'composer' && <SearchComposerTab
+                    onSelect={(text) => {
+                        setSearchText(text);
+                        Keyboard.dismiss();
+                        handleSubmit(text);
+                        }}
+                    />
+                }
+                {selectedTab === 'performer' && <SearchPerformerTab
+                    onSelect={(text) => {
+                        setSearchText(text);
+                        Keyboard.dismiss();
+                        handleSubmit(text);
+                        }}
+                    />
+                }
+                {selectedTab === 'genre' && <SearchGenreTab
+                    onSelect={(text) => {
+                        setSearchText(text);
+                        Keyboard.dismiss();
+                        handleSubmit(text);
+                        }}
+                    />
+                }
+                {selectedTab === 'period' && <SearchPeriodTab
+                    onSelect={(text) => {
+                        setSearchText(text);
+                        Keyboard.dismiss();
+                        handleSubmit(text);
+                        }}
+                    />
+                }
+                {selectedTab === 'instrument' && <SearchInstrumentTab
+                    onSelect={(text) => {
+                        setSearchText(text);
+                        Keyboard.dismiss();
+                        handleSubmit(text);
+                        }}
+                    />
+                }
               </View>
             </>
           )}

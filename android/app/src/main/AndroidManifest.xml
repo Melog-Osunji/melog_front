@@ -1,19 +1,24 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.melog.app">
+    <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.INTERNET" />
+        <uses-permission android:name="android.permission.INTERNET" />
+        <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+        <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+        <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
 
-    <application
-        android:name=".MainApplication"
-        android:label="@string/app_name"
-        android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:allowBackup="false"
-        android:theme="@style/AppTheme">
-        
-        <!-- MainActivity -->
-        <activity
+        <application
+          android:name=".MainApplication"
+          android:label="@string/app_name"
+          android:icon="@mipmap/ic_launcher"
+          android:roundIcon="@mipmap/ic_launcher_round"
+          android:allowBackup="false"
+          android:theme="@style/AppTheme"
+          android:usesCleartextTraffic="true"
+          >
+          <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBF7K6pkEuSgWr1bI5-30KzZMxMjpkw-xo"/>
+          <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
@@ -36,5 +41,5 @@
                       android:scheme="kakaof128b5577e075ab54e57d47c7f386643" />
             </intent-filter>
         </activity>
-    </application>
-</manifest>
+        </application>
+    </manifest>

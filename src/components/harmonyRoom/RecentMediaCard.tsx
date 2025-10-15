@@ -13,21 +13,21 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import YouTubeEmbed from '@/components/YouTubeEmbed';
 import {RecentHarmonyRoom} from '@/constants/types';
 import {harmonyRoomNavigation} from '@/constants';
-import {RecentHarmonyRoomData} from '@/constants/dummyData';
 import {colors} from '@/constants';
+import {harmonyRoomMediaDTO} from '@/api/harmonyRoom/harmonyRoomApi';
 
 type Props = {
-  data: RecentHarmonyRoomData;
+  data: harmonyRoomMediaDTO;
 };
 
 export default function RecentMediaCard({data}: Props) {
   const navigation = useNavigation<StackNavigationProp<HarmonyStackParamList>>();
 
-  const {userNickname, userProfileImgLink, roomID, mediaURL, createdAgo} = data;
+  const {userNickname, userProfileImgLink, harmonyRoomName, postID, mediaUrl, mediaType, createdAgo} = data;
 
   const handlePress = () => {
     navigation.navigate(harmonyRoomNavigation.HARMONY_PAGE, {
-      roomID: roomID,
+      roomID: postID,
     });
   };
 
