@@ -75,8 +75,8 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     );
   }
 
-  console.log('[PostPageScreen] 게시글 데이터 로드 완료:', postData);
-  console.log('[PostPageScreen] 댓글 데이터 로드 완료:', commentsData);
+  console.log('[PostPageScreen] 게시글 데이터 로드 완료');
+  console.log('[PostPageScreen] 댓글 데이터 로드 완료');
 
   const {post, user} = postData;
 

@@ -71,23 +71,8 @@ export default function PostCreateScreen() {
       return;
     }
 
-    const accessToken = await getAccessToken();
-    console.log(
-      '[PostCreateScreen] Access Token:',
-      accessToken ? '존재함' : '없음',
-    );
-
-    if (!accessToken) {
-      console.error('[PostCreateScreen] 토큰이 없습니다. 로그인이 필요합니다.');
-      showToast('로그인이 필요합니다.');
-      return;
-    }
-
-    console.log('[PostCreateScreen] 게시글 작성 시작');
-    console.log('[PostCreateScreen] 작성자 정보:', userInfo);
-
     const postData: NewPostDTO = {
-      title: '',
+      title: 'title', // 임시 제목
       content: content.trim(),
       mediaType: 'youtube',
       mediaUrl: selectedVideo
@@ -107,7 +92,7 @@ export default function PostCreateScreen() {
 
       setTimeout(() => {
         navigation.goBack();
-      }, 1000);
+      }, 500);
     } catch (error) {
       console.error('[PostCreateScreen] 게시글 작성 실패:', error);
       showToast('게시글 작성에 실패했습니다.');
