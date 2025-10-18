@@ -9,6 +9,7 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 //constants
 import {colors} from '@/constants';
@@ -17,11 +18,13 @@ import {YouTubeVideo, NewPostDTO} from '@/types';
 //navigation
 import {useNavigation} from '@react-navigation/native';
 //utils
-import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
-import {getAccessToken} from '@/utils/storage/UserStorage';
+import {extractVideoId} from '@/utils/providers';
 //hooks
+import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import {useUserInfo} from '@/hooks/common/useUserInfo';
+import {useImagePicker} from '@/hooks/common/useImagePicker';
 import {useCreatePost} from '@/hooks/queries/post/usePostQueries';
+import {useUploadImage} from '@/hooks/queries/common/useCommon';
 //components
 import PostActionButtons from '@/components/post/postcreate/PostActionButtons';
 import CustomButton from '@/components/common/CustomButton';
@@ -30,18 +33,21 @@ import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 
 export default function PostCreateScreen() {
   const navigation = useNavigation();
+  useHideTabBarOnFocus();
+
   const {userInfo, isLoading: userLoading, error: userError} = useUserInfo();
   const createPostMutation = useCreatePost();
-
   const [content, setContent] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [inputHeight, setInputHeight] = useState(50);
+  const {selectedImage, seletedImageURI, selectImage, resetImage} =
+    useImagePicker();
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
-  useHideTabBarOnFocus();
-
+  //toast
   const showToast = (message: string) => {
     setToastMessage(message);
     setToastVisible(true);
@@ -51,35 +57,88 @@ export default function PostCreateScreen() {
     setToastVisible(false);
   };
 
+  // 취소 handler (goback)
   const handleCancel = () => {
     navigation.goBack();
   };
 
+  //tag handler
   const handleTagSelect = (tag: string) => {
     if (selectedTags.includes(tag)) {
-      // 이미 선택된 태그면 제거
       setSelectedTags(prev => prev.filter(t => t !== tag));
     } else {
-      // 새로운 태그면 추가
       setSelectedTags(prev => [...prev, tag]);
     }
   };
 
+  // img upload mutation
+  const uploadImageMutation = useUploadImage('post');
+
+  React.useEffect(() => {
+    if (selectedImage && !uploadImageMutation.isPending) {
+      console.log('[PostCreateScreen] 이미지 선택됨, 자동 업로드 시작');
+      uploadImageMutation.mutate(selectedImage, {
+        onSuccess: data => {
+          console.log('[PostCreateScreen] 이미지 업로드 성공:', data);
+          setUploadedImageUrl(data);
+          showToast('이미지가 업로드되었습니다.');
+        },
+        onError: error => {
+          console.log('[PostCreateScreen] 이미지 업로드 실패:', error);
+          showToast('이미지 업로드에 실패했습니다.');
+        },
+      });
+    }
+  }, [selectedImage]);
+
+  const handleImageSelect = () => {
+    selectImage();
+  };
+
+  const handleRemoveImage = () => {
+    resetImage();
+    setUploadedImageUrl(null);
+  };
+
+  //video handler
+  const handleVideoSelect = (video: YouTubeVideo) => {
+    setSelectedVideo(video);
+    if (selectedImage || uploadedImageUrl) {
+      // 비디오 선택 시 이미지 제거
+      handleRemoveImage();
+    }
+  };
+
+  const handleRemoveVideo = () => {
+    setSelectedVideo(null);
+  };
+
+  //게시 handler
   const handlePost = async () => {
     if (!content.trim()) {
       showToast('내용을 입력해주세요.');
       return;
     }
 
+    // 이미지가 업로드 중인 경우 대기
+    if (selectedImage && uploadImageMutation.isPending) {
+      showToast('이미지 업로드 중입니다. 잠시만 기다려주세요.');
+      return;
+    }
+
     const postData: NewPostDTO = {
-      title: 'title', // 임시 제목
+      title: 'title',
       content: content.trim(),
-      mediaType: 'youtube',
+      mediaType: selectedVideo
+        ? 'youtube'
+        : uploadedImageUrl
+        ? 'image'
+        : 'text',
       mediaUrl: selectedVideo
         ? `https://www.youtube.com/watch?v=${extractVideoId(
             selectedVideo.thumbnail,
           )}`
-        : '',
+        : uploadedImageUrl || '',
       tags: selectedTags,
     };
 
@@ -99,23 +158,9 @@ export default function PostCreateScreen() {
     }
   };
 
-  const handleVideoSelect = (video: YouTubeVideo) => {
-    setSelectedVideo(video);
-  };
-
-  const handleRemoveVideo = () => {
-    setSelectedVideo(null);
-  };
-
-  // YouTube URL에서 비디오 ID 추출하는 함수
-  const extractVideoId = (url: string) => {
-    const regex =
-      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-    const match = url.match(regex);
-    return match ? match[1] : 'dQw4w9WgXcQ'; // 기본값
-  };
-
-  const isSubmitting = createPostMutation.isPending;
+  // 제출 또는 업로드 중인지 여부
+  const isSubmitting =
+    createPostMutation.isPending || uploadImageMutation.isPending;
 
   if (userLoading) {
     return (
@@ -198,6 +243,33 @@ export default function PostCreateScreen() {
             </View>
           )}
 
+          {/* Selected Image Display */}
+          {seletedImageURI && (
+            <View style={styles.selectedImageContainer}>
+              <Image
+                source={{uri: seletedImageURI}}
+                style={styles.selectedImage}
+              />
+              <View style={styles.imageActions}>
+                {uploadImageMutation.isPending && (
+                  <Text style={styles.uploadingText}>업로드 중...</Text>
+                )}
+                {uploadedImageUrl && (
+                  <Text style={styles.uploadSuccessText}>업로드 완료</Text>
+                )}
+                {!uploadImageMutation.isPending && !uploadedImageUrl && (
+                  <Text style={styles.uploadFailText}>업로드 대기중</Text>
+                )}
+                <TouchableOpacity
+                  style={styles.removeImageButton}
+                  onPress={handleRemoveImage}
+                  disabled={isSubmitting}>
+                  <Text style={styles.removeImageText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
           {/* Selected Video Display */}
           {selectedVideo && (
             <View style={styles.selectedVideoContainer}>
@@ -222,6 +294,8 @@ export default function PostCreateScreen() {
         <PostActionButtons
           onVideoSelect={handleVideoSelect}
           onTagSelect={handleTagSelect}
+          onImageSelect={handleImageSelect}
+          selectedTags={selectedTags}
         />
       </KeyboardAvoidingView>
 
@@ -346,5 +420,62 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     color: colors.GRAY_300,
+  },
+  selectedImageContainer: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    marginVertical: 16,
+    padding: 12,
+  },
+  selectedImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    resizeMode: 'cover',
+  },
+  imageActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  uploadingText: {
+    color: colors.BLUE_400,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  uploadButton: {
+    backgroundColor: colors.BLUE_400,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  uploadButtonText: {
+    color: colors.WHITE,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  uploadSuccessText: {
+    color: colors.GRAY_600,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  uploadFailText: {
+    color: colors.GRAY_400,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  removeImageButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeImageText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

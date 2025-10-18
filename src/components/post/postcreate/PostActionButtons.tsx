@@ -1,13 +1,5 @@
 import React, {useState} from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  Alert,
-  ScrollView,
-} from 'react-native';
+import {StyleSheet, View, Text, TouchableOpacity, Image} from 'react-native';
 import {colors} from '@/constants';
 //components
 import PhotoBottomSheet from './PhotoBottomSheet';
@@ -18,33 +10,36 @@ import {YouTubeVideo} from '@/types';
 interface PostActionButtonsProps {
   onVideoSelect?: (video: YouTubeVideo) => void;
   onTagSelect?: (tag: string) => void;
+  onImageSelect?: () => void;
+  selectedTags?: string[];
 }
 
 export default function PostActionButtons({
   onVideoSelect,
   onTagSelect,
+  onImageSelect,
+  selectedTags = [], // 부모에서 받은 태그 사용
 }: PostActionButtonsProps) {
-  const [activeButton, setActiveButton] = useState<'music' | 'photo' | 'tag'>(
-    'music',
-  );
   const [isPhotoBottomSheetVisible, setIsPhotoBottomSheetVisible] =
     useState(false);
   const [isMusicSearchVisible, setIsMusicSearchVisible] = useState(false);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showTagBar, setShowTagBar] = useState(false);
 
-  const handleMusicPress = () => {
-    setActiveButton('music');
-    setIsMusicSearchVisible(true);
+  const handleTagSelect = (tag: string) => {
+    console.log('[PostActionButtons] 선택된 태그:', tag);
+    onTagSelect?.(tag);
   };
 
   const handlePhotoPress = () => {
-    setActiveButton('photo');
-    setIsPhotoBottomSheetVisible(true);
+    onImageSelect?.();
+  };
+
+  const handleMusicPress = () => {
+    setIsMusicSearchVisible(true);
   };
 
   const handleTagPress = () => {
-    setActiveButton('tag');
+    console.log('[PostActionButtons] 태그 버튼 클릭');
     setShowTagBar(!showTagBar);
   };
 
@@ -54,25 +49,7 @@ export default function PostActionButtons({
     console.log('선택된 비디오:', video);
   };
 
-  const handleTagSelect = (tag: string) => {
-    console.log('선택된 태그:', tag);
-    // 상위 컴포넌트의 onTagSelect 호출
-    onTagSelect?.(tag);
-
-    // 로컬 상태도 업데이트 (UI 표시용)
-    if (selectedTags.includes(tag)) {
-      // 이미 선택된 태그면 제거
-      setSelectedTags(prev => prev.filter(t => t !== tag));
-    } else {
-      // 새로운 태그면 추가
-      setSelectedTags(prev => [...prev, tag]);
-    }
-  };
-
-  const renderIcon = (
-    buttonType: 'music' | 'photo' | 'tag',
-    iconSource: any,
-  ) => {
+  const renderIcon = (iconSource: any) => {
     return (
       <View style={styles.iconContainer}>
         <Image source={iconSource} style={styles.iconImage} />
@@ -94,7 +71,6 @@ export default function PostActionButtons({
 
   return (
     <View style={styles.container}>
-      {/* 태그 바 */}
       <RecommendTags
         visible={showTagBar}
         selectedTags={selectedTags}
@@ -103,17 +79,17 @@ export default function PostActionButtons({
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={handleMusicPress}>
-          {renderIcon('music', require('@/assets/icons/post/FindMusic.png'))}
+          {renderIcon(require('@/assets/icons/post/FindMusic.png'))}
           {renderText('music', '동영상')}
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={handlePhotoPress}>
-          {renderIcon('photo', require('@/assets/icons/post/Picture.png'))}
+          {renderIcon(require('@/assets/icons/post/Picture.png'))}
           {renderText('photo', '이미지')}
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={handleTagPress}>
-          {renderIcon('tag', require('@/assets/icons/post/Tag.png'))}
+          {renderIcon(require('@/assets/icons/post/Tag.png'))}
           {renderText('tag', '태그')}
         </TouchableOpacity>
       </View>
