@@ -1,12 +1,5 @@
 import React, {useEffect, useRef} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-  SafeAreaView,
-  Image,
-} from 'react-native';
+import {View, Text, StyleSheet, Animated, Image} from 'react-native';
 import {colors} from '@/constants';
 
 export type ToastType = 'none' | 'success' | 'error';
@@ -27,7 +20,7 @@ const iconMap = {
 };
 
 const iconColorMap = {
-  success: colors.BLUE_300,
+  success: colors.BLUE_400,
   error: colors.ERROR_RED,
 };
 
@@ -134,25 +127,22 @@ const Toast: React.FC<ToastProps> = ({
 const styles = StyleSheet.create({
   toastContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 24,
     gap: 10,
     height: 48,
-    maxWidth: '90%',
+    width: '90%', // 수정: Width -> width, 화면의 90%
     borderRadius: 8,
     backgroundColor: 'rgba(99, 108, 115, 0.7)',
   },
   icon: {
     width: 24,
     height: 24,
-    marginRight: 8,
   },
   toastText: {
-    color: '#fff',
+    color: colors.WHITE,
     fontSize: 15,
     fontWeight: '600',
-    flex: 1,
   },
 });
 

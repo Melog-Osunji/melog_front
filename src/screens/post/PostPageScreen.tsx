@@ -27,7 +27,6 @@ import GradientBg from '@/components/common/styles/GradientBg';
 import {usePostDetail} from '@/hooks/queries/post/usePostQueries';
 import {usePostComments} from '@/hooks/queries/post/usePostQueries';
 
-// 네비게이션 param 타입 정의
 type PostPageScreenProp = StackScreenProps<
   PostStackParamList,
   typeof postNavigations.POST_PAGE
@@ -79,7 +78,6 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   console.log('[PostPageScreen] 댓글 데이터 로드 완료');
 
   const {post, user} = postData;
-
   return (
     <SafeAreaView style={styles.container}>
       <GradientBg>
