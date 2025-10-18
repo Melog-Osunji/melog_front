@@ -189,10 +189,7 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={handleCancel}
-            style={styles.cancelButton}
-            disabled={isSubmitting}>
+          <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
             <Text
               style={[styles.cancelText, isSubmitting && styles.disabledText]}>
               취소
@@ -254,36 +251,24 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
           {/* Selected Image Display */}
           {seletedImageURI && (
             <View style={styles.selectedContainer}>
+              <TouchableOpacity onPress={handleRemoveImage}>
+                <Image
+                  source={require('@/assets/icons/common/close.png')}
+                  style={styles.removeButtonIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
               <Image
                 source={{uri: seletedImageURI}}
                 style={styles.selectedImage}
               />
-              <View style={styles.imageActions}>
-                {uploadImageMutation.isPending && (
-                  <Text style={styles.uploadingText}>업로드 중...</Text>
-                )}
-                {uploadedImageUrl && (
-                  <Text style={styles.uploadSuccessText}>업로드 완료</Text>
-                )}
-                {!uploadImageMutation.isPending && !uploadedImageUrl && (
-                  <Text style={styles.uploadFailText}>업로드 대기중</Text>
-                )}
-                <TouchableOpacity
-                  style={styles.removeImageButton}
-                  onPress={handleRemoveImage}
-                  disabled={isSubmitting}>
-                  <Text style={styles.removeImageText}>✕</Text>
-                </TouchableOpacity>
-              </View>
             </View>
           )}
 
           {/* Selected Video Display */}
           {selectedVideo && (
-            <View style={styles.selectedVideoContainer}>
-              <TouchableOpacity
-                onPress={handleRemoveVideo}
-                disabled={isSubmitting}>
+            <View style={styles.selectedContainer}>
+              <TouchableOpacity onPress={handleRemoveVideo}>
                 <Image
                   source={require('@/assets/icons/common/close.png')}
                   style={styles.removeButtonIcon}
@@ -392,8 +377,7 @@ const styles = StyleSheet.create({
   },
   selectedContainer: {
     marginVertical: 16,
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     gap: 8,
   },
   videoEmbedWrapper: {
@@ -407,11 +391,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     tintColor: colors.GRAY_200,
-  },
-  removeVideoText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
   selectedTagsContainer: {
     marginTop: -40,
@@ -432,61 +411,10 @@ const styles = StyleSheet.create({
   disabledText: {
     color: colors.GRAY_300,
   },
-  selectedImageContainer: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    marginVertical: 16,
-    padding: 12,
-  },
   selectedImage: {
     width: '100%',
     height: 200,
     borderRadius: 8,
     resizeMode: 'cover',
-  },
-  imageActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  uploadingText: {
-    color: colors.BLUE_400,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  uploadButton: {
-    backgroundColor: colors.BLUE_400,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  uploadButtonText: {
-    color: colors.WHITE,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  uploadSuccessText: {
-    color: colors.GRAY_600,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  uploadFailText: {
-    color: colors.GRAY_400,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  removeImageButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  removeImageText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
 });
