@@ -24,13 +24,13 @@ import {extractVideoId} from '@/utils/providers';
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import {useUserInfo} from '@/hooks/common/useUserInfo';
 import {useImagePicker} from '@/hooks/common/useImagePicker';
-import {useCreatePost} from '@/hooks/queries/post/usePostQueries';
 import {useUploadImage} from '@/hooks/queries/common/useCommon';
+import {useCreatePost} from '@/hooks/queries/post/usePostQueries';
 //components
-import PostActionButtons from '@/components/post/postcreate/PostActionButtons';
+import Toast, {ToastType} from '@/components/common/Toast';
 import CustomButton from '@/components/common/CustomButton';
-import Toast from '@/components/common/Toast';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
+import PostActionButtons from '@/components/post/postcreate/PostActionButtons';
 
 type PostCreateScreenProps = StackScreenProps<
   PostStackParamList,
@@ -53,8 +53,11 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
   //toast
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  const showToast = (message: string) => {
+  const [toastType, setToastType] = useState<ToastType>('none');
+
+  const showToast = (message: string, type: ToastType = 'none') => {
     setToastMessage(message);
+    setToastType(type);
     setToastVisible(true);
   };
 
@@ -86,11 +89,11 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
         onSuccess: data => {
           console.log('[PostCreateScreen] 이미지 업로드 성공:', data);
           setUploadedImageUrl(data);
-          showToast('이미지가 업로드되었습니다.');
+          showToast('이미지가 업로드되었습니다.', 'success');
         },
         onError: error => {
           console.log('[PostCreateScreen] 이미지 업로드 실패:', error);
-          showToast('이미지 업로드에 실패했습니다.');
+          showToast('이미지 업로드에 실패했습니다.', 'error');
         },
       });
     }
@@ -121,7 +124,7 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
   //게시 handler
   const handlePost = async () => {
     if (!content.trim()) {
-      showToast('내용을 입력해주세요.');
+      showToast('내용을 입력해주세요.', 'error');
       return;
     }
 
@@ -152,14 +155,14 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
     try {
       await createPostMutation.mutateAsync(postData);
       console.log('[PostCreateScreen] 게시글 작성 완료');
-      showToast('게시되었습니다.');
+      showToast('게시되었습니다.', 'success');
 
       setTimeout(() => {
         navigation.goBack();
       }, 500);
     } catch (error) {
       console.error('[PostCreateScreen] 게시글 작성 실패:', error);
-      showToast('게시글 작성에 실패했습니다.');
+      showToast('게시글 작성에 실패했습니다.', 'error');
     }
   };
 
@@ -250,7 +253,7 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
 
           {/* Selected Image Display */}
           {seletedImageURI && (
-            <View style={styles.selectedImageContainer}>
+            <View style={styles.selectedContainer}>
               <Image
                 source={{uri: seletedImageURI}}
                 style={styles.selectedImage}
@@ -278,18 +281,21 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
           {/* Selected Video Display */}
           {selectedVideo && (
             <View style={styles.selectedVideoContainer}>
+              <TouchableOpacity
+                onPress={handleRemoveVideo}
+                disabled={isSubmitting}>
+                <Image
+                  source={require('@/assets/icons/common/close.png')}
+                  style={styles.removeButtonIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
               <View style={styles.videoEmbedWrapper}>
                 <YouTubeEmbed
                   url={`https://www.youtube.com/watch?v=${extractVideoId(
                     selectedVideo.thumbnail,
                   )}`}
                 />
-                <TouchableOpacity
-                  style={styles.removeVideoButton}
-                  onPress={handleRemoveVideo}
-                  disabled={isSubmitting}>
-                  <Text style={styles.removeVideoText}>✕</Text>
-                </TouchableOpacity>
               </View>
             </View>
           )}
@@ -305,7 +311,13 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
       </KeyboardAvoidingView>
 
       {/* Toast */}
-      <Toast message={toastMessage} visible={toastVisible} onHide={hideToast} />
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        type={toastType}
+        position="top"
+        onHide={hideToast}
+      />
     </SafeAreaView>
   );
 }
@@ -378,10 +390,11 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     paddingHorizontal: 6,
   },
-  selectedVideoContainer: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
+  selectedContainer: {
     marginVertical: 16,
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 8,
   },
   videoEmbedWrapper: {
     width: '100%',
@@ -390,17 +403,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
-  removeVideoButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
+  removeButtonIcon: {
     width: 28,
     height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
+    tintColor: colors.GRAY_200,
   },
   removeVideoText: {
     fontSize: 14,
