@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {StyleSheet, View, Text, TouchableOpacity, Image} from 'react-native';
 import {colors} from '@/constants';
 //components
-import PhotoBottomSheet from './PhotoBottomSheet';
 import MusicSearchBottomSheet from './MusicSearchBottomSheet';
 import RecommendTags from './RecommendTags';
 import {YouTubeVideo} from '@/types';
@@ -20,8 +19,6 @@ export default function PostActionButtons({
   onImageSelect,
   selectedTags = [], // 부모에서 받은 태그 사용
 }: PostActionButtonsProps) {
-  const [isPhotoBottomSheetVisible, setIsPhotoBottomSheetVisible] =
-    useState(false);
   const [isMusicSearchVisible, setIsMusicSearchVisible] = useState(false);
   const [showTagBar, setShowTagBar] = useState(false);
 
@@ -93,12 +90,6 @@ export default function PostActionButtons({
           {renderText('tag', '태그')}
         </TouchableOpacity>
       </View>
-
-      {/* Photo BottomSheet */}
-      <PhotoBottomSheet
-        visible={isPhotoBottomSheetVisible}
-        onClose={() => setIsPhotoBottomSheetVisible(false)}
-      />
 
       {/* Music Search BottomSheet */}
       <MusicSearchBottomSheet

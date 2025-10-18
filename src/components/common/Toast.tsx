@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 10,
     height: 48,
-    width: '90%', // 수정: Width -> width, 화면의 90%
+    width: '90%',
     borderRadius: 8,
     backgroundColor: 'rgba(99, 108, 115, 0.7)',
   },
