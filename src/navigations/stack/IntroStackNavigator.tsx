@@ -5,11 +5,10 @@ import {
   CardStyleInterpolators,
   TransitionSpecs,
 } from '@react-navigation/stack';
-
+import {introNavigations} from '@/constants';
+//screens
 import WelcomeScreen from '@/screens/intro/WelcomeScreen';
 import PreOnboardingScreen from '@/screens/intro/PreOnboardingScreen';
-import {introNavigations} from '@/constants';
-
 import LoginScreen from '@/screens/intro/LoginScreen';
 
 export type IntroStackParamList = {

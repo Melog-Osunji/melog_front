@@ -4,7 +4,7 @@ import {
   CardStyleInterpolators,
   TransitionSpecs,
 } from '@react-navigation/stack';
-
+//screens
 import ConsentList from '@/screens/intro/ToS/ConsentList';
 import AgreementViewer from '@/screens/intro/ToS/AgreementViewer';
 import InitProfileStackNavigator from '@/navigations/stack/InitProfileStackNavigator';

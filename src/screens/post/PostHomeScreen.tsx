@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {
   View,
@@ -15,8 +15,6 @@ import type {FeedType, PostWithUserDTO} from '@/types';
 //navigation
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
-//context
-import {usePostContext} from '@/contexts/PostContext';
 //hooks
 import {usePostsByFeedId} from '@/hooks/queries/post/usePostQueries';
 //components
@@ -25,6 +23,7 @@ import IconButton from '@/components/common/IconButton';
 import FeedSelector from '@/components/post/FeedSelector';
 import GradientBg from '@/components/common/styles/GradientBg';
 import HaryroomNaviBtn from '@/components/post/HaryroomNaviBtn';
+import Toast, {ToastType} from '@/components/common/Toast';
 
 type PostHomeScreenProps = StackScreenProps<
   PostStackParamList,
@@ -32,38 +31,28 @@ type PostHomeScreenProps = StackScreenProps<
 >;
 
 function PostHomeScreen({navigation}: PostHomeScreenProps) {
-  const {posts: contextPosts} = usePostContext();
-
+  //state
   const [selectedFeed, setSelectedFeed] = useState<FeedType>(
     defaultFeedTypes[0],
   );
   const [selectedRoomId, setSelectedRoomId] = useState<string>('room1');
 
-  // 선택된 피드 ID에 따른 포스트 조회
-  const {
-    data: apiPosts,
-    isLoading,
-    error,
-    refetch,
-  } = usePostsByFeedId(selectedFeed.id);
+  //toast
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<ToastType>('none');
 
-  // 표시할 포스트 결정 (API 데이터 우선, 없으면 Context 데이터)
-  const getDisplayPosts = useCallback((): PostWithUserDTO[] => {
-    if (apiPosts?.results && apiPosts.results.length > 0) {
-      return apiPosts.results;
-    }
-    return contextPosts || [];
-  }, [apiPosts?.results, contextPosts]);
+  const showToast = (message: string, type: ToastType = 'none') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
-  // 피드 선택 핸들러
-  const handleFeedSelect = useCallback(
-    (feed: FeedType) => {
-      setSelectedFeed(feed);
-    },
-    [selectedFeed.label],
-  );
+  const hideToast = () => {
+    setToastVisible(false);
+  };
 
-  // 하모니룸 선택 핸들러
+  // 하모니룸 선택 handler
   const handleRoomSelect = useCallback(
     (roomId: string) => {
       console.log(
@@ -74,7 +63,23 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
     [selectedRoomId],
   );
 
-  // 재시도 핸들러
+  // 피드 선택 handler
+  const handleFeedSelect = useCallback(
+    (feed: FeedType) => {
+      setSelectedFeed(feed);
+    },
+    [selectedFeed.label],
+  );
+
+  // 포스트 조회
+  const {
+    data: apiPosts,
+    isLoading,
+    error,
+    refetch,
+  } = usePostsByFeedId(selectedFeed.id);
+
+  // 재시도 handler
   const handleRetry = useCallback(() => {
     console.log('[PostHomeScreen] 포스트 다시 불러오기 시도');
     refetch();
@@ -84,55 +89,28 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
     selectedFeedId: selectedFeed.id,
     selectedFeedLabel: selectedFeed.label,
     apiPostsCount: apiPosts?.results?.length || 0,
-    contextPostsCount: contextPosts?.length || 0,
-    displayPostsCount: getDisplayPosts().length,
     isLoading,
     hasError: !!error,
   });
 
-  // 에러 상태 컴포넌트
-  const renderError = () => (
-    <GradientBg>
-      <SafeAreaView style={styles.container}>
-        {/* 헤더 - 에러 상태에서도 표시 */}
-        <View style={styles.header}>
-          <FeedSelector
-            selectedFeed={selectedFeed}
-            onFeedSelect={handleFeedSelect}
-            feedTypes={defaultFeedTypes}
-          />
-          <View style={styles.headerIconRow}>
-            <IconButton<PostStackParamList>
-              imageSource={require('@/assets/icons/post/Search.png')}
-              target={[postNavigations.POST_SEARCH]}
-            />
-            <IconButton<PostStackParamList>
-              imageSource={require('@/assets/icons/post/Notice.png')}
-              target={[postNavigations.POST_SEARCH]}
-            />
-          </View>
-        </View>
-
-        {/* 에러 메시지 */}
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
-            {selectedFeed.label} 피드를 불러오는데 실패했습니다
-          </Text>
-          <TouchableOpacity onPress={handleRetry} style={styles.retryButton}>
-            <Text style={styles.retryText}>다시 시도</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </GradientBg>
-  );
-
-  // 로딩 상태 컴포넌트
+  // 에러/로딩 상태 컴포넌트
   const renderLoading = () => (
-    <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color={colors.WHITE} />
-      <Text style={styles.loadingText}>
+    <View style={s_styles.container}>
+      <ActivityIndicator size="large" color={colors.BLUE_400} />
+      <Text style={s_styles.loadingText}>
         {selectedFeed.label} 피드를 불러오는 중...
       </Text>
+    </View>
+  );
+
+  const renderError = () => (
+    <View style={s_styles.container}>
+      <Text style={s_styles.errorText}>
+        {selectedFeed.label} 피드를 불러오는데 실패했습니다
+      </Text>
+      <TouchableOpacity style={s_styles.retryButton} onPress={handleRetry}>
+        <Text style={s_styles.retryText}>다시 시도</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -142,7 +120,6 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
       <FeedSelector
         selectedFeed={selectedFeed}
         onFeedSelect={handleFeedSelect}
-        feedTypes={defaultFeedTypes}
       />
       <View style={styles.headerIconRow}>
         <IconButton<PostStackParamList>
@@ -158,34 +135,32 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
   );
 
   // 에러 상태 처리
+  useEffect(() => {
+    if (error) {
+      console.error('[PostHomeScreen] 포스트 조회 에러:', error);
+      showToast('피드를 불러오는 중 오류가 발생했습니다.', 'error');
+    }
+  }, [error]);
+
+  // 화면 상태 결정
+  let content;
   if (error) {
-    console.error('[PostHomeScreen] 포스트 조회 에러:', error);
-    return renderError();
-  }
-
-  return (
-    <GradientBg>
-      <SafeAreaView style={styles.container}>
-        {/* 헤더 */}
-        {renderHeader()}
-
-        {/* 메인 콘텐츠 */}
-        {isLoading ? (
-          renderLoading()
-        ) : (
-          <PostList
-            data={getDisplayPosts()}
-            ListHeaderComponent={
-              <HaryroomNaviBtn
-                rooms={DUMMY_HARMONY_ROOMS}
-                selectedRoomId={selectedRoomId}
-                onRoomSelect={handleRoomSelect}
-              />
-            }
-          />
-        )}
-
-        {/* 글쓰기 버튼 */}
+    content = renderError();
+  } else if (isLoading) {
+    content = renderLoading();
+  } else {
+    content = (
+      <>
+        <PostList
+          data={apiPosts?.results as PostWithUserDTO[]}
+          ListHeaderComponent={
+            <HaryroomNaviBtn
+              rooms={DUMMY_HARMONY_ROOMS}
+              selectedRoomId={selectedRoomId}
+              onRoomSelect={handleRoomSelect}
+            />
+          }
+        />
         <View style={styles.writeButton}>
           <IconButton<PostStackParamList>
             imageSource={require('@/assets/icons/post/Write.png')}
@@ -193,6 +168,22 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
             size={72}
           />
         </View>
+      </>
+    );
+  }
+
+  return (
+    <GradientBg>
+      <SafeAreaView style={styles.container}>
+        {renderHeader()}
+        <Toast
+          message={toastMessage}
+          visible={toastVisible}
+          type={toastType}
+          position="top"
+          onHide={hideToast}
+        />
+        {content}
       </SafeAreaView>
     </GradientBg>
   );
@@ -203,6 +194,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     backgroundColor: 'transparent',
+  },
+  centercontainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
   },
   header: {
     width: '100%',
@@ -218,7 +215,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  loadingContainer: {
+  writeButton: {
+    position: 'absolute',
+    bottom: 80,
+    right: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
+
+const s_styles = StyleSheet.create({
+  container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -227,13 +234,6 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     color: colors.GRAY_500,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-    paddingHorizontal: 20,
   },
   errorText: {
     fontSize: 16,
@@ -251,13 +251,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.WHITE,
     fontWeight: '600',
-  },
-  writeButton: {
-    position: 'absolute',
-    bottom: 80,
-    right: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
 

@@ -7,25 +7,41 @@ import {
   SafeAreaView,
   Image,
 } from 'react-native';
+import {colors} from '@/constants';
 
-export type ToastType = 'none' | 'success' | 'error' | 'info';
+export type ToastType = 'none' | 'success' | 'error';
+export type ToastPosition = 'top' | 'bottom';
 
 interface ToastProps {
   message: string;
   type?: ToastType;
   visible: boolean;
+  position?: ToastPosition; // 'top' | 'bottom'
+  offset?: number; // px 단위
   onHide: () => void;
-  duration?: number;
 }
+
+const iconMap = {
+  success: require('@/assets/icons/common/check_circle.png'),
+  error: require('@/assets/icons/common/error.png'),
+};
+
+const iconColorMap = {
+  success: colors.BLUE_300,
+  error: colors.ERROR_RED,
+};
 
 const Toast: React.FC<ToastProps> = ({
   message,
   type = 'none',
   visible,
   onHide,
-  duration = 3000,
+  position = 'top',
+  offset = 82,
 }) => {
-  const translateY = useRef(new Animated.Value(-100)).current;
+  // 애니메이션 방향
+  const initialTranslate = position === 'top' ? -100 : 100;
+  const translateY = useRef(new Animated.Value(initialTranslate)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -44,21 +60,20 @@ const Toast: React.FC<ToastProps> = ({
         }),
       ]).start();
 
-      // 일정 시간 후 자동으로 숨기기
       const timer = setTimeout(() => {
         hideToast();
-      }, duration);
+      }, 3000);
 
       return () => {
         clearTimeout(timer);
       };
     }
-  }, [visible, duration]);
+  }, [visible, position]);
 
   const hideToast = () => {
     Animated.parallel([
       Animated.timing(translateY, {
-        toValue: -100,
+        toValue: initialTranslate,
         duration: 300,
         useNativeDriver: true,
       }),
@@ -72,107 +87,71 @@ const Toast: React.FC<ToastProps> = ({
     });
   };
 
-  const getToastIcon = () => {
-    try {
-      switch (type) {
-        case 'none':
-          return;
-        case 'success':
-          return require('@/assets/icons/Check.png');
-        case 'error':
-          return require('@/assets/icons/Check.png');
-        case 'info':
-          return require('@/assets/icons/Check.png');
-        default:
-          return require('@/assets/icons/Check.png');
-      }
-    } catch (error) {
-      return require('@/assets/icons/Check.png');
-    }
-  };
+  // 위치 스타일 동적으로 생성
+  const positionStyle =
+    position === 'top'
+      ? {
+          position: 'absolute' as 'absolute',
+          top: offset,
+          left: 0,
+          right: 0,
+          zIndex: 999,
+          alignItems: 'center' as const,
+        }
+      : {
+          position: 'absolute' as 'absolute',
+          bottom: offset,
+          left: 0,
+          right: 0,
+          zIndex: 999,
+          alignItems: 'center' as const,
+        };
 
-  const getToastStyle = () => {
-    const baseStyle = styles.toast;
-    switch (type) {
-      case 'success':
-        return [baseStyle];
-      case 'success':
-        return [baseStyle, styles.successToast];
-      case 'error':
-        return [baseStyle, styles.errorToast];
-      case 'info':
-        return [baseStyle, styles.infoToast];
-      default:
-        return [baseStyle, styles.successToast];
-    }
-  };
+  if (!visible) return null;
 
-  if (!visible) {
-    return null;
-  }
-
-  return React.createElement(
-    View,
-    {style: styles.container},
-    React.createElement(
-      SafeAreaView,
-      null,
-      React.createElement(
-        Animated.View,
-        {
-          style: [
-            getToastStyle(),
-            {
-              transform: [{translateY}],
-              opacity,
-            },
-          ],
-        },
-        React.createElement(Image, {
-          source: getToastIcon(),
-          style: styles.checkIcon,
-        }),
-        React.createElement(Text, {style: styles.message}, message),
-      ),
-    ),
+  return (
+    <View style={positionStyle}>
+      <Animated.View
+        style={[
+          styles.toastContainer,
+          {
+            transform: [{translateY}],
+            opacity,
+          },
+        ]}>
+        {type !== 'none' && (
+          <Image
+            source={iconMap[type]}
+            style={[styles.icon, {tintColor: iconColorMap[type]}]}
+          />
+        )}
+        <Text style={styles.toastText}>{message}</Text>
+      </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 10,
-    left: 0,
-    right: 0,
-    zIndex: 9999,
-    alignItems: 'center',
-  },
-  toast: {
+  toastContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 24,
     gap: 10,
     height: 48,
-    width: '90%',
+    maxWidth: '90%',
     borderRadius: 8,
     backgroundColor: 'rgba(99, 108, 115, 0.7)',
   },
-  successToast: {},
-  errorToast: {},
-  warningToast: {},
-  infoToast: {},
-  checkIcon: {
+  icon: {
     width: 24,
     height: 24,
+    marginRight: 8,
   },
-  message: {
-    fontFamily: 'Noto Sans KR',
-    fontWeight: '600',
+  toastText: {
+    color: '#fff',
     fontSize: 15,
-    lineHeight: 22,
-    letterSpacing: 0.15,
-    color: '#FFFFFF',
+    fontWeight: '600',
     flex: 1,
   },
 });

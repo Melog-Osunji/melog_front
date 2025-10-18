@@ -1,7 +1,7 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import {InitProfileNavigations} from '@/constants';
-
+//screens
 import InitProfileImg from '@/screens/intro/InitProfile/InitProfileImgScreen';
 import InitProfileNickname from '@/screens/intro/InitProfile/InitProfileNicknameScreen';
 import InitProfileIntroduction from '@/screens/intro/InitProfile/InitProfileIntroductionScreen';

@@ -12,11 +12,12 @@ import {
   Image,
 } from 'react-native';
 //constants
-import {colors} from '@/constants';
+import {colors, postNavigations} from '@/constants';
 //types
 import {YouTubeVideo, NewPostDTO} from '@/types';
 //navigation
-import {useNavigation} from '@react-navigation/native';
+import {StackScreenProps} from '@react-navigation/stack';
+import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 //utils
 import {extractVideoId} from '@/utils/providers';
 //hooks
@@ -31,23 +32,27 @@ import CustomButton from '@/components/common/CustomButton';
 import Toast from '@/components/common/Toast';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 
-export default function PostCreateScreen() {
-  const navigation = useNavigation();
-  useHideTabBarOnFocus();
+type PostCreateScreenProps = StackScreenProps<
+  PostStackParamList,
+  typeof postNavigations.POST_CREATE
+>;
 
+export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
+  useHideTabBarOnFocus();
+  //state
   const {userInfo, isLoading: userLoading, error: userError} = useUserInfo();
   const createPostMutation = useCreatePost();
   const [content, setContent] = useState('');
+  const [inputHeight, setInputHeight] = useState(50);
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [inputHeight, setInputHeight] = useState(50);
   const {selectedImage, seletedImageURI, selectImage, resetImage} =
     useImagePicker();
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
   //toast
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const showToast = (message: string) => {
     setToastMessage(message);
     setToastVisible(true);

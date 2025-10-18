@@ -14,18 +14,18 @@ const Stack = createStackNavigator<MyPageStackParamList>();
 
 function MyPageStackNavigator() {
   return (
-        <Stack.Navigator>
-          <Stack.Screen
-            name={myPageNavigations.MYPAGE_HOME}
-            component={MyPageHomeScreen}
-            options={{headerShown: false}}
-          />
-          <Stack.Screen
-              name={myPageNavigations.MYPAGE_EDIT}
-              component={MyPageEditScreen}
-              options={{headerShown: false}}
-            />
-        </Stack.Navigator>
+    <Stack.Navigator>
+      <Stack.Screen
+        name={myPageNavigations.MYPAGE_HOME}
+        component={MyPageHomeScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name={myPageNavigations.MYPAGE_EDIT}
+        component={MyPageEditScreen}
+        options={{headerShown: false}}
+      />
+    </Stack.Navigator>
   );
 }
 
