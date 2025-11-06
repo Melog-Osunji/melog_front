@@ -11,6 +11,7 @@ import MyPageMediaTab from '@/components/mypage/MyPageMediaTab';
 import MyPageBookmarkTab from '@/components/mypage/MyPageBookmarkTab';
 import HarmonyRoomStrip, { type Community } from '@/components/harmonyRoom/HarmonyRoomStrip';
 import { useMyPage } from '@/hooks/queries/myPage/useMyPage'
+import {useUserInfo} from '@/hooks/common/useUserInfo';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
@@ -21,6 +22,7 @@ function MyPageHomeScreen() {
     >('feed');
 
   const { data, isLoading, isError, refetch, isRefetching } = useMyPage();
+  const userInfo = useUserInfo();
 
   useFocusEffect(
       useCallback(() => {
@@ -50,6 +52,8 @@ function MyPageHomeScreen() {
       );
     }
 
+  console.log(data);
+
   return (
     <LinearGradient
           colors={['#EFFAFF', colors.WHITE]} // 원하는 색 배열
@@ -75,18 +79,22 @@ function MyPageHomeScreen() {
             <ScrollView>
             {/* 기본 정보 */}
             <View style={styles.myInfoWrap}>
-                {data.profileImg ? (
+                {data?.profileImg ? (
                   <Image source={{ uri: data.profileImg }} style={styles.infoImg} />
                 ) : (
                   <View style={[styles.infoImg, { backgroundColor: colors.GRAY_200 }]} />
                 )}
-                <Text style={styles.nickname}>{data.nickname}</Text>
+                <Text style={styles.nickname}>{data?.nickname}</Text>
                 <View style={styles.bioWrap}>
-                    <Text style={styles.bioText}>{data.introduction}</Text>
+                    <Text style={styles.bioText}>{data?.introduction}</Text>
                 </View>
                 <View style={styles.musicWrap}>
                     <Image source={require('@/assets/icons/mypage/Music.png')}/>
-                    <Text style={styles.musicText}>{data.profileMusic.title}</Text>
+                    { data?.profileMusic ?
+                        <Text style={styles.musicText}>{data?.profileMusic?.title}</Text>
+                        :
+                        <Text style={styles.musicText}>프로필 뮤직을 등록해주세요!</Text>
+                        }
                 </View>
             </View>
 
@@ -95,11 +103,11 @@ function MyPageHomeScreen() {
                 <View style={styles.followWrap}>
                     <View style={styles.follow}>
                         <Text style={styles.followText}>팔로워</Text>
-                        <Text style={styles.countText}>{data.followers ?? 0}명</Text>
+                        <Text style={styles.countText}>{data?.followers ?? 0}명</Text>
                     </View>
                     <View style={styles.follow}>
                         <Text style={styles.followText}>팔로잉</Text>
-                        <Text style={styles.countText}>{data.followings ?? 0}명</Text>
+                        <Text style={styles.countText}>{data?.followings ?? 0}명</Text>
                     </View>
                 </View>
                 <View style={styles.buttonWrap}>
@@ -234,7 +242,7 @@ const styles = StyleSheet.create({
   musicWrap: {
     width: SCREEN_W-100,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     gap: 4,
   },

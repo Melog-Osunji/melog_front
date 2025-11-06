@@ -25,6 +25,7 @@ export default function RecentMediaCard({data}: Props) {
 
   const {userNickname, userProfileImgLink, harmonyRoomName, postID, mediaUrl, mediaType, createdAgo} = data;
 
+  console.log(data);
   const handlePress = () => {
     navigation.navigate(harmonyRoomNavigation.HARMONY_PAGE, {
       roomID: postID,
@@ -41,7 +42,7 @@ export default function RecentMediaCard({data}: Props) {
       : '';
   };
 
-  const thumbnail = getYouTubeThumbnail(mediaURL);
+  const thumbnail = mediaUrl ? getYouTubeThumbnail(mediaUrl) : null;
 
   return (
     <TouchableOpacity
@@ -69,7 +70,7 @@ export default function RecentMediaCard({data}: Props) {
           <View style={styles.dataRow}>
             <Text style={styles.date}>하모니룸</Text>
             <View style={styles.circle}></View>
-            <Text style={styles.date}>{createdAgo}시간 전</Text>
+            <Text style={styles.date}>{createdAgo}</Text>
           </View>
         </View>
       </View>

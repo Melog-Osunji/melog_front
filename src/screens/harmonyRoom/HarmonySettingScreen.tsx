@@ -23,6 +23,7 @@ import CheckPopup from '@/components/common/CheckPopup';
 import DeleteReasonSheet from '@/components/harmonyRoom/DeleteReasonSheet';
 import DeleteSuccessSheet from '@/components/harmonyRoom/DeleteSuccessSheet';
 import {useDeleteHarmonyRoom} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
+import {useUserInfo} from '@/hooks/common/useUserInfo';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 type NavigationProp = StackNavigationProp<HarmonyStackParamList>;

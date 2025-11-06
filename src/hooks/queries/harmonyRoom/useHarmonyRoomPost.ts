@@ -93,6 +93,9 @@ export const useWaitingUserList = (harmonyId: string, options?: Opt<waitingUserL
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
     ...options,
+    onError: (error: any) => {
+          console.error('❌ [useWaitingUserList] API Error:', error.response?.data || error.message);
+    },
   });
 
 // 5) 가입 승인/거부 (PATCH /api/harmony/{id}/approve|deny)

@@ -1,4 +1,5 @@
 import React, {useState, useEffect, useRef, useMemo} from 'react';
+import axios from 'axios';
 import {StyleSheet, Text, View, ScrollView, Image, Dimensions, FlatList, TouchableOpacity, Keyboard, Pressable, ActivityIndicator} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useFocusEffect, useRoute} from '@react-navigation/native';
@@ -24,6 +25,7 @@ import type { Post } from '@/constants/types';
 import { RefreshControl } from 'react-native';
 import { useRequestJoinHarmonyRoom } from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 import { useQueryClient } from '@tanstack/react-query';
+import {useUserInfo} from '@/hooks/common/useUserInfo';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
@@ -47,6 +49,13 @@ export default function HarmonyPageScreen() {
     // 상태: 가입 상태(버튼 문구/노출 제어), 팝업 모드
     const [joinStatus, setJoinStatus] = useState<'none' | 'pending' | 'joined'>('none');
     const [popupMode, setPopupMode] = useState<'joined' | 'applied'>('joined');
+
+    const {
+      userInfo,
+      isLoading: userInfoLoading,
+      error: userInfoError,
+      refetch: refetchUser,
+    } = useUserInfo();
 
     const {
       data: roomInfo,
@@ -73,7 +82,7 @@ export default function HarmonyPageScreen() {
 
     const { mutateAsync: requestJoin, isPending: requestLoading } = useRequestJoinHarmonyRoom(roomID);
 
-    const currentUserId = "1f3eefd5-ba10-4848-a161-04b014bb9cee"; // TODO: auth context 등에서 가져오면 owner 비교 가능
+    const currentUserId = userInfo?.id ?? null;
 
     const isOwner = useMemo(() => {
       if (!roomInfo) return false;
@@ -138,6 +147,7 @@ export default function HarmonyPageScreen() {
     );
     const isEmpty = activeFeed.length === 0;
 
+    console.log(roomInfo);
 
     // info로 이동
     const handlePress = () => {
@@ -164,8 +174,17 @@ export default function HarmonyPageScreen() {
         setShowExitPopup(true);
         // 쿼리 무효화는 훅 내부 onSuccess에서 이미 처리됨
       } catch (e) {
-        console.warn(e);
-        // 필요 시 에러 토스트/알럿
+        if (axios.isAxiosError(e)) {
+            console.warn('❌ Axios Error!');
+            console.warn('URL:', e.config?.baseURL + e.config?.url);
+            console.warn('Method:', e.config?.method?.toUpperCase());
+            console.warn('Status:', e.response?.status);
+            console.warn('Response data:', e.response?.data);
+            console.warn('Headers:', e.config?.headers);
+            console.warn('Request body:', e.config?.data);
+          } else {
+            console.warn('❌ 일반 Error:', e);
+          }
       }
     };
 

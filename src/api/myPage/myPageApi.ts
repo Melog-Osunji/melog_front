@@ -40,7 +40,34 @@ export type MyPageBookmarkDTO={
     createdAt: string;
 };
 
+
 export const fetchMyPage = async (): Promise<MyPageDTO> => {
   const res = await instance.get<BaseResponse<MyPageDTO>>('/api/users/myPage');
   return res.data.data;
 };
+
+export type ProfileResponse = {
+    id:string;
+    email: string;
+    platform: string;
+    nickName: string;
+    profileImg: string;
+    intro: string;
+}
+
+export type UpdateProfileRequest = {
+    nickName?: string;
+    profileImg?: string;
+    intro?: string;
+}
+
+export const updateProfile = async(
+    payload: UpdateProfileRequest
+    ): Promise<ProfileResponse> => {
+    const res = await instance.patch<ProfileResponse>(
+        `/api/users/profile`,
+        payload
+    )
+    return res.data;
+}
+

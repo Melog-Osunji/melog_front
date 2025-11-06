@@ -164,7 +164,7 @@ export const requestJoinHarmonyRoom = async (
   // 바디 없음 → axios는 두 번째 인수에 {} 전달
   const res = await instance.post<HarmonyRoomBaseResponse>(
     `/api/harmony/${encodeURIComponent(harmonyId)}/join`,
-    {}
+    { }
   );
   return res.data;
 };

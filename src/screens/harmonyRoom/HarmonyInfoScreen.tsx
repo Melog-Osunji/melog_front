@@ -42,6 +42,7 @@ import {
 } from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 import {useQueryClient} from '@tanstack/react-query';
 import {RefreshControl} from 'react-native';
+import {useUserInfo} from '@/hooks/common/useUserInfo';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
@@ -58,7 +59,13 @@ export default function HarmonyInfoScreen() {
   const {rooms} = useHarmonyRoomContext();
   const [selectTab, setSelectTab] = useState<'rcmd' | 'popular'>('rcmd');
 
-  // hook들
+  const {
+    userInfo,
+    isLoading: userInfoLoading,
+    error: userInfoError,
+    refetch: refetchUser,
+  } = useUserInfo();
+
   const {
     data: detail,
     isLoading,
@@ -105,7 +112,7 @@ export default function HarmonyInfoScreen() {
     }, [refetch]),
   );
 
-  const currentUserId = 'f4c475f1-9016-4b01-91a8-1880cf749903';
+  const currentUserId = userInfo?.id ?? null;
 
   const {data: isMemberDTO} = useHarmonyIsMember(roomID);
   const isMember = isMemberDTO?.isMember ?? false;

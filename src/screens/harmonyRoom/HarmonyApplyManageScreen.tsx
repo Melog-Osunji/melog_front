@@ -1,4 +1,5 @@
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import axios from 'axios';
 import {
   StyleSheet,
   Text,
@@ -26,6 +27,7 @@ import {
   useWaitingUserList,
   useUpdateHarmonyMembership,
 } from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
+import {useUserInfo} from '@/hooks/common/useUserInfo';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
@@ -50,9 +52,19 @@ function HarmonyApplyManageScreen() {
     data: waitingDTO,
     isLoading,
     isError,
+    error,
     refetch,
     isRefetching,
   } = useWaitingUserList(roomID);
+
+  if (isError) {
+    console.log('❌ API 호출 실패:', error);
+
+    // axios 기반일 경우:
+    const apiError: any = error;
+    console.log('📡 상태 코드:', apiError.response?.status);
+    console.log('📩 서버 메시지:', apiError.response?.data);
+  }
 
   // 2) 승인/거부
   const {mutateAsync: updateMembership, isPending} =
@@ -131,6 +143,7 @@ function HarmonyApplyManageScreen() {
     );
   }
 
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -147,6 +160,13 @@ function HarmonyApplyManageScreen() {
         </Text>
       </View>
 
+      {isError ?
+          (
+              <SafeAreaView style={styles.center}>
+                <Text>데이터 불러오기 실패.</Text>
+              </SafeAreaView>
+           )
+        :
       <FlatList
         data={users}
         keyExtractor={item => item.id}
@@ -171,6 +191,7 @@ function HarmonyApplyManageScreen() {
           </View>
         }
       />
+      }
     </SafeAreaView>
   );
 }
