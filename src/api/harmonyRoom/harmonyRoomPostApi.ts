@@ -191,6 +191,7 @@ export type CreateHarmonyRoomPostRequest = {
 };
 
 export const createHarmonyRoomPost = async (
+  harmonyId: string,
   payload: CreateHarmonyRoomPostRequest
 ): Promise<HarmonyRoomBaseResponse> => {
   const res = await instance.post<HarmonyRoomBaseResponse>(

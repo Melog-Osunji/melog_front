@@ -8,6 +8,7 @@ import HarmonyInfoScreen from '@/screens/harmonyRoom/HarmonyInfoScreen';
 import HarmonySettingScreen from '@/screens/harmonyRoom/HarmonySettingScreen';
 import HarmonyListScreen from '@/screens/harmonyRoom/HarmonyListScreen';
 import HarmonyApplyManageScreen from '@/screens/harmonyRoom/HarmonyApplyManageScreen';
+import HarmonyPostScreen from '@/screens/harmonyRoom/HarmonyPostScreen';
 import {harmonyNavigations} from '@/constants';
 import {MAIN_TAB_SCREEN_OPTIONS} from '@/navigations/tab/MainTabNavigator';
 import {HarmonyRoomInfo} from '@/constants/types';
@@ -25,6 +26,7 @@ export type HarmonyStackParamList = {
   [harmonyNavigations.HARMONY_SETTING] : {roomID: string};
   [harmonyNavigations.HARMONY_LIST]: undefined ;
   [harmonyNavigations.HARMONY_APPLY]: {roomID: string};
+  [harmonyNavigations.HARMONY_POST]: {roomID: string};
 };
 
 const Stack = createStackNavigator<HarmonyStackParamList>();
@@ -71,6 +73,11 @@ function HarmonyStackNavigator() {
         <Stack.Screen
           name={harmonyNavigations.HARMONY_APPLY}
           component={HarmonyApplyManageScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name={harmonyNavigations.HARMONY_POST}
+          component={HarmonyPostScreen}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

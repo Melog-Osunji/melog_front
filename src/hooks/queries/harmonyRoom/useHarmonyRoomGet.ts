@@ -24,6 +24,9 @@ import {
   type isMemberDTO,
 
   fetchInsideHarmonyRoomPosts,
+
+  fetchIsWaiting,
+  type isWaitingDTO,
 } from '@/api/harmonyRoom/harmonyRoomApi';
 
 // -----------------------------
@@ -143,6 +146,19 @@ export const useInsideHarmonyRoomPosts = (
   useQuery({
     queryKey: HarmonyQueryKeys.insidePosts(harmonyId),
     queryFn: () => fetchInsideHarmonyRoomPosts(harmonyId /*, params*/),
+    enabled: !!harmonyId,
+    ...DEFAULTS,
+    ...options,
+  });
+
+/** 하모니룸 가입대기유무 */
+export const useHarmonyIsWaiting = (
+  harmonyId: string,
+  options?: Opt<isWaitingDTO>
+) =>
+  useQuery({
+    queryKey: HarmonyQueryKeys.insidePosts(harmonyId),
+    queryFn: () => fetchIsWaiting(harmonyId),
     enabled: !!harmonyId,
     ...DEFAULTS,
     ...options,

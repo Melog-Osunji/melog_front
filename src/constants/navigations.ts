@@ -33,6 +33,7 @@ const harmonyNavigations = {
   HARMONY_SETTING: 'HarmonySetting',
   HARMONY_LIST: 'HarmonyRoomList',
   HARMONY_APPLY: 'HarmonyApply',
+  HARMONY_POST: 'HarmonyPost',
 } as const;
 
 //프로필설정

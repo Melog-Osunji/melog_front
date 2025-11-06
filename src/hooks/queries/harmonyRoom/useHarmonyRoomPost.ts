@@ -10,6 +10,7 @@ import {
   updateHarmonyMembership,
   fetchWaitingUserList,
   uploadHarmonyImage,
+  createHarmonyRoomPost,
   type HarmonyRoomBaseResponse,
   type HarmonyRoomBaseResponse2,
   type CreateHarmonyRoomRequest,
@@ -160,7 +161,7 @@ export const useLeaveHarmonyRoom = (harmonyId: string) => {
 export const useCreateHarmonyRoomPost = (harmonyId: string) => {
   const qc = useQueryClient();
   return useMutation<HarmonyRoomBaseResponse, Error, CreateHarmonyRoomPostRequest>({
-    mutationFn: (payload) => apiCreateHarmonyRoomPost(harmonyId, payload),
+    mutationFn: (payload) => createHarmonyRoomPost(harmonyId, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: HarmonyQueryKeys.posts(harmonyId) });
       qc.invalidateQueries({ queryKey: HarmonyQueryKeys.insidePosts(harmonyId) });

@@ -24,6 +24,8 @@ import DeleteReasonSheet from '@/components/harmonyRoom/DeleteReasonSheet';
 import DeleteSuccessSheet from '@/components/harmonyRoom/DeleteSuccessSheet';
 import {useDeleteHarmonyRoom} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 import {useUserInfo} from '@/hooks/common/useUserInfo';
+import {useUpdateHarmonyRoom} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
+import {useHarmonyRoomInfo} from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 type NavigationProp = StackNavigationProp<HarmonyStackParamList>;
@@ -43,6 +45,12 @@ function HarmonySettingScreen() {
   const {roomID} = route.params ?? {};
   const {rooms} = useHarmonyRoomContext();
   const deleteMut = useDeleteHarmonyRoom(roomID);
+  const updateMutation = useUpdateHarmonyRoom(roomID);
+  const {
+    data: detail,
+    isLoading: isDetailLoading,
+    isError,
+  } = useHarmonyRoomInfo(roomID);
 
   const [showExitPopup, setShowExitPopup] = useState(false);
   const [showReasonSheet, setShowReasonSheet] = useState(false);
@@ -50,6 +58,13 @@ function HarmonySettingScreen() {
 
   const [isPublic, setIsPublic] = useState(true);
   const [needApproval, setNeedApproval] = useState(false);
+
+  useEffect(() => {
+    if (detail) {
+        setIsPublic(!detail.isPrivate);             // 서버의 isPrivate → 공개 여부 반전
+        setNeedApproval(!detail.isDirectAssign);    // 서버의 isDirectAssign → 승인 필요 반전
+    }
+  }, [detail]);
 
   const handleGoToEdit = () => {
     navigation.navigate(harmonyNavigations.HARMONY_EDIT, {roomID: roomID});
@@ -117,7 +132,16 @@ function HarmonySettingScreen() {
             <Text style={styles.menu}>하모니룸 공개</Text>
             <SwitchToggle
               value={isPublic}
-              onValueChange={setIsPublic}
+              onValueChange={(value) => {
+                  setIsPublic(value);
+                  updateMutation.mutate(
+                    { isPrivate: !value }, // 공개면 false, 비공개면 true
+                    {
+                      onSuccess: () => console.log('✅ 공개 여부 업데이트 완료'),
+                      onError: (err) => console.error('❌ 공개 여부 업데이트 실패:', err),
+                    },
+                  );
+                }}
               size="md"
             />
           </View>
@@ -134,7 +158,16 @@ function HarmonySettingScreen() {
             <Text style={styles.menu}>운영자 승인 후 가입</Text>
             <SwitchToggle
               value={needApproval}
-              onValueChange={setNeedApproval}
+              onValueChange={(value) => {
+                  setNeedApproval(value);
+                  updateMutation.mutate(
+                    { isDirectAssign: !value }, // 승인 필요 true → 자동 가입 false
+                    {
+                      onSuccess: () => console.log('✅ 승인 설정 업데이트 완료'),
+                      onError: (err) => console.error('❌ 승인 설정 업데이트 실패:', err),
+                    },
+                  );
+                }}
               size="md"
             />
           </View>

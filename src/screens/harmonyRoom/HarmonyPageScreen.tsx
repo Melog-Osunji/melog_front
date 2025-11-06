@@ -21,7 +21,7 @@ import {
 } from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 // PostCard 가져오기
 import PostCard from '@/components/post/PostCard';
-import type { Post } from '@/constants/types';
+import type { PostDTO, UserDTO } from '@/types/postTypes';
 import { RefreshControl } from 'react-native';
 import { useRequestJoinHarmonyRoom } from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 import { useQueryClient } from '@tanstack/react-query';
@@ -70,6 +70,8 @@ export default function HarmonyPageScreen() {
       refetch: refetchPosts,
     } = useHarmonyRoomPosts(roomID);
 
+    console.log(roomInfo);
+
     const {
       data: memberDTO,
       isLoading: memberLoading,
@@ -99,7 +101,7 @@ export default function HarmonyPageScreen() {
     const headerIntro = roomInfo?.intro ?? '';
 
     // FeedItem: 서버 응답 병합 형태
-    type FeedItem = harmonyRoomPost & { author?: harmonyUser };
+    type FeedItem = PostDTO & { author?: UserDTO };
 
     // post[]와 user[]를 같은 index로 병합
     const pairPosts = (blocks?: harmonyRoomPosts[]) => {
@@ -120,34 +122,33 @@ export default function HarmonyPageScreen() {
     const popularFeed   = useMemo(() => pairPosts(postsDTO?.popular),   [postsDTO]);
 
     // ★ PostCard 타입으로 최종 매핑
-    const toPostCardModel = (src: FeedItem): Post => {
-      // 서버 createdAgo 가 "분" 단위(number)라고 가정 → 시간 단위로 변환(최소 1시간)
-      const hours = Math.max(1, Math.floor((src.createdAgo ?? 0) / 60));
-
+    const toPostCardModel = (src: FeedItem): PostDTO => {
       return {
         id: src.id,
-        user: {
-          nickName: src.author?.nickName ?? '익명',
-          profileImg: src.author?.profileImg ?? '',
-        },
-        createdAgo: hours,                 // PostCard에서 "{createdAgo}시간 전"으로 사용
+        title: src.title ?? '', // 서버에 title이 없을 수도 있으니 기본값
         content: src.content ?? '',
+        mediaType: src.mediaType ?? 'image', // 기본값으로 image 지정
         mediaUrl: src.mediaUrl ?? '',
         tags: src.tags ?? [],
+        createdAgo: src.createdAgo ?? 0,
         likeCount: src.likeCount ?? 0,
+        hiddenUser: src.hiddenUser ?? [],
         commentCount: src.commentCount ?? 0,
-        // bestComment는 서버에 없으니 생략 가능
+        bestComment: src.bestComment
+          ? {
+              userID: src.bestComment.userID ?? src.author?.nickName ?? '',
+              content: src.bestComment.content ?? '',
+            }
+          : undefined,
       };
     };
 
     const activeFeedRaw = selectTab === 'rcmd' ? recommendFeed : popularFeed;
-    const activeFeed: Post[] = useMemo(
+    const activeFeed: PostDTO[] = useMemo(
       () => activeFeedRaw.map(toPostCardModel),
       [activeFeedRaw]
     );
     const isEmpty = activeFeed.length === 0;
-
-    console.log(roomInfo);
 
     // info로 이동
     const handlePress = () => {
@@ -319,6 +320,7 @@ export default function HarmonyPageScreen() {
                 <IconButton<PostStackParamList>
                   imageSource={require('@/assets/icons/post/Write.png')}
                   size={72}
+                  target={[harmonyNavigations.HARMONY_POST, { harmonyId : roomID }]}
                 />
               </View>
             )}
