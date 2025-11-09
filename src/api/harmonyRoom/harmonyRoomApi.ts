@@ -172,3 +172,18 @@ export const fetchInsideHarmonyRoomPosts = async (
   );
   return res.data.data;
 };
+
+export type isWaitingDTO = {
+    wait: boolean;
+};
+
+
+// 가입 대기 유무 확인
+export const fetchIsWaiting = async (
+    harmonyId: string,
+): Promise<isWaitingDTO> => {
+    const res = await instance.get<BaseResponse<isWaitingDTO>>(
+        `/api/harmony/${encodeURIComponent(harmonyId)}/isWaiting`,
+    );
+    return res.data.data;
+}

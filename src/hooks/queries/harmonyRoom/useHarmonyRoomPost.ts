@@ -10,6 +10,7 @@ import {
   updateHarmonyMembership,
   fetchWaitingUserList,
   uploadHarmonyImage,
+  createHarmonyRoomPost,
   type HarmonyRoomBaseResponse,
   type HarmonyRoomBaseResponse2,
   type CreateHarmonyRoomRequest,
@@ -93,6 +94,9 @@ export const useWaitingUserList = (harmonyId: string, options?: Opt<waitingUserL
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
     ...options,
+    onError: (error: any) => {
+          console.error('❌ [useWaitingUserList] API Error:', error.response?.data || error.message);
+    },
   });
 
 // 5) 가입 승인/거부 (PATCH /api/harmony/{id}/approve|deny)
@@ -157,7 +161,7 @@ export const useLeaveHarmonyRoom = (harmonyId: string) => {
 export const useCreateHarmonyRoomPost = (harmonyId: string) => {
   const qc = useQueryClient();
   return useMutation<HarmonyRoomBaseResponse, Error, CreateHarmonyRoomPostRequest>({
-    mutationFn: (payload) => apiCreateHarmonyRoomPost(harmonyId, payload),
+    mutationFn: (payload) => createHarmonyRoomPost(harmonyId, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: HarmonyQueryKeys.posts(harmonyId) });
       qc.invalidateQueries({ queryKey: HarmonyQueryKeys.insidePosts(harmonyId) });
