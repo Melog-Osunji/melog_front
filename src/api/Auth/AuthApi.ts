@@ -1,4 +1,4 @@
-import instance from '../axiosInstance';
+import instance, {axiosWithTimeout} from '../axiosInstance';
 import type {
   SocialLoginRequest,
   SocialLoginResult,
@@ -39,3 +39,33 @@ export async function socialLogin(
     },
   };
 }
+
+// refreshToken으로 accessToken 재발급
+export const refreshTokenApi = async (accessToken: string) => {
+  console.log('[AuthApi] refreshTokenApi 요청:', accessToken);
+  try {
+    const res = await axiosWithTimeout(
+      {
+        method: 'get',
+        url: '/api/auth/refresh',
+        data: {accessToken},
+        withCredentials: true,
+      },
+      10000,
+    );
+    console.log('[AuthApi] refreshTokenApi 응답:', res.data);
+    return res.data;
+  } catch (err) {
+    if (err.message === 'timeout') {
+      console.log('요청 타임아웃 발생');
+      // 타임아웃 처리
+    } else {
+      console.log(
+        '[AuthApi] refreshTokenApi 에러:',
+        (err as any).response?.data || (err as Error).message,
+      );
+      // 기타 에러 처리
+    }
+    throw err;
+  }
+};

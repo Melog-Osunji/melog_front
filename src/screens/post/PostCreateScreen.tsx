@@ -25,7 +25,7 @@ import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import {useUserInfo} from '@/hooks/common/useUserInfo';
 import {useImagePicker} from '@/hooks/common/useImagePicker';
 import {useUploadImage} from '@/hooks/queries/common/useCommon';
-import {useCreatePost} from '@/hooks/queries/post/usePostQueries';
+import {useCreatePost} from '@/hooks/queries/post/usePost';
 //components
 import Toast, {ToastType} from '@/components/common/Toast';
 import CustomButton from '@/components/common/CustomButton';
@@ -41,6 +41,7 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
   useHideTabBarOnFocus();
   //state
   const {userInfo, isLoading: userLoading, error: userError} = useUserInfo();
+
   const createPostMutation = useCreatePost();
   const [content, setContent] = useState('');
   const [inputHeight, setInputHeight] = useState(50);

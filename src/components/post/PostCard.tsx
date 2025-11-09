@@ -67,7 +67,11 @@ function PostCard({post, user}: PostCardProps) {
         )}
 
       {/* 상태바 */}
-      <PostStats likeCount={post.likeCount} commentCount={post.commentCount} />
+      <PostStats
+        id={post.id}
+        likeCount={post.likeCount}
+        commentCount={post.commentCount}
+      />
 
       {/* 베스트 댓글 */}
       {post.bestComment && (

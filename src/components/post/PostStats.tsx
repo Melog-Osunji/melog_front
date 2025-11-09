@@ -2,23 +2,29 @@ import React, {useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {colors} from '@/constants';
 import {PostDTO} from '@/types';
+import {useTogglePostLike} from '@/hooks/queries/post/usePost';
 
 type StatsType = 'like' | 'comment' | 'share' | 'bookmark';
 
-type PostStatsProps = Pick<PostDTO, 'likeCount' | 'commentCount'> & {
+type PostStatsProps = Pick<PostDTO, 'id' | 'likeCount' | 'commentCount'> & {
   visibleStats?: StatsType[];
 };
 
 const PostStats = ({
+  id: postId,
   likeCount,
   commentCount,
   visibleStats = ['like', 'comment', 'share', 'bookmark'],
 }: PostStatsProps) => {
+  const toggleLikeMutation = useTogglePostLike();
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [currentLikeCount, setCurrentLikeCount] = useState(likeCount || 0);
 
   const handleLikePress = () => {
+    if (!toggleLikeMutation.isPending) {
+      toggleLikeMutation.mutate(postId);
+    }
     if (isLiked) {
       setCurrentLikeCount(prev => prev - 1);
     } else {
@@ -44,7 +50,9 @@ const PostStats = ({
           }
           style={styles.icon}
         />
-        <Text style={styles.statText}>{currentLikeCount}</Text>
+        <Text style={styles.statText}>
+          {toggleLikeMutation.data?.likeCount ?? currentLikeCount}
+        </Text>
       </TouchableOpacity>
     );
   };

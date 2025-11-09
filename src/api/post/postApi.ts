@@ -9,7 +9,7 @@ import type {
 } from '@/types';
 import {FEED_IDS} from '@/constants';
 
-// # feed
+// #1 feed
 export const fetchPopularPosts = async (): Promise<PostsDTO> => {
   const res = await instance.get<BaseResponse<PostsDTO>>('/api/posts/populars');
   return res.data.data;
@@ -44,7 +44,7 @@ export const fetchPostsByFeedId = async (feedId: FeedId): Promise<PostsDTO> => {
   return apiFunction();
 };
 
-//# post detail
+//#2 post detail
 export const fetchPostDetail = async (
   postId: string,
 ): Promise<PostWithUserDTO> => {
@@ -63,17 +63,12 @@ export const fetchPostComments = async (
   return res.data.data;
 };
 
-// # CRUD operations for post
+// #3 CRUD operations for post
 // create post
 export const createPost = async (postData: NewPostDTO): Promise<void> => {
   console.log('[postApi] 게시글 작성 요청 시작:', postData);
 
   try {
-    // ✅ 요청 직전 상태 확인
-    console.log('[postApi] 요청 URL:', '/api/posts');
-    console.log('[postApi] 요청 방법:', 'POST');
-    console.log('[postApi] 요청 바디:', JSON.stringify(postData, null, 2));
-
     const res = await instance.post('/api/posts', postData);
 
     console.log('[postApi] 게시글 작성 응답:', res.data);
@@ -82,27 +77,23 @@ export const createPost = async (postData: NewPostDTO): Promise<void> => {
       throw new Error('게시글 작성에 실패했습니다.');
     }
   } catch (error) {
-    // ✅ 상세 에러 로깅
-    console.error('[postApi] 에러 발생:');
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'response' in error &&
-      error.response &&
-      typeof error.response === 'object'
-    ) {
-      console.error('[postApi] 응답 상태:', (error as any).response.status);
-      console.error('[postApi] 응답 데이터:', (error as any).response.data);
-      console.error('[postApi] 응답 헤더:', (error as any).response.headers);
-      console.error('[postApi] 요청 설정:', (error as any).config);
-    }
+    console.error('[postApi] 에러 발생:', error);
     throw error;
   }
 };
 
 // del post
 
-// # post stats
+// #4 post stats
 // like
-// comment
+export const togglePostLike = async (postId: string) => {
+  const res = await instance.post<BaseResponse<any>>(
+    `/api/posts/${postId}/like`,
+  );
+  return res.data.data; // { action, liked, likeCount }
+};
+
 // bookmark
+
+// comment
+

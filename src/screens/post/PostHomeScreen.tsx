@@ -16,7 +16,7 @@ import type {FeedType, PostWithUserDTO} from '@/types';
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 //hooks
-import {usePostsByFeedId} from '@/hooks/queries/post/usePostQueries';
+import {usePostsByFeedId} from '@/hooks/queries/post/usePost';
 //components
 import PostList from '@/components/post/PostList';
 import IconButton from '@/components/common/IconButton';

@@ -6,6 +6,7 @@ import {
   getRegistrationStatus,
   setRegistrationStatus,
 } from '@/utils/storage/UserStorage';
+import {removeAxiosInterceptors} from '@/api/axiosInstance';
 
 import {ProfileDTO} from '@/types';
 
@@ -24,6 +25,8 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export let logout: () => void = () => {};
 
 export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
   children,
@@ -64,12 +67,13 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
     setIsLogin(true);
   };
 
-  const logout = async () => {
+  logout = async () => {
     try {
       await clearAuthData();
       setUser(null);
       setIsLogin(false);
       setIsRegistered(false);
+      removeAxiosInterceptors();
     } catch (error) {
       console.error('로그아웃 실패:', error);
     }
@@ -96,13 +100,13 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     isLogin,
     isRegistered,
     isLoading,
     login,
-    logout,
+    logout: logout as () => Promise<void>,
     refreshUserInfo,
     completeRegistration,
     setIsLogin,

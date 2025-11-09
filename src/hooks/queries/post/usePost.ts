@@ -4,11 +4,12 @@ import {
   fetchPostDetail,
   fetchPostComments,
   createPost,
+  togglePostLike,
 } from '@/api/post/postApi';
 import type {PostsDTO, PostWithUserDTO, CommentsDTO, NewPostDTO} from '@/types';
 import {FeedId} from '@/types';
 
-// # feed
+// #1 feed
 // query 키 상수
 export const POST_QUERY_KEYS = {
   posts: ['posts'] as const,
@@ -30,7 +31,7 @@ export const usePostsByFeedId = (feedId: FeedId) => {
   });
 };
 
-// # post detail
+// #2 post detail
 export const usePostDetail = (postId: string) => {
   return useQuery<PostWithUserDTO, Error>({
     queryKey: ['post', 'detail', postId],
@@ -51,7 +52,7 @@ export const usePostComments = (postId: string) => {
   });
 };
 
-// # CRUD operations for post
+// #3 CRUD operations for post
 // create post
 export const useCreatePost = () => {
   const queryClient = useQueryClient();
@@ -76,5 +77,22 @@ export const useCreatePost = () => {
 
 // # post stats
 // like
-// comment
+export function useTogglePostLike() {
+  return useMutation({
+    mutationFn: (postId: string) => togglePostLike(postId),
+    onMutate: postId => {
+      console.log('[usePostQueries] useTogglePostLike onMutate:', postId);
+    },
+    onSuccess: data => {
+      console.log('[usePostQueries] useTogglePostLike onSuccess:', data);
+    },
+    onError: error => {
+      console.log('[usePostQueries] useTogglePostLike onError:', error);
+    },
+  });
+}
+
+
 // bookmark
+
+// comment

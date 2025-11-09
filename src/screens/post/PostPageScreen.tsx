@@ -24,8 +24,8 @@ import CommentList from '@/components/post/postpage/CommentList';
 import CustomButton from '@/components/common/CustomButton';
 import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
-import {usePostDetail} from '@/hooks/queries/post/usePostQueries';
-import {usePostComments} from '@/hooks/queries/post/usePostQueries';
+import {usePostDetail} from '@/hooks/queries/post/usePost';
+import {usePostComments} from '@/hooks/queries/post/usePost';
 
 type PostPageScreenProp = StackScreenProps<
   PostStackParamList,
@@ -74,8 +74,8 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     );
   }
 
-  console.log('[PostPageScreen] 게시글 데이터 로드 완료');
-  console.log('[PostPageScreen] 댓글 데이터 로드 완료');
+  console.log('[PostPageScreen] 게시글 데이터 로드 완료', postData);
+  console.log('[PostPageScreen] 댓글 데이터 로드 완료', commentsData);
 
   const {post, user} = postData;
   return (
