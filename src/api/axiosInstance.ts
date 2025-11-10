@@ -28,7 +28,7 @@ api.interceptors.request.use(async cfg => {
     } else {
       cfg.headers = {Authorization: `Bearer ${at}`} as any;
     }
-    console.log('[axiosInstance.ts] Authorization set');
+    console.log('[axiosInstance.ts] Authorization set', at);
   }
   return cfg;
 });

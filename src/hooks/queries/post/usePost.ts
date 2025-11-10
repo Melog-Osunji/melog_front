@@ -5,6 +5,7 @@ import {
   fetchPostComments,
   createPost,
   togglePostLike,
+  togglePostBookmark,
 } from '@/api/post/postApi';
 import type {PostsDTO, PostWithUserDTO, CommentsDTO, NewPostDTO} from '@/types';
 import {FeedId} from '@/types';
@@ -92,7 +93,20 @@ export function useTogglePostLike() {
   });
 }
 
-
 // bookmark
+export function useTogglePostBookmark() {
+  return useMutation({
+    mutationFn: (postId: string) => togglePostBookmark(postId),
+    onMutate: postId => {
+      console.log('[usePostQueries] useTogglePostBookmark onMutate:', postId);
+    },
+    onSuccess: data => {
+      console.log('[usePostQueries] useTogglePostBookmark onSuccess:', data);
+    },
+    onError: error => {
+      console.log('[usePostQueries] useTogglePostBookmark onError:', error);
+    },
+  });
+}
 
 // comment
