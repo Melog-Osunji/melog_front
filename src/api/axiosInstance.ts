@@ -1,120 +1,105 @@
-import React from 'react';
-import axios, {AxiosRequestConfig} from 'axios';
-import {
-  getAccessToken,
-  getRefreshToken,
-  setAccessToken,
-  clearAuthData,
-} from '@/utils/storage/UserStorage';
-import {refreshTokenApi} from '@/api/Auth/AuthApi';
+// axiosInstance.ts
+import axios from 'axios';
+import {getAccessToken, clearAuthData} from '@/utils/storage/UserStorage';
 import {logout} from '@/contexts/AuthContext';
+import {tokenRefresh} from '@/api/Auth/AuthApi';
 
 export const BASE_URL = 'https://melog.org';
 
-const instance = axios.create({
+export const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000, // 10초 후 타임아웃
-  headers: {
-    'Content-Type': 'application/json; charset=utf-8',
-    Accept: '*/*',
-  },
+  timeout: 10000,
+  headers: {Accept: 'application/json'},
 });
 
-// axios 요청에 timeout 직접 래핑
-export function axiosWithTimeout(
-  config: AxiosRequestConfig<any>,
-  timeout = 100000,
-) {
-  return Promise.race([
-    instance(config),
-    new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), timeout),
-    ),
-  ]);
-}
+const OMIT = ['/auth/login', '/auth/register'];
 
-let responseInterceptor: number | null = null;
+// ======================= 요청 인터셉터 =======================
+api.interceptors.request.use(async cfg => {
+  const url = cfg.url ?? '';
+  if (OMIT.some(p => url.includes(p))) return cfg;
 
-// 요청 전에 accessToken 자동 추가
-instance.interceptors.request.use(
-  async config => {
-    // 로그인 관련 API는 토큰 추가하지 않음
-    const OmitApi =
-      config.url?.includes('/login/') ||
-      config.url?.includes('/auth/') ||
-      config.url?.includes('/register/');
-
-    if (!OmitApi) {
-      const token = await getAccessToken();
-      if (token) {
-        console.log('[Axios Interceptor] 요청에 토큰 추가:', token);
-
-        if (config.headers) {
-          config.headers['Authorization'] = `Bearer ${token}`;
-        } else {
-          config.headers = new axios.AxiosHeaders();
-          config.headers['Authorization'] = `Bearer ${token}`;
-        }
-      }
+  const at = await getAccessToken();
+  if (at) {
+    if ((cfg.headers as any)?.set) {
+      (cfg.headers as any).set('Authorization', `Bearer ${at}`);
+    } else if (cfg.headers) {
+      (cfg.headers as any)['Authorization'] = `Bearer ${at}`;
+    } else {
+      cfg.headers = {Authorization: `Bearer ${at}`} as any;
     }
-    return config;
-  },
-  error => {
-    return Promise.reject(error);
+    console.log('[axiosInstance.ts] Authorization set');
+  }
+  return cfg;
+});
+
+// ======================= 401 단일-리프레시 제어 =======================
+let isRefreshing = false;
+let refreshPromise: Promise<string> | null = null;
+
+// ======================= 응답 인터셉터 =======================
+api.interceptors.response.use(
+  res => res,
+  async err => {
+    const {response, config} = err || {};
+    const original: any = config || {};
+
+    // 네트워크 에러 등
+    if (!response) {
+      console.log('[axiosInstance.ts] 네트워크/알수없는 오류:', err?.message);
+      throw err;
+    }
+
+    const url = String(original.url || '');
+    const isAuthPath = OMIT.some(p => url.includes(p));
+
+    // 401이 아니거나, auth 경로면 리프레시 대상 아님
+    if (response.status !== 401 || isAuthPath) {
+      // 403/405/5xx 등은 그대로 전파
+      return Promise.reject(err);
+    }
+
+    // 무한 루프 방지: 재시도는 1회만
+    if (original._retry) {
+      console.log('[axiosInstance.ts] 재시도 후에도 401 → 세션 종료');
+      await clearAuthData();
+      logout();
+      return Promise.reject(err);
+    }
+    original._retry = true;
+
+    try {
+      // 싱글-플라이트: 리프레시는 오직 1회
+      if (!isRefreshing) {
+        isRefreshing = true;
+        console.log('[axiosInstance.ts] 리프레시 시작');
+        refreshPromise = tokenRefresh().finally(() => {
+          isRefreshing = false;
+          refreshPromise = null;
+        });
+      } else {
+        console.log('[axiosInstance.ts] 리프레시 진행중 → 대기');
+      }
+
+      const newAT = await (refreshPromise as Promise<string>);
+
+      // 원요청 Authorization 갱신
+      if ((original.headers as any)?.set) {
+        (original.headers as any).set('Authorization', `Bearer ${newAT}`);
+      } else if (original.headers) {
+        (original.headers as any)['Authorization'] = `Bearer ${newAT}`;
+      } else {
+        original.headers = {Authorization: `Bearer ${newAT}`} as any;
+      }
+
+      console.log('[axiosInstance.ts] 리프레시 성공 → 원요청 재시도');
+      return api(original);
+    } catch (e) {
+      // tokenRefresh 내부에서 세션 정리/로그아웃 수행됨
+      console.log('[axiosInstance.ts] 리프레시 실패 → 에러 전파');
+      return Promise.reject(e);
+    }
   },
 );
 
-export function setupAxiosInterceptors() {
-  if (responseInterceptor !== null) {
-    instance.interceptors.response.eject(responseInterceptor);
-  }
-  responseInterceptor = instance.interceptors.response.use(
-    response => response,
-    async error => {
-      const originalRequest = error.config;
-
-      if (error.response?.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
-        console.log('[Axios Interceptor] originalRequest:', originalRequest);
-        try {
-          const refreshToken = await getRefreshToken();
-          if (!refreshToken) {
-            await clearAuthData();
-            logout();
-            return Promise.reject(error);
-          }
-          const res = await refreshTokenApi(refreshToken);
-          const newAccessToken = res.data.accessToken;
-          if (!newAccessToken) {
-            await clearAuthData();
-            logout();
-            return Promise.reject(error);
-          }
-          await setAccessToken(newAccessToken);
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          return instance(originalRequest);
-        } catch (refreshError) {
-          await clearAuthData();
-          logout();
-          return Promise.reject(refreshError);
-        }
-      }
-      // 401이면서 이미 _retry가 true면 바로 인증정보 삭제 및 에러 반환
-      if (error.response?.status === 401 && originalRequest._retry) {
-        await clearAuthData();
-        logout();
-        return Promise.reject(error);
-      }
-      return Promise.reject(error);
-    },
-  );
-}
-
-export function removeAxiosInterceptors() {
-  if (responseInterceptor !== null) {
-    instance.interceptors.response.eject(responseInterceptor);
-    responseInterceptor = null;
-  }
-}
-
-export default instance;
+export default api;

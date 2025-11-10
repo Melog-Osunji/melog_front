@@ -65,7 +65,7 @@ export const getRegistrationStatus = async (): Promise<boolean> => {
 // 모든 인증 데이터 삭제
 export const clearAuthData = async (): Promise<void> => {
   await removeEncryptStorage('access_token');
-  // await removeEncryptStorage('refresh_token');
+  await removeEncryptStorage('refresh_token');
   console.log('[UserStorage] access_token 삭제됨');
 };
 
@@ -74,9 +74,4 @@ export const isLoggedIn = async (): Promise<boolean> => {
   const accessToken = await getAccessToken();
   const refreshToken = await getRefreshToken();
   return !!(accessToken && refreshToken);
-};
-
-export const removeAccessToken = async (): Promise<void> => {
-  await removeEncryptStorage('access_token');
-  console.log('[UserStorage] access_token 삭제됨');
 };

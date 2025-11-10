@@ -6,7 +6,6 @@ import {
   getRegistrationStatus,
   setRegistrationStatus,
 } from '@/utils/storage/UserStorage';
-import {removeAxiosInterceptors} from '@/api/axiosInstance';
 
 import {ProfileDTO} from '@/types';
 
@@ -73,7 +72,6 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
       setUser(null);
       setIsLogin(false);
       setIsRegistered(false);
-      removeAxiosInterceptors();
     } catch (error) {
       console.error('로그아웃 실패:', error);
     }
@@ -94,7 +92,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
     try {
       await setRegistrationStatus(true);
       setIsRegistered(true);
-      console.log('✅ 가입 완료 처리됨');
+      console.log('가입 완료 처리됨');
     } catch (error) {
       console.error('가입 완료 처리 실패:', error);
     }

@@ -1,9 +1,18 @@
-import instance, {axiosWithTimeout} from '../axiosInstance';
+import axios from 'axios';
+import instance, {BASE_URL} from '../axiosInstance';
 import type {
   SocialLoginRequest,
   SocialLoginResult,
   SocialLoginResponse,
 } from '@/types';
+import {
+  getAccessToken,
+  getRefreshToken,
+  setAccessToken,
+  setRefreshToken,
+  clearAuthData,
+} from '@/utils/storage/UserStorage';
+import {logout} from '@/contexts/AuthContext';
 
 const PLATFORM_ENDPOINTS = {
   KAKAO: '/api/auth/login/kakao',
@@ -40,32 +49,64 @@ export async function socialLogin(
   };
 }
 
-// refreshToken으로 accessToken 재발급
-export const refreshTokenApi = async (accessToken: string) => {
-  console.log('[AuthApi] refreshTokenApi 요청:', accessToken);
-  try {
-    const res = await axiosWithTimeout(
-      {
-        method: 'get',
-        url: '/api/auth/refresh',
-        data: {accessToken},
-        withCredentials: true,
-      },
-      10000,
-    );
-    console.log('[AuthApi] refreshTokenApi 응답:', res.data);
-    return res.data;
-  } catch (err) {
-    if (err.message === 'timeout') {
-      console.log('요청 타임아웃 발생');
-      // 타임아웃 처리
-    } else {
-      console.log(
-        '[AuthApi] refreshTokenApi 에러:',
-        (err as any).response?.data || (err as Error).message,
-      );
-      // 기타 에러 처리
-    }
-    throw err;
+/**
+ 토큰 리프레시 처리
+ - 성공: accessToken 저장(+ refreshToken 있으면 회전 적용)
+ - 실패: 세션 정리 후 throw (상위에서 잡아 처리)
+ */
+export async function tokenRefresh(): Promise<string> {
+  const at = await getAccessToken();
+  const rt = await getRefreshToken();
+  if (!rt) {
+    console.log('[authapi.ts] NO_REFRESH_TOKEN');
+    await clearAuthData();
+    logout();
+    throw new Error('NO_REFRESH_TOKEN');
   }
-};
+
+  // 인터셉터 비개입 전용 클라이언트
+  const raw = axios.create({
+    baseURL: BASE_URL,
+    timeout: 10000,
+    headers: {Accept: 'application/json'},
+  });
+
+  console.log('[authapi.ts] /api/auth/refresh 요청 시작');
+
+  try {
+    const res = await raw.post('/api/auth/refresh', null, {
+      headers: {
+        ...(at ? {Authorization: `Bearer ${at}`} : {}),
+        'X-Refresh-Token': rt,
+      },
+    });
+
+    const {accessToken, refreshToken, refreshTtlSeconds} = res.data || {};
+    if (!accessToken) {
+      console.log('[authapi.ts] INVALID_REFRESH_RESPONSE:', res.data);
+      throw new Error('INVALID_REFRESH_RESPONSE');
+    }
+
+    await setAccessToken(accessToken);
+    // 회전 정책: refreshToken 제공 시 교체
+    if (refreshToken) {
+      await setRefreshToken(refreshToken);
+      console.log(
+        '[authapi.ts] refreshToken 회전 적용. ttl(sec)=',
+        refreshTtlSeconds ?? null,
+      );
+    }
+
+    console.log('[authapi.ts] /api/auth/refresh 성공 (AT 갱신 완료)');
+    return accessToken;
+  } catch (e: any) {
+    console.log(
+      '[authapi.ts] /api/auth/refresh 실패:',
+      e?.response?.status,
+      e?.message,
+    );
+    await clearAuthData();
+    logout();
+    throw e;
+  }
+}
