@@ -22,14 +22,8 @@ export const fetchFollowPosts = async (): Promise<PostsDTO> => {
 
 export const fetchRecommendPosts = async (): Promise<PostsDTO> => {
   const res = await instance.get('/api/posts/recommends');
-  console.log(
-    '[postApi.ts] /api/posts/recommends status:',
-    res.status,
-    'data:',
-    res.data,
-  );
 
-  // 서버가 BaseResponse<T>를 따르지 않고 { results: [...] } 형태로 반환하는 경우를 처리
+  // (임시 err 처리) 서버가 BaseResponse<T>를 따르지 않고 { results: [...] } 형태로 반환하는 경우를 처리
   // 우선 순위: res.data.data (BaseResponse) -> res.data (raw payload)
   const payload = (res.data as any)?.data ?? res.data;
 
@@ -43,7 +37,7 @@ export const fetchRecommendPosts = async (): Promise<PostsDTO> => {
   return payload as PostsDTO;
 };
 
-// feed - id
+// feed - id mapping
 const FEED_API_MAP: Record<FeedId, () => Promise<PostsDTO>> = {
   [FEED_IDS.POPULAR]: fetchPopularPosts,
   [FEED_IDS.FOLLOW]: fetchFollowPosts,
@@ -89,7 +83,6 @@ export const createPost = async (postData: NewPostDTO): Promise<void> => {
       throw new Error('게시글 작성에 실패했습니다.');
     }
   } catch (error) {
-    console.error('[postApi] 에러 발생:', error);
     throw error;
   }
 };
@@ -114,3 +107,13 @@ export const togglePostBookmark = async (postId: string) => {
 };
 
 // comment
+export const createComment = async (
+  postId: string,
+  body: {content: string; responseTo: string | null},
+) => {
+  const res = await instance.post<BaseResponse<any>>(
+    `/api/posts/${postId}/comment`,
+    body,
+  );
+  return res.data.data;
+};

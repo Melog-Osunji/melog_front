@@ -1,5 +1,5 @@
 import axios from 'axios';
-import instance, {BASE_URL} from '../axiosInstance';
+import instance, {rawapi, BASE_URL} from '../axiosInstance';
 import type {
   SocialLoginRequest,
   SocialLoginResult,
@@ -27,7 +27,7 @@ export async function socialLogin(
 
   console.log(`[AuthApi] ${body.platform} 로그인 요청:`, endpoint);
 
-  const response = await instance.post<SocialLoginResponse>(endpoint, body);
+  const response = await rawapi.post<SocialLoginResponse>(endpoint, body);
 
   console.log(`[AuthApi] ${body.platform} 응답:`, response.data);
   console.log(`[AuthApi] ${body.platform} 헤더:`, response.headers);
@@ -64,17 +64,8 @@ export async function tokenRefresh(): Promise<string> {
     throw new Error('NO_REFRESH_TOKEN');
   }
 
-  // 인터셉터 비개입 전용 클라이언트
-  const raw = axios.create({
-    baseURL: BASE_URL,
-    timeout: 10000,
-    headers: {Accept: 'application/json'},
-  });
-
-  console.log('[authapi.ts] /api/auth/refresh 요청 시작');
-
   try {
-    const res = await raw.post('/api/auth/refresh', null, {
+    const res = await rawapi.post('/api/auth/refresh', null, {
       headers: {
         ...(at ? {Authorization: `Bearer ${at}`} : {}),
         'X-Refresh-Token': rt,

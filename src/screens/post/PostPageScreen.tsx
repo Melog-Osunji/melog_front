@@ -21,6 +21,7 @@ import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 import PostStats from '@/components/post/PostStats';
 import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
 import CommentList from '@/components/post/postpage/CommentList';
+import CommentBar from '@/components/post/postpage/CommentBar';
 import CustomButton from '@/components/common/CustomButton';
 import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
@@ -151,6 +152,7 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
 
             {/* 통계 */}
             <PostStats
+              id={post.id}
               likeCount={post.likeCount}
               commentCount={post.commentCount}
               visibleStats={['like', 'share', 'bookmark']}
@@ -187,6 +189,14 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
               ))}
           </View> */}
         </ScrollView>
+
+        {/* 댓글 입력 바 */}
+        <CommentBar
+          postId={postId}
+          onSend={(text: string) => {
+            console.log('[PostPageScreen] onSend comment:', text);
+          }}
+        />
       </GradientBg>
     </SafeAreaView>
   );

@@ -6,6 +6,7 @@ import {
   createPost,
   togglePostLike,
   togglePostBookmark,
+  createComment,
 } from '@/api/post/postApi';
 import type {PostsDTO, PostWithUserDTO, CommentsDTO, NewPostDTO} from '@/types';
 import {FeedId} from '@/types';
@@ -109,4 +110,31 @@ export function useTogglePostBookmark() {
   });
 }
 
-// comment
+// comment create hook
+export const useCreateComment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: {
+      postId: string;
+      content: string;
+      responseTo: string | null;
+    }) =>
+      createComment(payload.postId, {
+        content: payload.content,
+        responseTo: payload.responseTo,
+      }),
+    onSuccess: (_data, variables) => {
+      console.log('[usePost] 댓글 작성 성공:', variables.postId);
+      // 댓글 리스트 갱신
+      queryClient.invalidateQueries({
+        queryKey: ['post', 'comments', variables.postId],
+      });
+      // 포스트 리스트의 댓글 카운트가 있다면 관련 쿼리도 무효화
+      queryClient.invalidateQueries({queryKey: POST_QUERY_KEYS.posts});
+    },
+    onError: error => {
+      console.error('[usePost] 댓글 작성 실패:', error);
+    },
+  });
+};

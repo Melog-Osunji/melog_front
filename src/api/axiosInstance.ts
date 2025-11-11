@@ -12,12 +12,16 @@ export const api = axios.create({
   headers: {Accept: 'application/json'},
 });
 
-const OMIT = ['/auth/login', '/auth/register'];
+// 인터셉터 적용 전용이 아닌, 사이드 이펙트(인터셉터) 없이 순수 요청만 보낼 때 사용
+export const rawapi = axios.create({
+  baseURL: BASE_URL,
+  timeout: 10000,
+  headers: {Accept: 'application/json'},
+});
 
 // ======================= 요청 인터셉터 =======================
 api.interceptors.request.use(async cfg => {
   const url = cfg.url ?? '';
-  if (OMIT.some(p => url.includes(p))) return cfg;
 
   const at = await getAccessToken();
   if (at) {
@@ -50,11 +54,8 @@ api.interceptors.response.use(
       throw err;
     }
 
-    const url = String(original.url || '');
-    const isAuthPath = OMIT.some(p => url.includes(p));
-
-    // 401이 아니거나, auth 경로면 리프레시 대상 아님
-    if (response.status !== 401 || isAuthPath) {
+    // 401이 아니면
+    if (response.status !== 401) {
       // 403/405/5xx 등은 그대로 전파
       return Promise.reject(err);
     }
