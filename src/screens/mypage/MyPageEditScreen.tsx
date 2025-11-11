@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   TextInput,
   Keyboard,
+  Alert
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -20,15 +21,19 @@ import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import IconButton from '@/components/common/IconButton';
 import CustomButton from '@/components/common/CustomButton';
 import {launchImageLibrary} from 'react-native-image-picker';
+import {useUpdateProfile} from '@/hooks/queries/myPage/useMyPage';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
 function MyPageEditScreen() {
   useHideTabBarOnFocus();
   const navigation = useNavigation<StackNavigationProp<MyPageStackParamList>>();
+
+  const { mutate: updateProfile, isPending } = useUpdateProfile();
+
   const [nickname, setNickname] = useState('');
   const [checked, setChecked] = useState(false);
-  const [inrtoduction, setInrtoduction] = useState('');
+  const [introduction, setIntroduction] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -59,6 +64,39 @@ function MyPageEditScreen() {
     nickname !== '' && !/^[a-zA-Z0-9가-힣]+$/.test(nickname);
   const isTooLong = nickname.length > 10;
   const hasError = isInvalidChar || isTooLong;
+
+  const handleSave = () => {
+      if (!nickname.trim()) {
+        Alert.alert('알림', '닉네임을 입력해주세요.');
+        return;
+      }
+      if (hasError) {
+        Alert.alert('알림', '닉네임 형식을 확인해주세요.');
+        return;
+      }
+
+      updateProfile(
+        {
+          nickName: nickname,
+          intro: introduction,
+          profileImg: selectedImage ?? undefined,
+        },
+        {
+          onSuccess: () => {
+            Alert.alert('완료', '프로필이 수정되었습니다.', [
+              {
+                text: '확인',
+                onPress: () => navigation.navigate(myPageNavigations.MYPAGE_HOME),
+              },
+            ]);
+          },
+          onError: (error) => {
+            console.error(error);
+            Alert.alert('오류', '프로필 수정 중 문제가 발생했습니다.');
+          },
+        }
+      );
+    };
 
   return (
     <>
@@ -102,11 +140,7 @@ function MyPageEditScreen() {
                   },
                 ]}
               />
-              {nickname === '' && (
-                <Text style={styles.placeholder_text}>
-                  2~10자인 한글, 영문, 숫자만 사용할 수 있어요.
-                </Text>
-              )}
+
               <TouchableOpacity
                 style={[
                   styles.duplicate_btn,
@@ -141,15 +175,15 @@ function MyPageEditScreen() {
             <Text style={styles.h2}>프로필 소개</Text>
             <View style={[styles.inputbar, {position: 'relative'}]}>
               <TextInput
-                value={inrtoduction}
+                value={introduction}
                 onChangeText={text => {
-                  if (text.length <= 200) setInrtoduction(text);
+                  if (text.length <= 200) setIntroduction(text);
                 }}
                 multiline
                 maxLength={200}
                 style={{minHeight: 123, textAlignVertical: 'top', padding: 0}}
               />
-              {inrtoduction === '' && (
+              {introduction === '' && (
                 <Text style={styles.placeholder_text2}>
                   나를 표현하는 소개를 적어보세요.
                 </Text>
@@ -162,7 +196,7 @@ function MyPageEditScreen() {
                   fontSize: 12,
                   color: colors.GRAY_400,
                 }}>
-                {inrtoduction.length}/200
+                {introduction.length}/200
               </Text>
             </View>
           </View>
@@ -179,10 +213,9 @@ function MyPageEditScreen() {
           {!isKeyboardVisible && (
             <View style={styles.bottom}>
               <CustomButton
-                label="저장하기"
-                onPress={() => {
-                  navigation.navigate(myPageNavigations.MYPAGE_HOME);
-                }}
+                label={isPending ? '저장 중...' : '저장하기'}
+                onPress={handleSave}
+                disabled={isPending}
               />
             </View>
           )}

@@ -1,4 +1,5 @@
 import React, {useState, useEffect, useRef, useMemo} from 'react';
+import axios from 'axios';
 import {StyleSheet, Text, View, ScrollView, Image, Dimensions, FlatList, TouchableOpacity, Keyboard, Pressable, ActivityIndicator} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useFocusEffect, useRoute} from '@react-navigation/native';
@@ -20,10 +21,11 @@ import {
 } from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 // PostCard 가져오기
 import PostCard from '@/components/post/PostCard';
-import type { Post } from '@/constants/types';
+import type { PostDTO, UserDTO } from '@/types/postTypes';
 import { RefreshControl } from 'react-native';
 import { useRequestJoinHarmonyRoom } from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 import { useQueryClient } from '@tanstack/react-query';
+import {useUserInfo} from '@/hooks/common/useUserInfo';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
@@ -49,6 +51,13 @@ export default function HarmonyPageScreen() {
     const [popupMode, setPopupMode] = useState<'joined' | 'applied'>('joined');
 
     const {
+      userInfo,
+      isLoading: userInfoLoading,
+      error: userInfoError,
+      refetch: refetchUser,
+    } = useUserInfo();
+
+    const {
       data: roomInfo,
       isLoading: infoLoading,
       isError: infoError,
@@ -60,6 +69,8 @@ export default function HarmonyPageScreen() {
       isError: postsError,
       refetch: refetchPosts,
     } = useHarmonyRoomPosts(roomID);
+
+    console.log(roomInfo);
 
     const {
       data: memberDTO,
@@ -73,7 +84,7 @@ export default function HarmonyPageScreen() {
 
     const { mutateAsync: requestJoin, isPending: requestLoading } = useRequestJoinHarmonyRoom(roomID);
 
-    const currentUserId = "f4c475f1-9016-4b01-91a8-1880cf749903"; // TODO: auth context 등에서 가져오면 owner 비교 가능
+    const currentUserId = userInfo?.id ?? null;
 
     const isOwner = useMemo(() => {
       if (!roomInfo) return false;
@@ -90,7 +101,7 @@ export default function HarmonyPageScreen() {
     const headerIntro = roomInfo?.intro ?? '';
 
     // FeedItem: 서버 응답 병합 형태
-    type FeedItem = harmonyRoomPost & { author?: harmonyUser };
+    type FeedItem = PostDTO & { author?: UserDTO };
 
     // post[]와 user[]를 같은 index로 병합
     const pairPosts = (blocks?: harmonyRoomPosts[]) => {
@@ -111,33 +122,33 @@ export default function HarmonyPageScreen() {
     const popularFeed   = useMemo(() => pairPosts(postsDTO?.popular),   [postsDTO]);
 
     // ★ PostCard 타입으로 최종 매핑
-    const toPostCardModel = (src: FeedItem): Post => {
-      // 서버 createdAgo 가 "분" 단위(number)라고 가정 → 시간 단위로 변환(최소 1시간)
-      const hours = Math.max(1, Math.floor((src.createdAgo ?? 0) / 60));
-
+    const toPostCardModel = (src: FeedItem): PostDTO => {
       return {
         id: src.id,
-        user: {
-          nickName: src.author?.nickName ?? '익명',
-          profileImg: src.author?.profileImg ?? '',
-        },
-        createdAgo: hours,                 // PostCard에서 "{createdAgo}시간 전"으로 사용
+        title: src.title ?? '', // 서버에 title이 없을 수도 있으니 기본값
         content: src.content ?? '',
+        mediaType: src.mediaType ?? 'image', // 기본값으로 image 지정
         mediaUrl: src.mediaUrl ?? '',
         tags: src.tags ?? [],
+        createdAgo: src.createdAgo ?? 0,
         likeCount: src.likeCount ?? 0,
+        hiddenUser: src.hiddenUser ?? [],
         commentCount: src.commentCount ?? 0,
-        // bestComment는 서버에 없으니 생략 가능
+        bestComment: src.bestComment
+          ? {
+              userID: src.bestComment.userID ?? src.author?.nickName ?? '',
+              content: src.bestComment.content ?? '',
+            }
+          : undefined,
       };
     };
 
     const activeFeedRaw = selectTab === 'rcmd' ? recommendFeed : popularFeed;
-    const activeFeed: Post[] = useMemo(
+    const activeFeed: PostDTO[] = useMemo(
       () => activeFeedRaw.map(toPostCardModel),
       [activeFeedRaw]
     );
     const isEmpty = activeFeed.length === 0;
-
 
     // info로 이동
     const handlePress = () => {
@@ -164,8 +175,17 @@ export default function HarmonyPageScreen() {
         setShowExitPopup(true);
         // 쿼리 무효화는 훅 내부 onSuccess에서 이미 처리됨
       } catch (e) {
-        console.warn(e);
-        // 필요 시 에러 토스트/알럿
+        if (axios.isAxiosError(e)) {
+            console.warn('❌ Axios Error!');
+            console.warn('URL:', e.config?.baseURL + e.config?.url);
+            console.warn('Method:', e.config?.method?.toUpperCase());
+            console.warn('Status:', e.response?.status);
+            console.warn('Response data:', e.response?.data);
+            console.warn('Headers:', e.config?.headers);
+            console.warn('Request body:', e.config?.data);
+          } else {
+            console.warn('❌ 일반 Error:', e);
+          }
       }
     };
 
@@ -300,6 +320,7 @@ export default function HarmonyPageScreen() {
                 <IconButton<PostStackParamList>
                   imageSource={require('@/assets/icons/post/Write.png')}
                   size={72}
+                  target={[harmonyNavigations.HARMONY_POST, { harmonyId : roomID }]}
                 />
               </View>
             )}

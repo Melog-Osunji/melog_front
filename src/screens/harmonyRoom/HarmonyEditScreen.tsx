@@ -104,13 +104,14 @@ function HarmonyEditScreen() {
     setRoomName(detail.name ?? '');
     setDescription(detail.intro ?? '');
     setTags(Array.isArray(detail.category) ? detail.category : []);
-    if (detail.profileImg) {
-      setSelectedImage({uri: detail.profileImg, isLocal: false});
+    if (detail.profileImgLink) {
+      setSelectedImage({ uri: detail.profileImgLink, isLocal: false });
     }
 
     didInitRef.current = true;
   }, [detail]);
 
+        
   const handleSelectImage = () => {
     launchImageLibrary({mediaType: 'photo', quality: 0.9}, response => {
       const a = response.assets?.[0];

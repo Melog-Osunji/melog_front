@@ -16,6 +16,7 @@ import {
   useHarmonyRecentMedia,
   useHarmonyRecommendRooms,
 } from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
+import {getAccessToken} from '@/utils/storage/UserStorage';
 
 
 const {width: SCREEN_W} = Dimensions.get('window');
@@ -68,7 +69,6 @@ function HarmonyHomeScreen() {
       }
   }, [refetchMyRooms, refetchRecent, refetchRecommend]);
 
-  console.log(myRoomsDTO);
 
   const communitiesForStrip = useMemo(() => {
     if (!myRoomsDTO) return [];
@@ -110,7 +110,6 @@ function HarmonyHomeScreen() {
     <View style={styles.emptyWrap}><Text style={styles.emptyText}>{text}</Text></View>
   );
 
-  console.log(myRoomsDTO);
   return (
     <LinearGradient
       colors={['#EFFAFF', colors.WHITE]} // 원하는 색 배열
@@ -200,7 +199,7 @@ const styles = StyleSheet.create({
   },
   content: {
     width: '100%',
-    flex: 1, alignItems: 'center'
+    flex: 1,
   },
   header: {
     width: '100%',

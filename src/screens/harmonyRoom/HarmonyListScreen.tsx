@@ -26,6 +26,7 @@ import {useMyHarmonyRoomAll} from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet
 import {useBookmarkHarmonyRoom} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 import {useQueryClient} from '@tanstack/react-query';
 import {RefreshControl} from 'react-native';
+import {useUserInfo} from '@/hooks/common/useUserInfo';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
@@ -51,6 +52,7 @@ function HarmonyListScreen() {
   const route = useRoute<HarmonySettingRouteProp>();
   const {rooms} = useHarmonyRoomContext(); // [{id,name,tags,...}[]] 라고 가정
   const qc = useQueryClient();
+  const userInfo = useUserInfo();
 
   const {data: myRoomsDTO, isLoading, isError, refetch} = useMyHarmonyRoomAll();
   const {mutateAsync: toggleBookmark, isPending: bookmarkLoading} =
