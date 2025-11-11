@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {StyleSheet, View, TextInput} from 'react-native';
 import {colors} from '@/constants';
-import {useCreateComment} from '@/hooks/queries/post/usePost';
+import {useCreateComment} from '@/hooks/queries/post/usePostMutations';
 
 interface LikeAndCommentProps {
   onLikePress?: () => void;

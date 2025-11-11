@@ -22,11 +22,11 @@ import PostStats from '@/components/post/PostStats';
 import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
 import CommentList from '@/components/post/postpage/CommentList';
 import CommentBar from '@/components/post/postpage/CommentBar';
-import CustomButton from '@/components/common/CustomButton';
 import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
-import {usePostDetail} from '@/hooks/queries/post/usePost';
-import {usePostComments} from '@/hooks/queries/post/usePost';
+import PostOptionsSheet from '@/components/post/PostOptionsSheet';
+import {usePostDetail} from '@/hooks/queries/post/usePostQueries';
+import {usePostComments} from '@/hooks/queries/post/usePostQueries';
 
 type PostPageScreenProp = StackScreenProps<
   PostStackParamList,
@@ -75,8 +75,8 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     );
   }
 
-  console.log('[PostPageScreen] 게시글 데이터 로드 완료', postData);
-  console.log('[PostPageScreen] 댓글 데이터 로드 완료', commentsData);
+  console.log('[PostPageScreen] 게시글 데이터 로드 완료');
+  console.log('[PostPageScreen] 댓글 데이터 로드 완료');
 
   const {post, user} = postData;
   return (
@@ -135,7 +135,7 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
                   <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
                 </View>
               </View>
-              <CustomButton label="팔로우" variant="filled" size="small" />
+              <PostOptionsSheet user={user} postId={post.id} />
             </View>
 
             {/* 본문 */}
@@ -174,6 +174,7 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
               <CommentList
                 commentsData={commentsData}
                 totalCommentCount={post.commentCount || 0}
+                postId={postId}
               />
             ) : null}
           </View>

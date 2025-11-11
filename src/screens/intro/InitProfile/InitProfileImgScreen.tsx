@@ -28,27 +28,45 @@ function InitProfileImgScreen({navigation}: InitProfileScreenProps) {
     <View style={styles.container}>
       <Text style={styles.Titletext}>프로필을 등록해주세요</Text>
       <TouchableOpacity onPress={handleSelectImage} activeOpacity={0.7}>
-        <Image
-          source={
-            selectedImage
-              ? {uri: selectedImage}
-              : require('@/assets/icons/intro/select_img_btn.png')
-          }
-          style={{
-            width: 160,
-            height: 160,
-            resizeMode: 'contain',
-          }}
-        />
+        {selectedImage ? (
+          <Image
+            source={{uri: selectedImage}}
+            style={{
+              width: 160,
+              height: 160,
+              resizeMode: 'cover',
+              borderRadius: 80,
+            }}
+          />
+        ) : (
+          <Image
+            source={require('@/assets/icons/intro/select_img_btn.png')}
+            style={{
+              width: 160,
+              height: 160,
+              resizeMode: 'contain',
+            }}
+          />
+        )}
       </TouchableOpacity>
       <View style={styles.buttonwrapper}>
         <CustomButton
           label="다음"
           onPress={() => {
-            navigation.navigate(InitProfileNavigations.INIT_PROFILE_NICKNAME);
+            navigation.navigate(InitProfileNavigations.INIT_PROFILE_NICKNAME, {
+              imageUri: selectedImage ?? null,
+            });
           }}
+          inValid={!selectedImage}
         />
-        <Text style={styles.text}>나중에 등록하기</Text>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate(InitProfileNavigations.INIT_PROFILE_NICKNAME, {
+              imageUri: selectedImage ?? null,
+            })
+          }>
+          <Text style={styles.text}>나중에 등록하기</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

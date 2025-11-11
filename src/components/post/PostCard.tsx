@@ -4,7 +4,8 @@ import {colors} from '@/constants';
 import {PostDTO, UserDTO} from '@/types';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 import PostStats from '@/components/post/PostStats';
-import IconButton from '@/components/common/IconButton';
+import PostOptionsSheet from '@/components/post/PostOptionsSheet';
+
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
@@ -41,10 +42,7 @@ function PostCard({post, user}: PostCardProps) {
             <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
           </View>
         </View>
-        <IconButton
-          imageSource={require('@/assets/icons/post/Info.png')}
-          size={24}
-        />
+        <PostOptionsSheet user={user} postId={post.id} />
       </View>
 
       {/* 본문 */}

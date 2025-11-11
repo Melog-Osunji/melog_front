@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
-import {colors,defaultFeedTypes} from '@/constants';
+import {colors, defaultFeedTypes} from '@/constants';
 import {FeedType} from '@/types';
 
 interface FeedSelectorProps {
@@ -25,6 +25,9 @@ const FeedSelector: React.FC<FeedSelectorProps> = ({
       <TouchableOpacity
         style={styles.headerTitle}
         onPress={() => setIsBottomSheetVisible(true)}>
+        {selectedFeed.icon && (
+          <Image source={selectedFeed.icon} style={styles.selectedIcon} />
+        )}
         <Text style={styles.headerTitleText}>{selectedFeed.label}</Text>
         <Image
           source={require('@/assets/icons/post/UpArrow.png')}
@@ -43,6 +46,9 @@ const FeedSelector: React.FC<FeedSelectorProps> = ({
               key={feed.id}
               style={styles.feedOption}
               onPress={() => handleFeedSelect(feed)}>
+              {feed.icon && (
+                <Image source={feed.icon} style={styles.feedIcon} />
+              )}
               <Text style={styles.feedOptionText}>{feed.label}</Text>
             </TouchableOpacity>
           ))}
@@ -62,15 +68,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.BLACK,
   },
+  // icon next to header title label (now on the left)
+  selectedIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 8,
+    resizeMode: 'contain',
+  },
   dropdownIcon: {
     width: 24,
     height: 24,
     marginTop: 7,
     transform: [{rotate: '180deg'}],
+    marginLeft: 8,
   },
   feedOption: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 20,
@@ -79,6 +92,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: colors.BLACK,
+  },
+  // icon at the left of each feed option
+  feedIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 12,
+    resizeMode: 'contain',
   },
 });
 

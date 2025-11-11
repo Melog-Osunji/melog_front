@@ -21,8 +21,6 @@ export const rawapi = axios.create({
 
 // ======================= 요청 인터셉터 =======================
 api.interceptors.request.use(async cfg => {
-  const url = cfg.url ?? '';
-
   const at = await getAccessToken();
   if (at) {
     if ((cfg.headers as any)?.set) {
@@ -32,7 +30,7 @@ api.interceptors.request.use(async cfg => {
     } else {
       cfg.headers = {Authorization: `Bearer ${at}`} as any;
     }
-    console.log('[axiosInstance.ts] Authorization set', at);
+    console.log('[axiosInstance.ts] accesstoken set', at);
   }
   return cfg;
 });
@@ -87,6 +85,10 @@ api.interceptors.response.use(
       // 원요청 Authorization 갱신
       if ((original.headers as any)?.set) {
         (original.headers as any).set('Authorization', `Bearer ${newAT}`);
+        console.log(
+          '[axiosInstance.ts] 원요청 Authorization 갱신 (set)',
+          newAT,
+        );
       } else if (original.headers) {
         (original.headers as any)['Authorization'] = `Bearer ${newAT}`;
       } else {

@@ -8,8 +8,12 @@ import InitProfileIntroduction from '@/screens/intro/InitProfile/InitProfileIntr
 
 export type InitProfileNavigatorParamList = {
   [InitProfileNavigations.INIT_PROFILE_IMG]: undefined;
-  [InitProfileNavigations.INIT_PROFILE_NICKNAME]: undefined;
-  [InitProfileNavigations.INIT_PROFILE_INTRODUCTION]: undefined;
+  [InitProfileNavigations.INIT_PROFILE_NICKNAME]:
+    | {imageUri?: string | null}
+    | undefined;
+  [InitProfileNavigations.INIT_PROFILE_INTRODUCTION]:
+    | {imageUri?: string | null}
+    | undefined;
 };
 
 const Stack = createStackNavigator<InitProfileNavigatorParamList>();
@@ -27,7 +31,7 @@ function HarmonyStackNavigator() {
         component={InitProfileNickname}
         options={{headerShown: false}}
       />
-      <Stack.Screen
+      <Stack.Screen //현재 사용하지 않음
         name={InitProfileNavigations.INIT_PROFILE_INTRODUCTION}
         component={InitProfileIntroduction}
         options={{headerShown: false}}

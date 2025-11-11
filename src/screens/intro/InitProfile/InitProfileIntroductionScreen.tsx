@@ -1,3 +1,5 @@
+// src/screens/intro/InitProfile/InitProfileIntroductionScreen.tsx
+// 현재 사용하지 않음
 import React, {useState} from 'react';
 import {View, Text, Image, TextInput, StyleSheet} from 'react-native';
 import CustomButton from '@/components/common/CustomButton';

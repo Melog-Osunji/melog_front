@@ -9,20 +9,20 @@ import {
 } from 'react-native';
 //constants
 import {colors, postNavigations, defaultFeedTypes} from '@/constants';
-import {harmonyRooms as DUMMY_HARMONY_ROOMS} from '@/constants/dummyData'; // 임시
 //types
 import type {FeedType, PostWithUserDTO} from '@/types';
 //navigation
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 //hooks
-import {usePostsByFeedId} from '@/hooks/queries/post/usePost';
+import {usePostsByFeedId} from '@/hooks/queries/post/usePostQueries';
+import {useHarmonyRecommendRooms} from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 //components
+import HroomNaviBtn from '@/components/post/HroomNaviBtn';
 import PostList from '@/components/post/PostList';
 import IconButton from '@/components/common/IconButton';
 import FeedSelector from '@/components/post/FeedSelector';
 import GradientBg from '@/components/common/styles/GradientBg';
-import HaryroomNaviBtn from '@/components/post/HaryroomNaviBtn';
 import Toast, {ToastType} from '@/components/common/Toast';
 
 type PostHomeScreenProps = StackScreenProps<
@@ -52,8 +52,18 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
     setToastVisible(false);
   };
 
+  // 하모니룸 추천 API에서 데이터 가져와서 navibtn에 전달
+  const {data, isLoading, error} = useHarmonyRecommendRooms();
+
+  const rooms =
+    (data as any)?.recommendedRooms?.map((r: any) => ({
+      id: r.id,
+      name: r.name ?? r.intro ?? '하모니룸',
+      image: r.profileImgLink ?? r.profileImg ?? undefined,
+    })) ?? [];
+
   // 하모니룸 선택 handler
-  const handleRoomSelect = useCallback(
+  const onRoomSelect = useCallback(
     (roomId: string) => {
       console.log(
         `[PostHomeScreen] 하모니룸 변경: ${selectedRoomId} → ${roomId}`,
@@ -72,12 +82,7 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
   );
 
   // 포스트 조회
-  const {
-    data: apiPosts,
-    isLoading,
-    error,
-    refetch,
-  } = usePostsByFeedId(selectedFeed.id);
+  const {data: apiPosts, refetch} = usePostsByFeedId(selectedFeed.id);
 
   // 재시도 handler
   const handleRetry = useCallback(() => {
@@ -154,10 +159,11 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
         <PostList
           data={apiPosts?.results as PostWithUserDTO[]}
           ListHeaderComponent={
-            <HaryroomNaviBtn
-              rooms={DUMMY_HARMONY_ROOMS}
-              selectedRoomId={selectedRoomId}
-              onRoomSelect={handleRoomSelect}
+            <HroomNaviBtn
+              rooms={rooms}
+              onRoomSelect={onRoomSelect}
+              isLoading={isLoading}
+              error={error}
             />
           }
         />

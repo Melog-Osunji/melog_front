@@ -5,7 +5,7 @@ import {PostDTO} from '@/types';
 import {
   useTogglePostLike,
   useTogglePostBookmark,
-} from '@/hooks/queries/post/usePost';
+} from '@/hooks/queries/post/usePostMutations';
 
 type StatsType = 'like' | 'comment' | 'share' | 'bookmark';
 

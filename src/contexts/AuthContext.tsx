@@ -71,7 +71,6 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
       await clearAuthData();
       setUser(null);
       setIsLogin(false);
-      setIsRegistered(false);
     } catch (error) {
       console.error('로그아웃 실패:', error);
     }

@@ -11,17 +11,24 @@ import CustomButton from '@/components/common/CustomButton';
 import {colors} from '@/constants';
 
 import {StackScreenProps} from '@react-navigation/stack';
-import {InitProfileNavigatorParamList} from '@/navigations/stack/InitProfileStackNavigator';
-import {InitProfileNavigations} from '@/constants';
+import {IntroStackParamList} from '@/navigations/stack/IntroStackNavigator';
+import {introNavigations} from '@/constants';
+import {useUpdateUserProfile} from '@/hooks/queries/User/useUserMutations';
 
 type InitProfileScreenProps = StackScreenProps<
-  InitProfileNavigatorParamList,
-  typeof InitProfileNavigations.INIT_PROFILE_INTRODUCTION
+  IntroStackParamList,
+  typeof introNavigations.INTRO_ONBOARDING_1
 >;
 
-function InitProfileNicknameScreen({navigation}: InitProfileScreenProps) {
+function InitProfileNicknameScreen({
+  navigation,
+  route,
+}: InitProfileScreenProps) {
   const [nickname, setNickname] = useState('');
   const [checked, setChecked] = useState(false);
+  const imageUri = (route as any)?.params?.imageUri ?? null;
+
+  const updateProfile = useUpdateUserProfile();
 
   // 에러 조건 변수화
   const isInvalidChar =
@@ -29,14 +36,50 @@ function InitProfileNicknameScreen({navigation}: InitProfileScreenProps) {
   const isTooLong = nickname.length > 10;
   const hasError = isInvalidChar || isTooLong;
 
+  const handleNext = () => {
+    if (!nickname || hasError) {
+      console.log(
+        '[InitProfileNicknameScreen.tsx] invalid nickname, cannot submit',
+      );
+      return;
+    }
+    const payload = {
+      nickName: nickname,
+      intro: '', // intro will be provided later; send empty for now
+      profileImg: null, // per spec, send null for now
+    };
+    console.log(
+      '[InitProfileNicknameScreen.tsx] submit profile payload:',
+      payload,
+    );
+    updateProfile.mutate(payload, {
+      onSuccess: () => {
+        console.log(
+          '[InitProfileNicknameScreen.tsx] profile updated -> navigate',
+        );
+        navigation.navigate(introNavigations.INTRO_ONBOARDING_1);
+      },
+      onError: err => {
+        console.error(
+          '[InitProfileNicknameScreen.tsx] profile update failed:',
+          err,
+        );
+      },
+    });
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.Titletext}>닉네임을 등록해주세요</Text>
       <View style={{gap: 40, width: '100%', alignItems: 'center'}}>
         <Image
-          source={require('@/assets/icons/intro/basic_profile.png')}
-          style={{width: 120, height: 120}}
-          resizeMode="cover"
+          source={
+            imageUri
+              ? {uri: imageUri}
+              : require('@/assets/icons/intro/basic_profile.png')
+          }
+          style={{width: 120, height: 120, borderRadius: 60}}
+          resizeMode={imageUri ? 'cover' : 'contain'}
         />
         {/* ++ 나중에 선택된 이미지로 변경되는 로직 추가해야함 */}
 
@@ -109,9 +152,8 @@ function InitProfileNicknameScreen({navigation}: InitProfileScreenProps) {
       </View>
       <CustomButton
         label="다음"
-        onPress={() => {
-          navigation.navigate(InitProfileNavigations.INIT_PROFILE_INTRODUCTION);
-        }}
+        onPress={handleNext}
+        inValid={!nickname || hasError}
       />
     </View>
   );

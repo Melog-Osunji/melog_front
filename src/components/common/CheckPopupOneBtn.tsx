@@ -30,7 +30,6 @@ interface Props {
 export default function CheckPopupOneBtn({
     visible,
     onClose,
-    onExit,
     iconImg,
     title,
     content,

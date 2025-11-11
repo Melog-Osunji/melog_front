@@ -1,5 +1,4 @@
-import axios from 'axios';
-import instance, {rawapi, BASE_URL} from '../axiosInstance';
+import {rawapi} from '../axiosInstance';
 import type {
   SocialLoginRequest,
   SocialLoginResult,
