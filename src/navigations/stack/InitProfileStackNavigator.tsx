@@ -8,11 +8,13 @@ import InitProfileIntroduction from '@/screens/intro/InitProfile/InitProfileIntr
 
 export type InitProfileNavigatorParamList = {
   [InitProfileNavigations.INIT_PROFILE_IMG]: undefined;
+  // route params include both 서버 업로드된 URL(profileImg)과
+  // 로컬 표시용 이미지 URI(imageUri)
   [InitProfileNavigations.INIT_PROFILE_NICKNAME]:
-    | {imageUri?: string | null}
+    | {uploadedImageUrl?: string | null; selectedImage?: string | null}
     | undefined;
   [InitProfileNavigations.INIT_PROFILE_INTRODUCTION]:
-    | {imageUri?: string | null}
+    | {profileImg?: string | null; imageUri?: string | null}
     | undefined;
 };
 

@@ -85,10 +85,6 @@ api.interceptors.response.use(
       // 원요청 Authorization 갱신
       if ((original.headers as any)?.set) {
         (original.headers as any).set('Authorization', `Bearer ${newAT}`);
-        console.log(
-          '[axiosInstance.ts] 원요청 Authorization 갱신 (set)',
-          newAT,
-        );
       } else if (original.headers) {
         (original.headers as any)['Authorization'] = `Bearer ${newAT}`;
       } else {

@@ -3,6 +3,7 @@ import {useAuthContext} from '@/contexts/AuthContext';
 import IntroStackNavigator from '@/navigations/stack/IntroStackNavigator';
 import RegistrationStackNavigator from '@/navigations/stack/RegistrationStackNavigator';
 import MainTabNavigator from '@/navigations/tab/MainTabNavigator';
+import WelcomeScreen from '@/screens/intro/WelcomeScreen';
 
 function RootNavigator() {
   const {isLogin, isRegistered, isLoading, setIsLogin, setIsRegistered} =
@@ -11,10 +12,13 @@ function RootNavigator() {
   // 개발 모드에서 override가 적용되기 전까지 렌더 차단
   const [devOverrideApplied, setDevOverrideApplied] = useState(!__DEV__);
 
+  // 무조건 실행할 WelcomeScreen 표시 플래그 (초기 2초간 강제 표시)
+  const [showWelcome, setShowWelcome] = useState(true);
+
   useEffect(() => {
     // 개발 환경에서만 테스트 상태 설정
     if (__DEV__) {
-      const TEST_SCENARIO = 'MAIN'; // 'LOGIN' | 'REGISTRATION' | 'MAIN'
+      const TEST_SCENARIO = 'LOGIN'; // 'LOGIN' | 'REGISTRATION' | 'MAIN'
 
       switch (TEST_SCENARIO) {
         case 'REGISTRATION':
@@ -38,8 +42,17 @@ function RootNavigator() {
     }
   }, []);
 
-  if (isLoading || !devOverrideApplied) {
-    return null;
+  useEffect(() => {
+    // 초기 2초간은 무조건 WelcomeScreen 표시
+    const timer = setTimeout(() => {
+      setShowWelcome(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading || !devOverrideApplied || showWelcome) {
+    return <WelcomeScreen />;
   }
 
   // 로그인되지 않은 경우 -> 로그인 화면

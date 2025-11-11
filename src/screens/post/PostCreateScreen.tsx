@@ -151,11 +151,9 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
       tags: selectedTags,
     };
 
-    console.log('[PostCreateScreen] 전송할 데이터:', postData);
-
     try {
       await createPostMutation.mutateAsync(postData);
-      console.log('[PostCreateScreen] 게시글 작성 완료');
+      console.log('[PostCreateScreen] 게시글 작성 완료', postData);
       showToast('게시되었습니다.', 'success');
 
       setTimeout(() => {

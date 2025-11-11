@@ -26,7 +26,10 @@ function InitProfileNicknameScreen({
 }: InitProfileScreenProps) {
   const [nickname, setNickname] = useState('');
   const [checked, setChecked] = useState(false);
-  const imageUri = (route as any)?.params?.imageUri ?? null;
+  // 서버에 업로드되어 API 호출 시 사용할 값 (uploadedImageUrl)
+  const uploadedImageUrl = (route as any)?.params?.uploadedImageUrl ?? null;
+  // 화면에 표시할 로컬 이미지 URI (selectedImage)
+  const selectedImage = (route as any)?.params?.selectedImage ?? null;
 
   const updateProfile = useUpdateUserProfile();
 
@@ -45,8 +48,8 @@ function InitProfileNicknameScreen({
     }
     const payload = {
       nickName: nickname,
-      intro: '', // intro will be provided later; send empty for now
-      profileImg: null, // per spec, send null for now
+      intro: '',
+      profileImg: uploadedImageUrl ?? null, // 서버로 보낼 업로드된 이미지 URL (없으면 null)
     };
     console.log(
       '[InitProfileNicknameScreen.tsx] submit profile payload:',
@@ -74,12 +77,12 @@ function InitProfileNicknameScreen({
       <View style={{gap: 40, width: '100%', alignItems: 'center'}}>
         <Image
           source={
-            imageUri
-              ? {uri: imageUri}
+            selectedImage
+              ? {uri: selectedImage}
               : require('@/assets/icons/intro/basic_profile.png')
           }
           style={{width: 120, height: 120, borderRadius: 60}}
-          resizeMode={imageUri ? 'cover' : 'contain'}
+          resizeMode={selectedImage ? 'cover' : 'contain'}
         />
         {/* ++ 나중에 선택된 이미지로 변경되는 로직 추가해야함 */}
 

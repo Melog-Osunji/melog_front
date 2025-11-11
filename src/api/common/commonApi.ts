@@ -1,4 +1,5 @@
-import instance from '../axiosInstance';
+import {BASE_URL} from '../axiosInstance';
+import {getAccessToken} from '@/utils/storage/UserStorage';
 import type {BaseResponse} from '../baseResponse';
 import type {PickedImage} from '@/types';
 
@@ -6,45 +7,28 @@ import type {PickedImage} from '@/types';
 export type ImageUploadType = 'profile' | 'post';
 
 export const uploadImage = async (
-  ImageUploadType: ImageUploadType,
+  type: ImageUploadType = 'post',
   file: PickedImage,
 ): Promise<BaseResponse<string>> => {
-  try {
-    console.log('[commonApi] uploadImage 시작', ImageUploadType);
-    console.log('[commonApi] 받은 file:', file);
-    const url =
-      ImageUploadType === 'profile'
-        ? '/api/images/profile'
-        : '/api/images/upload';
+  const path = type === 'profile' ? '/api/images/profile' : '/api/images/post';
+  const fullUrl = `${BASE_URL}${path}`;
+  const token = await getAccessToken();
 
-    const form = new FormData();
-    const name =
-      file.name ?? `harmony_${Date.now()}.${file.type?.split('/')[1] || 'jpg'}`;
-    const type = file.type ?? 'image/jpeg';
+  const form = new FormData();
+  form.append('file', {
+    uri: file.uri,
+    name: file.name ?? `img_${Date.now()}.jpg`,
+    type: file.type ?? 'image/jpeg',
+  } as any);
 
-    form.append('file', {
-      // RN FormData 규격
-      uri: file.uri,
-      name,
-      type,
-    } as any);
+  const fetchHeaders: Record<string, string> = {};
+  if (token) fetchHeaders.Authorization = `Bearer ${token}`;
 
-    console.log('[commonApi] FormData 내용:', form);
-    console.log('[commonApi] file.uri :', file.uri);
-    console.log('[commonApi] file.name :', name);
-    console.log('[commonApi] file.type :', type);
+  const res = await fetch(fullUrl, {
+    method: 'POST',
+    headers: fetchHeaders,
+    body: form,
+  });
 
-    const res = await instance.post<BaseResponse<string>>(url, form, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    
-    console.log('[commonApi] 응답 상태:', res.status);
-    console.log('[commonApi] 응답 데이터:', res.data);
-    return res.data;
-  } catch (error) {
-    console.log('[commonApi] uploadImage 실패:', error);
-    throw error;
-  }
+  return (await res.json()) as BaseResponse<string>;
 };
