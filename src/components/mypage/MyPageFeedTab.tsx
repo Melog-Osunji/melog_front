@@ -9,7 +9,6 @@ const { width: SCREEN_W } = Dimensions.get('window');
 const MyPageFeedTab = () => {
   const { data, isLoading, isError, refetch, isRefetching } = useMyPage();
 
-  console.log(data.posts);
   const posts = useMemo(() => {
     if (!data?.posts) return [];
 
