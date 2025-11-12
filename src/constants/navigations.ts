@@ -34,6 +34,9 @@ const harmonyNavigations = {
   HARMONY_LIST: 'HarmonyRoomList',
   HARMONY_APPLY: 'HarmonyApply',
   HARMONY_POST: 'HarmonyPost',
+  HARMONY_POST_PAGE: 'HarmonyPostPage',
+  HARMONY_SEARCH: 'HarmonySearch',
+  HARMONY_SEARCH_RESULT: 'HarmonySearchResult',
 } as const;
 
 //프로필설정
@@ -47,6 +50,7 @@ const InitProfileNavigations = {
 const myPageNavigations = {
   MYPAGE_HOME: 'MyPageHome',
   MYPAGE_EDIT: 'MyPageEdit',
+  MYPAGE_POST_PAGE: 'MyPagePostPage',
 } as const;
 
 export {introNavigations};

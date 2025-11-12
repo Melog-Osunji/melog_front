@@ -4,10 +4,12 @@ import {myPageNavigations} from '@/constants';
 import {MAIN_TAB_SCREEN_OPTIONS} from '@/navigations/tab/MainTabNavigator';
 import MyPageHomeScreen from '@/screens/mypage/MyPageHomeScreen';
 import MyPageEditScreen from '@/screens/mypage/MyPageEditScreen';
+import PostPageScreen from '@/screens/post/PostPageScreen';
 
 export type MyPageStackParamList = {
   [myPageNavigations.MYPAGE_HOME]: undefined;
   [myPageNavigations.MYPAGE_EDIT]: undefined;
+  MYPAGE_POST_PAGE: { postId: string };
 };
 
 const Stack = createStackNavigator<MyPageStackParamList>();
@@ -24,6 +26,11 @@ function MyPageStackNavigator() {
         name={myPageNavigations.MYPAGE_EDIT}
         component={MyPageEditScreen}
         options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="MYPAGE_POST_PAGE"
+        component={PostPageScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

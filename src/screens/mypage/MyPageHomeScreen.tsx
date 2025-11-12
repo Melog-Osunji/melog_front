@@ -24,6 +24,7 @@ function MyPageHomeScreen() {
   const { data, isLoading, isError, refetch, isRefetching } = useMyPage();
   const userInfo = useUserInfo();
 
+  console.log(data);
   useFocusEffect(
       useCallback(() => {
         refetch();

@@ -8,7 +8,7 @@ import IconButton from '@/components/common/IconButton';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
-import {postNavigations} from '@/constants';
+import {postNavigations, myPageNavigations, harmonyNavigations} from '@/constants';
 
 type PostCardNavigationProp = StackNavigationProp<PostStackParamList>;
 
@@ -21,9 +21,18 @@ function PostCard({post, user}: PostCardProps) {
   const navigation = useNavigation<PostCardNavigationProp>();
 
   const handlePress = () => {
-    navigation.navigate(postNavigations.POST_PAGE, {
-      postId: post.id,
-    });
+    const routes = navigation.getState()?.routeNames ?? [];
+
+    if (routes.includes(myPageNavigations.MYPAGE_HOME)) {
+      // ✅ 마이페이지 스택 내에 있으면
+      navigation.navigate('MYPAGE_POST_PAGE', { postId: post.id });
+    } else if (routes.includes(harmonyNavigations.HARMONY_HOME)) {
+      // ✅ 하모니룸 스택 내에 있으면
+//       navigation.navigate('HARMONY_POST_PAGE', { postId: post.id });
+    } else {
+      // ✅ 그 외엔 기본 포스트 페이지로 이동
+      navigation.navigate(postNavigations.POST_PAGE, { postId: post.id });
+    }
   };
 
   return (
@@ -35,7 +44,14 @@ function PostCard({post, user}: PostCardProps) {
       {/* 사용자 정보 */}
       <View style={styles.header}>
         <View style={styles.userWrapper}>
-          <Image source={{uri: user.profileImg}} style={styles.profileImage} />
+          <Image
+            source={
+              user.profileImg
+                ? { uri: user.profileImg }
+                : require('@/assets/icons/common/EmptyProfile.png')
+            }
+            style={styles.profileImage}
+          />
           <View style={styles.userInfo}>
             <Text style={styles.nickName}>{user.nickName}</Text>
             <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>

@@ -9,7 +9,7 @@ export type PostDTO = {
   tags: string[];
   createdAgo: number;
   likeCount: number;
-  hiddenUser: string[];
+  hiddenUser?: string[];
   commentCount: number;
   bestComment?: BestCommentDTO;
 };
