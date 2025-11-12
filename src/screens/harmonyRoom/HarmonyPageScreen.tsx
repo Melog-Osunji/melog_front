@@ -70,8 +70,6 @@ export default function HarmonyPageScreen() {
       refetch: refetchPosts,
     } = useHarmonyRoomPosts(roomID);
 
-    console.log(roomInfo);
-
     const {
       data: memberDTO,
       isLoading: memberLoading,
@@ -104,23 +102,19 @@ export default function HarmonyPageScreen() {
     type FeedItem = PostDTO & { author?: UserDTO };
 
     // post[]와 user[]를 같은 index로 병합
-    const pairPosts = (blocks?: harmonyRoomPosts[]) => {
-      if (!blocks?.length) return [] as FeedItem[];
-      const merged: FeedItem[] = [];
-      for (const b of blocks) {
-        const posts = b.post ?? [];
-        const users = b.user ?? [];
-        for (let i = 0; i < posts.length; i++) {
-          merged.push({ ...posts[i], author: users[i] });
-        }
-      }
-      return merged;
+    const pairPosts = (blocks?: any[]) => {
+      if (!blocks?.length) return [];
+      return blocks.map(b => ({
+        ...b.post,
+        author: b.user,
+      }));
     };
 
     // 탭에 맞는 원천 피드
     const recommendFeed = useMemo(() => pairPosts(postsDTO?.recommend), [postsDTO]);
     const popularFeed   = useMemo(() => pairPosts(postsDTO?.popular),   [postsDTO]);
 
+    console.log(postsDTO?.recommend)
     // ★ PostCard 타입으로 최종 매핑
     const toPostCardModel = (src: FeedItem): PostDTO => {
       return {
@@ -140,6 +134,7 @@ export default function HarmonyPageScreen() {
               content: src.bestComment.content ?? '',
             }
           : undefined,
+        user: src.author,
       };
     };
 
@@ -148,6 +143,7 @@ export default function HarmonyPageScreen() {
       () => activeFeedRaw.map(toPostCardModel),
       [activeFeedRaw]
     );
+
     const isEmpty = activeFeed.length === 0;
 
     // info로 이동
@@ -295,14 +291,16 @@ export default function HarmonyPageScreen() {
                     <EmptyTab subtitle={"우측 하단의 글쓰기 버튼으로\n첫 글을 작성해보세요."} />
                   </View>
                 ) : (
-                  <FlatList
-                    data={activeFeed}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => <PostCard {...item} />}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 60 }}
-                    ListHeaderComponent={<View style={{ height: 0 }} />} // 상단 여백 조절용(선택)
-                  />
+                    <FlatList
+                      data={activeFeed}
+                      keyExtractor={(item) => item.id}
+                      renderItem={({ item }) => (
+                          <PostCard post={item} user={item.user!} />
+                      )}
+                      showsVerticalScrollIndicator={false}
+                      contentContainerStyle={{ paddingBottom: 20 }}
+                      ListHeaderComponent={<View style={{ height: 0 }} />}
+                    />
                 )}
 
 

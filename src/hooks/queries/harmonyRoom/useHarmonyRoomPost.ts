@@ -56,7 +56,8 @@ export const useUpdateHarmonyRoom = (harmonyId: string) => {
   const qc = useQueryClient();
   return useMutation<HarmonyRoomBaseResponse, Error, UpdateHarmonyRoomRequest>({
     mutationFn: (payload) => updateHarmonyRoom(harmonyId, payload),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('✅ updateHarmonyRoom 성공:', data);
       qc.invalidateQueries({ queryKey: HarmonyQueryKeys.detail(harmonyId) });
       qc.invalidateQueries({ queryKey: HarmonyQueryKeys.info(harmonyId) });
       qc.invalidateQueries({ queryKey: HarmonyQueryKeys.list() });

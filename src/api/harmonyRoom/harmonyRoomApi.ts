@@ -187,3 +187,5 @@ export const fetchIsWaiting = async (
     );
     return res.data.data;
 }
+
+// 하모니룸 검색

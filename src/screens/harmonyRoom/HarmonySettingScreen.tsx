@@ -52,6 +52,8 @@ function HarmonySettingScreen() {
     isError,
   } = useHarmonyRoomInfo(roomID);
 
+
+  console.log(detail);
   const [showExitPopup, setShowExitPopup] = useState(false);
   const [showReasonSheet, setShowReasonSheet] = useState(false);
   const [showSuccessSheet, setShowSuccessSheet] = useState(false);
@@ -60,9 +62,9 @@ function HarmonySettingScreen() {
   const [needApproval, setNeedApproval] = useState(false);
 
   useEffect(() => {
-    if (detail) {
-        setIsPublic(!detail.isPrivate);             // 서버의 isPrivate → 공개 여부 반전
-        setNeedApproval(!detail.isDirectAssign);    // 서버의 isDirectAssign → 승인 필요 반전
+    if (detail && !updateMutation.isSuccess) {
+      setIsPublic(!detail.isPrivate);
+      setNeedApproval(!detail.isDirectAssign);
     }
   }, [detail]);
 

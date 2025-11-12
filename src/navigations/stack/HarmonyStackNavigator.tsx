@@ -9,10 +9,14 @@ import HarmonySettingScreen from '@/screens/harmonyRoom/HarmonySettingScreen';
 import HarmonyListScreen from '@/screens/harmonyRoom/HarmonyListScreen';
 import HarmonyApplyManageScreen from '@/screens/harmonyRoom/HarmonyApplyManageScreen';
 import HarmonyPostScreen from '@/screens/harmonyRoom/HarmonyPostScreen';
+import HarmonySearchScreen from '@/screens/harmonyRoom/HarmonySearchScreen';
+import HarmonySearchResultScreen from '@/screens/harmonyRoom/HarmonySearchResultScreen';
 import {harmonyNavigations} from '@/constants';
 import {MAIN_TAB_SCREEN_OPTIONS} from '@/navigations/tab/MainTabNavigator';
 import {HarmonyRoomInfo} from '@/constants/types';
 import {HarmonyRoomProvider} from '@/contexts/HarmonyRoomContext';
+import PostPageScreen from '@/screens/post/PostPageScreen';
+
 
 export type HarmonyStackParamList = {
   [harmonyNavigations.HARMONY_HOME]: undefined;
@@ -27,6 +31,9 @@ export type HarmonyStackParamList = {
   [harmonyNavigations.HARMONY_LIST]: undefined ;
   [harmonyNavigations.HARMONY_APPLY]: {roomID: string};
   [harmonyNavigations.HARMONY_POST]: {roomID: string};
+  [harmonyNavigations.HARMONY_SEARCH]: undefined;
+  [harmonyNavigations.HARMONY_SEARCH_RESULT]: {searchKeyword: string};
+  HARMONY_POST_PAGE: { postId: string };
 };
 
 const Stack = createStackNavigator<HarmonyStackParamList>();
@@ -80,6 +87,21 @@ function HarmonyStackNavigator() {
           component={HarmonyPostScreen}
           options={{headerShown: false}}
         />
+        <Stack.Screen
+          name={harmonyNavigations.HARMONY_SEARCH}
+          component={HarmonySearchScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name={harmonyNavigations.HARMONY_SEARCH_RESULT}
+          component={HarmonySearchResultScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="HARMONY_POST_PAGE"
+          component={PostPageScreen}
+          options={{ headerShown: false }}
+         />
       </Stack.Navigator>
     </HarmonyRoomProvider>
   );

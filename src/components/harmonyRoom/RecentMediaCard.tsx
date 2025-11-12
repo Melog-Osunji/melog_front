@@ -15,6 +15,7 @@ import {RecentHarmonyRoom} from '@/constants/types';
 import {harmonyRoomNavigation} from '@/constants';
 import {colors} from '@/constants';
 import {harmonyRoomMediaDTO} from '@/api/harmonyRoom/harmonyRoomApi';
+import {harmonyNavigations} from '@/constants';
 
 type Props = {
   data: harmonyRoomMediaDTO;
@@ -27,9 +28,7 @@ export default function RecentMediaCard({data}: Props) {
 
   console.log(data);
   const handlePress = () => {
-    navigation.navigate(harmonyRoomNavigation.HARMONY_PAGE, {
-      roomID: postID,
-    });
+//     navigation.navigate('HARMONY_POST_PAGE', { postId: postID });
   };
 
   const getYouTubeThumbnail = (url: string): string => {
