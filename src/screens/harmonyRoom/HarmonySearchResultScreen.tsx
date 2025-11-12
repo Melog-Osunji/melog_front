@@ -37,6 +37,8 @@ function HarmonySearchResultScreen({navigation, route}: IntroScreenProps) {
 
   const { data, isLoading, isError } = useHarmonySearch(keyword);
 
+  console.log(data);
+
   // 다른 화면에서 새 키워드로 다시 진입했을 때 반영
   useEffect(() => {
     if (route.params?.searchKeyword && route.params.searchKeyword !== keyword) {

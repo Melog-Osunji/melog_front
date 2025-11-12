@@ -174,9 +174,10 @@ export const fetchInsideHarmonyRoomPosts = async (
 };
 
 export type isWaitingDTO = {
-    wait: boolean;
+    harmonyRoomId: string;
+    harmonyRoomName: string;
+    isWaiting: boolean;
 };
-
 
 // 가입 대기 유무 확인
 export const fetchIsWaiting = async (
