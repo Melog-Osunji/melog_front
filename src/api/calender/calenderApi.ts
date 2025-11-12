@@ -70,6 +70,8 @@ export const fetchCalendarMain = async (params?: {
   return res.data.data;
 };
 
+// 캘린더 카테고리별 아이템
+
 // 일정/알림 북마크 저장/취소
 export const saveCalendarSchedule = async (
   payload: SaveScheduleRequest

@@ -14,6 +14,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import CheckPopupOneBtn from '@/components/common/CheckPopupOneBtn';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
+import { useSaveCalendarSchedule } from '@/hooks/queries/calender/useCalender';
+
 
 dayjs.locale('ko');
 
@@ -33,16 +35,37 @@ const SCREEN_W = Dimensions.get('window').width;
 
 export default function PerformanceCard({data}:Props) {
 
-    const { id, title, venue, startDateTime, endDateTime, dddy, bookmarked, thumbnailUrl } = data;
+    const { id, title, venue, startDateTime, endDateTime, dday, bookmarked, thumbnailUrl } = data;
 
-    const [isBook, setIsBook] = useState(false);
+    const [isBook, setIsBook] = useState(bookmarked);
+    const [popupMsg, setPopupMsg] = useState('');
     const [showExitPopup,setShowExitPopup] = useState(false);
+
+    const { mutate: saveSchedule } = useSaveCalendarSchedule();
 
     // 북마크 추가 함수
     const handleBookmark = () => {
+        const newState = !isBook;
+        setIsBook(newState);
+
+        // 팝업 메시지 설정
+        if (newState) {
+          setPopupMsg('캘린더에 저장했어요.');
+        } else {
+          setPopupMsg('캘린더에서 삭제했어요.');
+        }
         setShowExitPopup(true);
-        setIsBook(prev => !prev);
-    };
+
+        // mutation 실행
+        saveSchedule({
+          eventId: id,
+          eventDate: dayjs(startDateTime).format('YYYY-MM-DD'),
+          schedule: newState, // true면 추가, false면 해제
+          alarm: true,       // 필요 시 알림 토글 로직 추가
+        });
+      };
+
+    const truncatedTitle = title.length > 24 ? `${title.slice(0, 24)}...` : title;
 
     return (
         <View style={styles.container}>
@@ -58,9 +81,8 @@ export default function PerformanceCard({data}:Props) {
                                 start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }}
                                 style={styles.gradientWrap}
                     >
-                    >
                     <Text style={styles.leftDate}>
-                        {typeof dday === 'number' ? (dday === 0 ? 'D-DAY' : dday > 0 ? `D-${dday}` : '마감') : '마감'}
+                        {dday === 0 ? 'D-DAY' : dday > 0 ? `D-${dday}` : '진행중'}
                     </Text>
                     </LinearGradient>
                     <Text style={styles.title}>{title}</Text>
@@ -78,7 +100,7 @@ export default function PerformanceCard({data}:Props) {
               visible={showExitPopup}
               onClose={() => setShowExitPopup(false)}
               iconImg={require('@/assets/icons/post/Notice.png')}
-              title='캘린더에 저장했어요.'
+              title={popupMsg}
               btnColor={colors.BLUE_400}
               btnText="확인"
               btnTextColor={colors.WHITE}
@@ -135,6 +157,9 @@ const styles = StyleSheet.create({
         lineHeight: 22,
         letterSpacing: 0.15,
         color: colors.BLACK,
+        maxWidth: SCREEN_W * 0.55,
+        numberOfLines: 1,
+        ellipsizeMode: 'tail',
     },
     location: {
         fontFamily: 'Noto Sans KR',
