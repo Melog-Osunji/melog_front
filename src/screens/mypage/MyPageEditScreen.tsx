@@ -261,6 +261,7 @@ function MyPageEditScreen() {
                 label={isPending ? '저장 중...' : '저장하기'}
                 onPress={handleSave}
                 disabled={isPending}
+                style={{backgroundColor: colors.BLUE_500}}
               />
             </View>
           )}
