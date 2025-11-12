@@ -91,7 +91,7 @@ export const uploadProfileImage = async (
   } as any);
 
   const res = await instance.post<UploadProfileImageResponse>(
-    `/api/images/profile/`,
+    `/api/images/profile`,
     form,
     {
         headers: {
