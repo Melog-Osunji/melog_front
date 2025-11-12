@@ -291,16 +291,25 @@ export default function HarmonyPageScreen() {
                     <EmptyTab subtitle={"우측 하단의 글쓰기 버튼으로\n첫 글을 작성해보세요."} />
                   </View>
                 ) : (
-                    <FlatList
-                      data={activeFeed}
-                      keyExtractor={(item) => item.id}
-                      renderItem={({ item }) => (
-                          <PostCard post={item} user={item.user!} />
-                      )}
-                      showsVerticalScrollIndicator={false}
-                      contentContainerStyle={{ paddingBottom: 20 }}
-                      ListHeaderComponent={<View style={{ height: 0 }} />}
-                    />
+                    <View>
+                    {activeFeed.map(item => (
+                      <PostCard
+                        key={item.id}
+                        post={item}
+                        user={item.user}
+                      />
+                    ))}
+                    </View>
+//                     <FlatList
+//                       data={activeFeed}
+//                       keyExtractor={(item) => item.id}
+//                       renderItem={({ item }) => (
+//                           <PostCard post={item} user={item.user!} />
+//                       )}
+//                       showsVerticalScrollIndicator={false}
+//                       contentContainerStyle={{ paddingBottom: 20 }}
+//                       ListHeaderComponent={<View style={{ height: 0 }} />}
+//                     />
                 )}
 
 

@@ -53,7 +53,7 @@ type HarmonyPageScreenRouteProp = StackScreenProps<
 
 export default function HarmonyInfoScreen() {
   useHideTabBarOnFocus();
-
+  const navigation = useNavigation<StackNavigationProp<HarmonyPageScreenRouteProp>>();
   const route = useRoute<HarmonyPageScreenRouteProp>();
   const {roomID} = route.params;
   const {rooms} = useHarmonyRoomContext();

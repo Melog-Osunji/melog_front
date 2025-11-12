@@ -131,7 +131,7 @@ function HarmonyHomeScreen() {
                 />
                 <IconButton<MyPageStackParamList>
                     imageSource={require('@/assets/icons/post/Search.png')}
-//                     target={[harmonyNavigations.HARMONY_CREATE]}
+                    target={[harmonyNavigations.HARMONY_SEARCH]}
                 />
                 <IconButton<MyPageStackParamList>
                     imageSource={require('@/assets/icons/post/Notice.png')}
