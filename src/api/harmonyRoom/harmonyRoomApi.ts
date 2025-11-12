@@ -189,3 +189,9 @@ export const fetchIsWaiting = async (
 }
 
 // 하모니룸 검색
+export const fetchHarmonySearch = async (q: string): Promise<recommendRoom[]> => {
+  const res = await instance.get<BaseResponse<recommendRoom[]>>('/api/harmony/roomSearch', {
+    params: { q },
+  });
+  return res.data.data;
+};
