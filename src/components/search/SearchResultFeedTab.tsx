@@ -26,7 +26,6 @@ const SearchResultFeedTab: React.FC<Props> = ({keyword}) => {
 
   const {data, isLoading, isError} = useSearchFeed(keyword);
 
-
   if (isLoading) {
     return (
       <View style={styles.center}>
@@ -60,7 +59,7 @@ const SearchResultFeedTab: React.FC<Props> = ({keyword}) => {
     <FlatList
       data={feeds}
       keyExtractor={item => item.post.id}
-      renderItem={({item}) => <PostCard {...item.post} />}
+      renderItem={({item}) => <PostCard post={item.post} user={item.user} />}
       showsVerticalScrollIndicator={false}
       ListHeaderComponent={
         <View style={styles.headerContainer}>

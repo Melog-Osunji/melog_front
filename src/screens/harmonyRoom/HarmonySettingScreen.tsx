@@ -183,7 +183,7 @@ function HarmonySettingScreen() {
         <Pressable style={styles.section} onPress={handleGoToApply}>
           <Text style={styles.menu}>가입 신청 관리</Text>
           <View style={styles.accessWrap}>
-            <Text style={styles.accessNum}>+{String(waitingList.waitingUsers.length).padStart(2, '0')}</Text>
+            <Text style={styles.accessNum}>+{waitingList?.waitingUsers ? String(waitingList.waitingUsers.length).padStart(2, '0') : '00'}</Text>
             <Image
               source={require('@/assets/icons/mypage/RightArrow.png')}
               style={styles.iconBtn}

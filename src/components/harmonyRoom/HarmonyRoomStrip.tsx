@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react
 import { colors } from '@/constants';
 import LinearGradient from 'react-native-linear-gradient';
 import { HarmonyStackParamList } from '@/navigations/stack/HarmonyStackNavigator';
-import { harmonyNavigations } from '@/constants';
+import { harmonyNavigations, myPageNavigations } from '@/constants';
 import {useNavigation} from '@react-navigation/native';
 
 export type Community = {
@@ -17,6 +17,7 @@ export type Community = {
 type Props = {
   communities: Community[];
   onChange: (id: 'all' | string) => void;
+  from?: 'mypage' | 'harmony';
 };
 
 const koCompare = (a: string, b: string) => {
@@ -24,7 +25,7 @@ const koCompare = (a: string, b: string) => {
   try { return a.localeCompare(b, 'ko'); } catch { return a < b ? -1 : a > b ? 1 : 0; }
 };
 
-const HarmonyRoomStrip: React.FC<Props> = ({ communities, onChange }) => {
+const HarmonyRoomStrip: React.FC<Props> = ({ communities, onChange, from }) => {
   const navigation = useNavigation<StackNavigationProp<HarmonyStackParamList>>();
 
   const data = useMemo(() => {
@@ -48,11 +49,24 @@ const HarmonyRoomStrip: React.FC<Props> = ({ communities, onChange }) => {
 
     const handlePress = () => {
       if (isAll) {
-        onChange('all');                  // 전체는 필터 변경
-        navigation.navigate(harmonyNavigations.HARMONY_LIST);
+        onChange('all');
+        if (from === 'mypage') {
+          navigation.navigate(myPageNavigations.MYPAGE_HARMONY_STACK, {
+            screen: harmonyNavigations.HARMONY_LIST,
+          });
+        } else {
+          navigation.navigate(harmonyNavigations.HARMONY_LIST);
+        }
       } else {
-        const roomID = (item as Community).id; // id를 roomID로 사용
-        navigation.navigate(harmonyNavigations.HARMONY_PAGE, { roomID });
+        const roomID = (item as Community).id;
+        if (from === 'mypage') {
+          navigation.navigate(myPageNavigations.MYPAGE_HARMONY_STACK, {
+            screen: harmonyNavigations.HARMONY_PAGE,
+            params: { roomID },
+          });
+        } else {
+          navigation.navigate(harmonyNavigations.HARMONY_PAGE, { roomID });
+        }
       }
     };
 
