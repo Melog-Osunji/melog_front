@@ -124,6 +124,7 @@ function MyPageHomeScreen() {
             <HarmonyRoomStrip
               communities={communities}
               onChange={(id) => {}}
+              from="mypage"
             />
 
             {/* 마이페이지 피드 */}

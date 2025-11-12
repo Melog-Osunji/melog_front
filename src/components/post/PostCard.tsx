@@ -46,7 +46,7 @@ function PostCard({post, user}: PostCardProps) {
         <View style={styles.userWrapper}>
           <Image
             source={
-              user.profileImg
+              user?.profileImg
                 ? { uri: user.profileImg }
                 : require('@/assets/icons/common/EmptyProfile.png')
             }

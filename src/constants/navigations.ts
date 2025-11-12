@@ -51,6 +51,7 @@ const myPageNavigations = {
   MYPAGE_HOME: 'MyPageHome',
   MYPAGE_EDIT: 'MyPageEdit',
   MYPAGE_POST_PAGE: 'MyPagePostPage',
+  MYPAGE_HARMONY_STACK: 'MyPageHarmonyStack',
 } as const;
 
 export {introNavigations};
