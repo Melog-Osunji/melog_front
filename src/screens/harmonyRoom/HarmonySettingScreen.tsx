@@ -24,7 +24,7 @@ import DeleteReasonSheet from '@/components/harmonyRoom/DeleteReasonSheet';
 import DeleteSuccessSheet from '@/components/harmonyRoom/DeleteSuccessSheet';
 import {useDeleteHarmonyRoom} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 import {useUserInfo} from '@/hooks/common/useUserInfo';
-import {useUpdateHarmonyRoom} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
+import {useUpdateHarmonyRoom, useWaitingUserList} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 import {useHarmonyRoomInfo} from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
@@ -51,9 +51,12 @@ function HarmonySettingScreen() {
     isLoading: isDetailLoading,
     isError,
   } = useHarmonyRoomInfo(roomID);
+  const {
+    data: waitingList,
+    isLoading : isWaitingLoading,
+    isError : waitingError,
+  } = useWaitingUserList(roomID);
 
-
-  console.log(detail);
   const [showExitPopup, setShowExitPopup] = useState(false);
   const [showReasonSheet, setShowReasonSheet] = useState(false);
   const [showSuccessSheet, setShowSuccessSheet] = useState(false);
@@ -180,7 +183,7 @@ function HarmonySettingScreen() {
         <Pressable style={styles.section} onPress={handleGoToApply}>
           <Text style={styles.menu}>가입 신청 관리</Text>
           <View style={styles.accessWrap}>
-            <Text style={styles.accessNum}>+00</Text>
+            <Text style={styles.accessNum}>+{String(waitingList.waitingUsers.length).padStart(2, '0')}</Text>
             <Image
               source={require('@/assets/icons/mypage/RightArrow.png')}
               style={styles.iconBtn}
