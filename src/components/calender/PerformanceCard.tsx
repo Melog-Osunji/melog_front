@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import CheckPopupOneBtn from '@/components/common/CheckPopupOneBtn';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
-import { useSaveCalendarSchedule } from '@/hooks/queries/calender/useCalender';
+import { useSaveCalendarSchedule, useDeleteCalendarSchedule } from '@/hooks/queries/calender/useCalender';
 
 
 dayjs.locale('ko');
@@ -33,38 +33,77 @@ const formatRange = (startISO: string, endISO?: string | null) => {
 
 const SCREEN_W = Dimensions.get('window').width;
 
-export default function PerformanceCard({data}:Props) {
+export default function PerformanceCard({ data, onUpdated }: Props & { onUpdated?: () => void }) {
 
-    const { id, title, venue, startDateTime, endDateTime, dday, bookmarked, thumbnailUrl } = data;
+    const { id, title, venue, startDateTime, endDateTime, dday, bookmarked, thumbnailUrl, category,} = data;
 
     const [isBook, setIsBook] = useState(bookmarked);
     const [popupMsg, setPopupMsg] = useState('');
     const [showExitPopup,setShowExitPopup] = useState(false);
 
-    const { mutate: saveSchedule } = useSaveCalendarSchedule();
+    const { mutate: saveSchedule, isPending: saving } = useSaveCalendarSchedule();
+    const { mutate: deleteSchedule, isPending: deleting } = useDeleteCalendarSchedule();
 
+    useEffect(() => {
+        setIsBook(bookmarked);
+    }, [bookmarked]);
     // 북마크 추가 함수
     const handleBookmark = () => {
-        const newState = !isBook;
-        setIsBook(newState);
+        const prev = isBook;
+        const next = !prev;
 
-        // 팝업 메시지 설정
-        if (newState) {
-          setPopupMsg('캘린더에 저장했어요.');
-        } else {
-          setPopupMsg('캘린더에서 삭제했어요.');
-        }
+        setIsBook(next);
+        setPopupMsg(next ? '캘린더에 저장했어요.' : '캘린더에서 삭제했어요.');
         setShowExitPopup(true);
 
-        // mutation 실행
-        saveSchedule({
-          eventId: id,
-          eventDate: dayjs(startDateTime).format('YYYY-MM-DD'),
-          schedule: newState, // true면 추가, false면 해제
-          alarm: true,       // 필요 시 알림 토글 로직 추가
-        });
+        // 팝업 메시지 설정
+        if (next) {
+          // 저장
+          saveSchedule(
+            {
+              eventId: id,
+              eventDate: dayjs(startDateTime).format('YYYY-MM-DD'),
+              schedule: true,
+              alarm: false,
+              alarmTime: '09:00',
+              detailUrl: thumbnailUrl ?? '',
+              title,
+              classification: category, // 서버가 영문 상수 기대 시 그대로 전달
+              region: venue,            // 별도 region 필드가 있으면 교체
+              startDate: dayjs(startDateTime).format('YYYY-MM-DD'),
+              endDate: endDateTime ? dayjs(endDateTime).format('YYYY-MM-DD') : null,
+              imageUrl: thumbnailUrl ?? '',
+            },
+            {onSuccess: () => {
+              onUpdated?.();
+              },
+              onError: () => {
+                // 롤백
+                setIsBook(prev);
+                setPopupMsg('저장에 실패했어요. 다시 시도해 주세요.');
+                setShowExitPopup(true);
+              },
+            }
+          );
+        } else {
+          // 취소 (주의: scheduleId가 eventId와 동일한지 서버 규약 확인 필요)
+          deleteSchedule(
+            { scheduleId: id },
+            { onSuccess: () => {
+                onUpdated?.();
+              },
+              onError: () => {
+                // 롤백
+                setIsBook(prev);
+                setPopupMsg('삭제에 실패했어요. 다시 시도해 주세요.');
+                setShowExitPopup(true);
+              },
+            }
+          );
+        }
       };
 
+    const disabled = saving || deleting;
     const truncatedTitle = title.length > 24 ? `${title.slice(0, 24)}...` : title;
 
     return (

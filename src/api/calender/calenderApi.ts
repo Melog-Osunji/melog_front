@@ -2,6 +2,11 @@ import instance from '../axiosInstance';
 import type { BaseResponse } from '../baseResponse';
 
 /** ====== Types ====== */
+export type CalendarBaseResponse = {
+  success: boolean; // true
+  code: number;     // 201
+  message: string;  // "생성완료"
+};
 export type CalendarMeta = {
   year: number;
   month: number;
@@ -45,16 +50,19 @@ export type SaveScheduleRequest = {
   schedule: boolean;      // 일정 북마크 on/off
   alarm: boolean;         // 알림 on/off
   alarmTime?: string;     // "HH:mm" (alarm=true일 때 권장)
+  detailUrl: string;
+  title: string;
+  classification: string;
+  region: string;
+  startDate: string;
+  endDate: string;
+  imageUrl: string;
 };
 
-/** 일정/알림 저장 응답 */
-export type SaveScheduleResponse = {
-  eventId: string;
-  eventDate: string;
-  schedule: boolean;
-  alarm: boolean;
-  alarmTime?: string;
+export type DeleteScheduleRequest = {
+    scheduleId: string;
 };
+
 
 /** ====== API functions ====== */
 
@@ -71,14 +79,36 @@ export const fetchCalendarMain = async (params?: {
 };
 
 // 캘린더 카테고리별 아이템
-
-// 일정/알림 북마크 저장/취소
-export const saveCalendarSchedule = async (
-  payload: SaveScheduleRequest
-): Promise<SaveScheduleResponse> => {
-  const res = await instance.post<BaseResponse<SaveScheduleResponse>>(
-    '/api/calendar/schedule',
-    payload
+export const fetchCalendarItems = async (params: {
+  category: string; // "MUSIC" | "THEATER" | "ALL" 등
+}): Promise<CalendarItem[]> => {
+  const res = await instance.get<BaseResponse<CalendarItem[]>>(
+    '/api/calendar/items',
+    { params }
   );
   return res.data.data;
+};
+
+// 일정/알림 북마크 저장
+export const saveCalendarSchedule = async (
+  payload: SaveScheduleRequest
+): Promise<CalendarBaseResponse> => {
+  const res = await instance.post<CalendarBaseResponse>(
+    '/api/calendar/event/save',
+    payload
+  );
+  return res.data;
+};
+
+// 일정/알림 북마크 삭제
+export const deleteCalendarSchedule = async (
+  payload: DeleteScheduleRequest
+): Promise<CalendarBaseResponse> => {
+  const res = await instance.delete<CalendarBaseResponse>(
+    '/api/calendar/event/delete',
+    {
+      data: payload, // ✅ axios.delete는 body를 data로 감싸야 함
+    }
+  );
+  return res.data;
 };

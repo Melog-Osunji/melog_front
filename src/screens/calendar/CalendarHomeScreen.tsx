@@ -6,8 +6,8 @@ import {colors} from '@/constants';
 import IconButton from '@/components/common/IconButton';
 import PerformanceCard from '@/components/calender/PerformanceCard';
 import CalendarTopSheet from '@/components/calender/CalendarTopSheet';
-import {useCalendarMain, buildMarkedDates} from '@/hooks/queries/calender/useCalender';
-import { SERVER_TO_KOR } from '@/utils/calenderCategory';
+import {useCalendarMain, buildMarkedDates, useCalendarItems} from '@/hooks/queries/calender/useCalender';
+import { SERVER_TO_KOR, KOR_TO_SERVER } from '@/utils/calendarCategory';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import 'dayjs/locale/ko';
@@ -23,12 +23,16 @@ function CalenderHomeScreen() {
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [selectedDate, setSelectedDate] = useState<string | null>(today.format('YYYY-MM-DD'));
 
-  const { data, isLoading, isError, refetch } = useCalendarMain({});
+  const { data, isLoading, isError, refetch, isFetching } = useCalendarMain({});
+  const categoryKey = selectedCategory === '전체' ? null : KOR_TO_SERVER[selectedCategory];
+  const { data: categoryItems, isFetching: isCategoryFetching } = useCalendarItems(categoryKey ?? '');
+
 
   const weeks = data?.calendar?.weeks ?? [];
   const items = data?.items ?? [];
   const markedDates = useMemo(() => buildMarkedDates(weeks), [weeks]);
 
+  console.log(markedDates);
   const stats = useMemo(() => {
     const total = items.length;
     const bookmarked = items.filter(it => it.bookmarked).length;
@@ -37,23 +41,23 @@ function CalenderHomeScreen() {
   }, [items, markedDates, data?.meta?.alarm]);
 
   const listData = useMemo(() => {
-    if (!data?.items) return [];
-    const filteredByCategory = selectedCategory === '전체'
-      ? data.items
-      : data.items.filter(it => SERVER_TO_KOR[it.category] === selectedCategory);
+    const baseItems =
+      selectedCategory === '전체' ? data?.items ?? [] : categoryItems ?? [];
 
-    if (!selectedDate) return filteredByCategory;
+    if (!selectedDate) return baseItems;
 
-    return filteredByCategory.filter(it =>
-      dayjs(it.startDateTime).format('YYYY-MM-DD') === selectedDate
-      || (it.endDateTime && dayjs(selectedDate).isBetween(
-            dayjs(it.startDateTime).startOf('day'),
-            dayjs(it.endDateTime).endOf('day'),
-            null,
-            '[]'
-         ))
+    return baseItems.filter(it =>
+      dayjs(it.startDateTime).format('YYYY-MM-DD') === selectedDate ||
+      (it.endDateTime &&
+        dayjs(selectedDate).isBetween(
+          dayjs(it.startDateTime).startOf('day'),
+          dayjs(it.endDateTime).endOf('day'),
+          null,
+          '[]',
+        ))
     );
-  }, [data, selectedCategory, selectedDate]);
+  }, [data, categoryItems, selectedCategory, selectedDate]);
+
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
@@ -99,7 +103,7 @@ function CalenderHomeScreen() {
 
     if (isLoading) {
       return (
-        <LinearGradient colors={['#EFFAFF', colors.WHITE]} start={{x:1,y:0}} end={{x:1,y:0.3}} style={styles.container}>
+        <LinearGradient colors={['#EFFAFF', colors.WHITE]} style={styles.container}>
           <SafeAreaView style={[styles.content, {alignItems:'center', justifyContent:'center'}]}>
             <ActivityIndicator />
             <Text style={{marginTop:8, color: colors.GRAY_400}}>불러오는 중…</Text>
@@ -113,23 +117,29 @@ function CalenderHomeScreen() {
           <FlatList
             data={listData}
             keyExtractor={(item) => String(item.id)}
-            renderItem={({ item }) => <PerformanceCard data={item} />}
+            renderItem={({ item }) => <PerformanceCard data={item} onUpdated={refetch}/>}
             ListHeaderComponent={Header}
             contentContainerStyle={{ paddingBottom: 60 }}
             scrollEnabled={listScrollEnabled}
             ListEmptyComponent={
-                isLoading ? (
-                  <View style={{padding: 20, alignItems: 'center'}}>
+                isCategoryFetching ? (
+                  <View style={{padding: 20, alignItems: 'center', marginTop:40}}>
                     <ActivityIndicator />
                     <Text style={{marginTop:8, color: colors.GRAY_400}}>불러오는 중…</Text>
                   </View>
                 ) : (
-                  <View style={{padding: 20}}>
+                  <View style={{padding: 20, alignItems: 'center', marginTop:40}}>
                     <Text style={{color: colors.GRAY_400}}>선택한 조건에 해당하는 일정이 없어요.</Text>
                   </View>
                 )
               }
           />
+          {isFetching && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color={colors.BLUE_400} />
+              <Text style={styles.loadingText}>업데이트 중…</Text>
+            </View>
+          )}
         </SafeAreaView>
       </LinearGradient>
     );
@@ -197,6 +207,19 @@ const styles = StyleSheet.create({
   categoryTextActive: {
     color: colors.WHITE,
   },
+  loadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(255,255,255,0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 999,
+  },
+    loadingText: {
+    marginTop: 10,
+    color: colors.GRAY_500,
+    fontSize: 14,
+    fontWeight: '500',
+    },
 });
 
 export default CalenderHomeScreen;

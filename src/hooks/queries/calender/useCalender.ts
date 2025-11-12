@@ -1,10 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchCalendarMain,
+  fetchCalendarItems,
   saveCalendarSchedule,
+  deleteCalendarSchedule,
   type CalendarMainDTO,
+  type CalendarItem,
   type SaveScheduleRequest,
-  type SaveScheduleResponse,
+  type DeleteScheduleRequest,
+  type CalendarBaseResponse,
 } from '@/api/calender/calenderApi';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -14,9 +18,10 @@ export const useCalendarMain = (opts?: { year?: number; month?: number }) =>
   useQuery<CalendarMainDTO>({
     queryKey: ['calendar', 'main', opts?.year ?? null, opts?.month ?? null],
     queryFn: () => fetchCalendarMain(opts),
-    staleTime: 60 * 1000,
-    refetchOnMount: false,
+    staleTime: 0,               // invalidate 후 즉시 refetch 허용
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
+    keepPreviousData: true,
   });
 
 export const buildMarkedDates = (weeks: CalendarMainDTO['calendar']['weeks']) => {
@@ -29,14 +34,37 @@ export const buildMarkedDates = (weeks: CalendarMainDTO['calendar']['weeks']) =>
   return marked;
 };
 
-/** 일정/알림 저장/취소 훅 (mutation) */
+/**  카테고리별 아이템 조회 훅 */
+export const useCalendarItems = (category: string) =>
+  useQuery<CalendarItem[]>({
+    queryKey: ['calendar', 'items', category],
+    queryFn: () => fetchCalendarItems({ category }),
+    enabled: !!category, // category가 있을 때만 호출
+    staleTime: 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
+/** 일정/알림 저장 훅 */
 export const useSaveCalendarSchedule = () => {
   const qc = useQueryClient();
-  return useMutation<SaveScheduleResponse, unknown, SaveScheduleRequest>({
+  return useMutation<CalendarBaseResponse, unknown, SaveScheduleRequest>({
     mutationFn: saveCalendarSchedule,
     onSuccess: () => {
-      // 캘린더 메인 갱신
       qc.invalidateQueries({ queryKey: ['calendar', 'main'] });
+      qc.invalidateQueries({ queryKey: ['calendar', 'items'] });
     },
   });
+};
+
+/** 일정/알림 취소 훅 */
+export const useDeleteCalendarSchedule = () => {
+  const qc = useQueryClient();
+  return useMutation<CalendarBaseResponse, unknown, DeleteScheduleRequest>({
+    mutationFn: deleteCalendarSchedule,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['calendar', 'main'] });
+      qc.invalidateQueries({ queryKey: ['calendar', 'items'] });
+    },
+    });
 };
