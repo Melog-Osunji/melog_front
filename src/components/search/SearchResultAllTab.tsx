@@ -14,6 +14,7 @@ import PostCard from '@/components/post/PostCard';
 import EmptyTab from '@/components/search/EmptyTab';
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import {useSearchResult} from '@/hooks/queries/search/useSearchResult';
+import { convertSearchResponse } from '@/utils/convertSearchData';
 
 type Props = {keyword?: string};
 
@@ -22,7 +23,6 @@ const SearchResultAllTab: React.FC<Props> = ({keyword}) => {
 
   const {data, isLoading, isError} = useSearchResult(keyword);
 
-  console.log(data);
   if (isLoading) {
     return (
       <View style={styles.center}>
@@ -36,8 +36,8 @@ const SearchResultAllTab: React.FC<Props> = ({keyword}) => {
     return <EmptyTab keyword={keyword} fullScreen />;
   }
 
-  const feeds = data.results ?? [];
-  const medias = data.popularMedia ?? [];
+  const feeds = convertSearchResponse(data?.results ?? []);
+  const medias = data?.popularMedia ?? [];
 
   if (feeds.length === 0 && medias.length === 0) {
     return <EmptyTab keyword={keyword} fullScreen />;
@@ -47,7 +47,7 @@ const SearchResultAllTab: React.FC<Props> = ({keyword}) => {
     <FlatList
       data={feeds}
       keyExtractor={item => item.post.id}
-      renderItem={({item}) => <PostCard {...item.post} />}
+      renderItem={({item}) => <PostCard post={item.post} user={item.user} />}
       showsVerticalScrollIndicator={false}
       ListHeaderComponent={
         <View style={styles.headerContainer}>

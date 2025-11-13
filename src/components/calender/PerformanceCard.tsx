@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import CheckPopupOneBtn from '@/components/common/CheckPopupOneBtn';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
+import { useSaveCalendarSchedule, useDeleteCalendarSchedule } from '@/hooks/queries/calender/useCalender';
+
 
 dayjs.locale('ko');
 
@@ -31,18 +33,78 @@ const formatRange = (startISO: string, endISO?: string | null) => {
 
 const SCREEN_W = Dimensions.get('window').width;
 
-export default function PerformanceCard({data}:Props) {
+export default function PerformanceCard({ data, onUpdated }: Props & { onUpdated?: () => void }) {
 
-    const { id, title, venue, startDateTime, endDateTime, dddy, bookmarked, thumbnailUrl } = data;
+    const { id, title, venue, startDateTime, endDateTime, dday, bookmarked, thumbnailUrl, category,} = data;
 
-    const [isBook, setIsBook] = useState(false);
+    const [isBook, setIsBook] = useState(bookmarked);
+    const [popupMsg, setPopupMsg] = useState('');
     const [showExitPopup,setShowExitPopup] = useState(false);
 
+    const { mutate: saveSchedule, isPending: saving } = useSaveCalendarSchedule();
+    const { mutate: deleteSchedule, isPending: deleting } = useDeleteCalendarSchedule();
+
+    useEffect(() => {
+        setIsBook(bookmarked);
+    }, [bookmarked]);
     // 북마크 추가 함수
     const handleBookmark = () => {
+        const prev = isBook;
+        const next = !prev;
+
+        setIsBook(next);
+        setPopupMsg(next ? '캘린더에 저장했어요.' : '캘린더에서 삭제했어요.');
         setShowExitPopup(true);
-        setIsBook(prev => !prev);
-    };
+
+        // 팝업 메시지 설정
+        if (next) {
+          // 저장
+          saveSchedule(
+            {
+              eventId: id,
+              eventDate: dayjs(startDateTime).format('YYYY-MM-DD'),
+              schedule: true,
+              alarm: false,
+              alarmTime: '09:00',
+              detailUrl: thumbnailUrl ?? '',
+              title,
+              classification: category, // 서버가 영문 상수 기대 시 그대로 전달
+              region: venue,            // 별도 region 필드가 있으면 교체
+              startDate: dayjs(startDateTime).format('YYYY-MM-DD'),
+              endDate: endDateTime ? dayjs(endDateTime).format('YYYY-MM-DD') : null,
+              imageUrl: thumbnailUrl ?? '',
+            },
+            {onSuccess: () => {
+              onUpdated?.();
+              },
+              onError: () => {
+                // 롤백
+                setIsBook(prev);
+                setPopupMsg('저장에 실패했어요. 다시 시도해 주세요.');
+                setShowExitPopup(true);
+              },
+            }
+          );
+        } else {
+          // 취소 (주의: scheduleId가 eventId와 동일한지 서버 규약 확인 필요)
+          deleteSchedule(
+            { scheduleId: id },
+            { onSuccess: () => {
+                onUpdated?.();
+              },
+              onError: () => {
+                // 롤백
+                setIsBook(prev);
+                setPopupMsg('삭제에 실패했어요. 다시 시도해 주세요.');
+                setShowExitPopup(true);
+              },
+            }
+          );
+        }
+      };
+
+    const disabled = saving || deleting;
+    const truncatedTitle = title.length > 24 ? `${title.slice(0, 24)}...` : title;
 
     return (
         <View style={styles.container}>
@@ -58,9 +120,8 @@ export default function PerformanceCard({data}:Props) {
                                 start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }}
                                 style={styles.gradientWrap}
                     >
-                    >
                     <Text style={styles.leftDate}>
-                        {typeof dday === 'number' ? (dday === 0 ? 'D-DAY' : dday > 0 ? `D-${dday}` : '마감') : '마감'}
+                        {dday === 0 ? 'D-DAY' : dday > 0 ? `D-${dday}` : '진행중'}
                     </Text>
                     </LinearGradient>
                     <Text style={styles.title}>{title}</Text>
@@ -78,7 +139,7 @@ export default function PerformanceCard({data}:Props) {
               visible={showExitPopup}
               onClose={() => setShowExitPopup(false)}
               iconImg={require('@/assets/icons/post/Notice.png')}
-              title='캘린더에 저장했어요.'
+              title={popupMsg}
               btnColor={colors.BLUE_400}
               btnText="확인"
               btnTextColor={colors.WHITE}
@@ -135,6 +196,9 @@ const styles = StyleSheet.create({
         lineHeight: 22,
         letterSpacing: 0.15,
         color: colors.BLACK,
+        maxWidth: SCREEN_W * 0.55,
+        numberOfLines: 1,
+        ellipsizeMode: 'tail',
     },
     location: {
         fontFamily: 'Noto Sans KR',

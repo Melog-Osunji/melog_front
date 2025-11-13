@@ -6,9 +6,14 @@ import type {CommentsDTO} from '@/types';
 interface CommentListProps {
   commentsData: CommentsDTO;
   totalCommentCount: number;
+  postId: string;
 }
 
-const CommentList = ({commentsData, totalCommentCount}: CommentListProps) => {
+const CommentList = ({
+  commentsData,
+  totalCommentCount,
+  postId,
+}: CommentListProps) => {
   const comments = commentsData?.comments || [];
 
   return (
@@ -19,7 +24,11 @@ const CommentList = ({commentsData, totalCommentCount}: CommentListProps) => {
 
       {comments.map((comment, index) => (
         <View key={`${comment.userID}-${index}`}>
-          <CommentItem comment={comment} />
+          <CommentItem
+            comment={comment}
+            postId={postId}
+            userId={comment.userID}
+          />
         </View>
       ))}
     </View>

@@ -64,12 +64,9 @@ export const getRegistrationStatus = async (): Promise<boolean> => {
 
 // 모든 인증 데이터 삭제
 export const clearAuthData = async (): Promise<void> => {
-  await Promise.all([
-    removeEncryptStorage(ACCESS_TOKEN_KEY),
-    removeEncryptStorage(REFRESH_TOKEN_KEY),
-    removeEncryptStorage(USER_INFO_KEY),
-    removeEncryptStorage(REGISTRATION_STATUS_KEY),
-  ]);
+  await removeEncryptStorage('access_token');
+  await removeEncryptStorage('refresh_token');
+  console.log('[UserStorage] access_token 삭제됨');
 };
 
 // 로그인 상태 확인

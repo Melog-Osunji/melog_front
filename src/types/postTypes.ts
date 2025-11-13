@@ -9,7 +9,7 @@ export type PostDTO = {
   tags: string[];
   createdAgo: number;
   likeCount: number;
-  hiddenUser: string[];
+  hiddenUser?: string[];
   commentCount: number;
   bestComment?: BestCommentDTO;
 };
@@ -37,6 +37,7 @@ export type UserDTO = {
 
 //comment
 export interface CommentDTO {
+  id: string;
   userID: string;
   profileUrl: string;
   content: string;
@@ -57,4 +58,5 @@ export interface FeedType {
   id: FeedId;
   label: string;
   posts?: PostWithUserDTO[];
+  icon?: any;
 }

@@ -131,7 +131,7 @@ function HarmonyHomeScreen() {
                 />
                 <IconButton<MyPageStackParamList>
                     imageSource={require('@/assets/icons/post/Search.png')}
-//                     target={[harmonyNavigations.HARMONY_CREATE]}
+                    target={[harmonyNavigations.HARMONY_SEARCH]}
                 />
                 <IconButton<MyPageStackParamList>
                     imageSource={require('@/assets/icons/post/Notice.png')}
@@ -147,9 +147,11 @@ function HarmonyHomeScreen() {
                     {!myRoomsLoading && !myRoomsError && (
                       communitiesForStrip.length > 0 ? (
                           <HarmonyRoomStrip
-                          communities={communitiesForStrip}
-                          onChange={(id) => {
-                          }}/>
+                              communities={communitiesForStrip}
+                              onChange={(id) => {
+                              }}
+                              from="harmony"
+                            />
                     ) : (
                         <EmptyRow text="아직 가입한 하모니룸이 없어요." />
                       )

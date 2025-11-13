@@ -2,33 +2,72 @@ import React, {useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {colors} from '@/constants';
 import {PostDTO} from '@/types';
+import {
+  useTogglePostLike,
+  useTogglePostBookmark,
+} from '@/hooks/queries/post/usePostMutations';
 
 type StatsType = 'like' | 'comment' | 'share' | 'bookmark';
 
-type PostStatsProps = Pick<PostDTO, 'likeCount' | 'commentCount'> & {
+type PostStatsProps = Pick<PostDTO, 'id' | 'likeCount' | 'commentCount'> & {
   visibleStats?: StatsType[];
 };
 
 const PostStats = ({
+  id: postId,
   likeCount,
   commentCount,
   visibleStats = ['like', 'comment', 'share', 'bookmark'],
 }: PostStatsProps) => {
+  const toggleLikeMutation = useTogglePostLike();
+  const toggleBookmarkMutation = useTogglePostBookmark();
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [currentLikeCount, setCurrentLikeCount] = useState(likeCount || 0);
 
   const handleLikePress = () => {
-    if (isLiked) {
-      setCurrentLikeCount(prev => prev - 1);
-    } else {
-      setCurrentLikeCount(prev => prev + 1);
-    }
-    setIsLiked(!isLiked);
+    const prev = isLiked;
+    // optimistic UI
+    setIsLiked(!prev);
+    setCurrentLikeCount(prevCount =>
+      prev ? Math.max(prevCount - 1, 0) : prevCount + 1,
+    );
+
+    toggleLikeMutation.mutate(postId, {
+      onSuccess: data => {
+        // 서버가 최신 카운트를 줄 경우 동기화
+        if (data && typeof data.likeCount === 'number') {
+          setCurrentLikeCount(data.likeCount);
+        }
+      },
+      onError: err => {
+        console.error('[PostStats.tsx] 좋아요 실패:', err);
+        // 롤백
+        setIsLiked(prev);
+        setCurrentLikeCount(prevCount =>
+          prev ? prevCount + 1 : Math.max(prevCount - 1, 0),
+        );
+      },
+    });
   };
 
   const handleBookmarkPress = () => {
-    setIsBookmarked(!isBookmarked);
+    const prev = isBookmarked;
+    // optimistic toggle
+    setIsBookmarked(!prev);
+
+    toggleBookmarkMutation.mutate(postId, {
+      onSuccess: data => {
+        if (data && typeof data.bookmarked === 'boolean') {
+          setIsBookmarked(data.bookmarked);
+        }
+      },
+      onError: err => {
+        console.error('[PostStats.tsx] 북마크 실패:', err);
+        // rollback
+        setIsBookmarked(prev);
+      },
+    });
   };
 
   const renderLike = () => {
@@ -44,7 +83,9 @@ const PostStats = ({
           }
           style={styles.icon}
         />
-        <Text style={styles.statText}>{currentLikeCount}</Text>
+        <Text style={styles.statText}>
+          {toggleLikeMutation.data?.likeCount ?? currentLikeCount}
+        </Text>
       </TouchableOpacity>
     );
   };
@@ -79,11 +120,13 @@ const PostStats = ({
   const renderBookmark = () => {
     if (!visibleStats.includes('bookmark')) return null;
 
+    const bookmarked = toggleBookmarkMutation.data?.bookmarked ?? isBookmarked;
+
     return (
       <TouchableOpacity style={styles.statItem} onPress={handleBookmarkPress}>
         <Image
           source={
-            isBookmarked
+            bookmarked
               ? require('@/assets/icons/post/Bookmark_activate.png')
               : require('@/assets/icons/post/Bookmark.png')
           }

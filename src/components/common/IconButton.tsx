@@ -9,6 +9,7 @@ type IconButtonProps<T extends Record<string, object | undefined>> = {
   target?: [keyof T] | [keyof T, T[keyof T]] | 'goBack';
   style?: ViewStyle;
   imageStyle?: ImageStyle;
+  onPress?: () => void | Promise<void>;
 };
 
 function IconButton<T extends Record<string, object | undefined>>({
@@ -16,13 +17,22 @@ function IconButton<T extends Record<string, object | undefined>>({
   pressedImageSource,
   size = 32,
   target,
+  onPress,
   style,
   imageStyle,
 }: IconButtonProps<T>) {
   const navigation = useNavigation<NavigationProp<T>>();
   const [isPressed, setIsPressed] = useState(false);
 
-  const handlePress = () => {
+  const handlePress = async () => {
+    if (onPress) {
+      try {
+        await onPress();
+      } catch (e) {
+        console.error('[IconButton.tsx] onPress handler error:', e);
+      }
+    }
+
     if (!target) return;
 
     if (target === 'goBack') {

@@ -57,15 +57,7 @@ function HarmonyApplyManageScreen() {
     isRefetching,
   } = useWaitingUserList(roomID);
 
-  if (isError) {
-    console.log('❌ API 호출 실패:', error);
-
-    // axios 기반일 경우:
-    const apiError: any = error;
-    console.log('📡 상태 코드:', apiError.response?.status);
-    console.log('📩 서버 메시지:', apiError.response?.data);
-  }
-
+  console.log(waitingDTO.waitingUsers);
   // 2) 승인/거부
   const {mutateAsync: updateMembership, isPending} =
     useUpdateHarmonyMembership(roomID);
@@ -81,12 +73,12 @@ function HarmonyApplyManageScreen() {
   }, [refetch]);
 
   const users: ApplyUser[] = useMemo(() => {
-    const src = waitingDTO?.user ?? [];
+    const src = waitingDTO?.waitingUsers ?? [];
     return src.map(u => ({
-      id: String(u.id),
-      name: u.nickname ?? '익명',
-      intro: u.intro ?? '',
-      profileImgLink: u.profileImgLink, // RoomApplyCard가 받는다면 그대로 전달
+      id: String(u.user.id),
+      name: u.user.nickname ?? '익명',
+      intro: u.user.intro ?? '',
+      profileImgLink: u.user.profileImgLink, // RoomApplyCard가 받는다면 그대로 전달
     }));
   }, [waitingDTO]);
 

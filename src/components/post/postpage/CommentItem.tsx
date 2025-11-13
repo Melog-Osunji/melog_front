@@ -2,23 +2,70 @@ import React, {useState} from 'react';
 import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
 import type {CommentDTO} from '@/types';
+import {useToggleCommentLike} from '@/hooks/queries/post/usePostMutations';
+import PostOptionsSheet from '@/components/post/PostOptionsSheet';
 
 interface CommentItemProps {
   comment: CommentDTO;
   isReply?: boolean;
+  postId: string;
+  userId?: string;
 }
 
-const CommentItem = ({comment, isReply = false}: CommentItemProps) => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [currentLikeCount, setCurrentLikeCount] = useState(comment.likes);
+const CommentItem = ({
+  comment,
+  isReply = false,
+  postId,
+  userId,
+}: CommentItemProps) => {
+  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [currentLikeCount, setCurrentLikeCount] = useState<number>(
+    comment.likes,
+  );
+
+  const {mutate: toggleLike} = useToggleCommentLike();
 
   const handleLikePress = () => {
-    if (isLiked) {
-      setCurrentLikeCount(prev => prev - 1);
-    } else {
-      setCurrentLikeCount(prev => prev + 1);
-    }
-    setIsLiked(!isLiked);
+    // 이전 상태 보관 (롤백용)
+    const prevLiked = isLiked;
+    const prevCount = currentLikeCount;
+
+    // 낙관적 업데이트
+    const newLiked = !isLiked;
+    const newCount = newLiked
+      ? currentLikeCount + 1
+      : Math.max(0, currentLikeCount - 1);
+    setIsLiked(newLiked);
+    setCurrentLikeCount(newCount);
+
+    toggleLike(
+      {postId, commentId: comment.id},
+      {
+        onSuccess: data => {
+          console.log(
+            '[CommentItem.tsx] useToggleCommentLike onSuccess:',
+            comment.id,
+            data,
+          );
+
+          // 서버가 liked/likeCount를 반환하면 그 값으로 동기화
+          if (data && typeof data.liked !== 'undefined') {
+            setIsLiked(Boolean(data.liked));
+            setCurrentLikeCount(Number(data.likeCount ?? newCount));
+          }
+        },
+        onError: error => {
+          console.error(
+            '[CommentItem.tsx] useToggleCommentLike onError:',
+            comment.id,
+            error,
+          );
+          // 롤백
+          setIsLiked(prevLiked);
+          setCurrentLikeCount(prevCount);
+        },
+      },
+    );
   };
 
   return (
@@ -69,12 +116,7 @@ const CommentItem = ({comment, isReply = false}: CommentItemProps) => {
         </View>
 
         {/* 더보기 버튼 */}
-        <TouchableOpacity style={styles.moreButton}>
-          <Image
-            source={require('@/assets/icons/post/Info.png')}
-            style={styles.moreIcon}
-          />
-        </TouchableOpacity>
+        <PostOptionsSheet userId={userId} postId={postId} />
       </View>
 
       {/* 대댓글 렌더링 */}
@@ -85,6 +127,8 @@ const CommentItem = ({comment, isReply = false}: CommentItemProps) => {
               key={`${reply.userID}-${index}`}
               comment={reply}
               isReply={true}
+              postId={postId}
+              userId={reply.userID}
             />
           ))}
         </View>

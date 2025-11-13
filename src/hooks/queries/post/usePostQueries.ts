@@ -1,15 +1,14 @@
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 import {
   fetchPostsByFeedId,
   fetchPostDetail,
   fetchPostComments,
-  createPost,
-} from '@/api/post/postApi';
-import type {PostsDTO, PostWithUserDTO, CommentsDTO, NewPostDTO} from '@/types';
-import {FeedId} from '@/types';
+} from '@/api/post/postApiGet';
+import type {PostsDTO, PostWithUserDTO, CommentsDTO} from '@/types';
+import type {FeedId} from '@/types';
 
-// # feed
-// query 키 상수
+// #1) 피드 관련 - 쿼리 키 상수
+// POST_QUERY_KEYS: 피드/게시글 관련 쿼리 키를 중앙에서 관리
 export const POST_QUERY_KEYS = {
   posts: ['posts'] as const,
   popular: () => [...POST_QUERY_KEYS.posts, 'popular'] as const,
@@ -19,10 +18,10 @@ export const POST_QUERY_KEYS = {
     [...POST_QUERY_KEYS.posts, 'feedId', feedId] as const,
 } as const;
 
-// feed - id
+// usePostsByFeedId: feedId에 따라 서버에서 게시글 목록을 조회
 export const usePostsByFeedId = (feedId: FeedId) => {
   return useQuery<PostsDTO, Error>({
-    queryKey: POST_QUERY_KEYS.byFeedId(feedId), // 이제 각 feedId마다 다른 키 생성
+    queryKey: POST_QUERY_KEYS.byFeedId(feedId),
     queryFn: () => fetchPostsByFeedId(feedId),
     enabled: !!feedId,
     staleTime: 3 * 60 * 1000,
@@ -30,17 +29,19 @@ export const usePostsByFeedId = (feedId: FeedId) => {
   });
 };
 
-// # post detail
+// #2) 게시글 상세 및 댓글 관련
+// usePostDetail: 게시글 상세 조회
 export const usePostDetail = (postId: string) => {
   return useQuery<PostWithUserDTO, Error>({
     queryKey: ['post', 'detail', postId],
     queryFn: () => fetchPostDetail(postId),
-    enabled: !!postId, // postId가 있을 때만 쿼리 실행
-    staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
-    gcTime: 1000 * 60 * 10, // 10분간 가비지 컬렉션 방지
+    enabled: !!postId,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 };
 
+// usePostComments: 특정 게시글의 댓글 목록 조회
 export const usePostComments = (postId: string) => {
   return useQuery<CommentsDTO, Error>({
     queryKey: ['post', 'comments', postId],
@@ -50,31 +51,3 @@ export const usePostComments = (postId: string) => {
     gcTime: 1000 * 60 * 5,
   });
 };
-
-// # CRUD operations for post
-// create post
-export const useCreatePost = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (postData: NewPostDTO) => createPost(postData),
-    onSuccess: () => {
-      console.log('[useCreatePost] 게시글 작성 성공');
-
-      // 모든 피드 쿼리 무효화
-      queryClient.invalidateQueries({
-        queryKey: POST_QUERY_KEYS.posts,
-      });
-    },
-    onError: error => {
-      console.error('[useCreatePost] 게시글 작성 실패:', error);
-    },
-  });
-};
-
-// del post
-
-// # post stats
-// like
-// comment
-// bookmark

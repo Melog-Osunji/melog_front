@@ -5,16 +5,15 @@ import {
   CardStyleInterpolators,
   TransitionSpecs,
 } from '@react-navigation/stack';
-
+import {introNavigations} from '@/constants';
+//screens
 import WelcomeScreen from '@/screens/intro/WelcomeScreen';
 import PreOnboardingScreen from '@/screens/intro/PreOnboardingScreen';
-import {introNavigations} from '@/constants';
-
 import LoginScreen from '@/screens/intro/LoginScreen';
 
 export type IntroStackParamList = {
   [introNavigations.INTRO_LOGIN]: undefined;
-  [introNavigations.INTRO_WELCOME]: undefined;
+  // [introNavigations.INTRO_WELCOME]: undefined;
 
   [introNavigations.PRE_ONBOARDING]: {onDone?: () => void} | undefined;
   [introNavigations.INTRO_ONBOARDING_1]: {onDone?: () => void} | undefined;
@@ -45,15 +44,6 @@ function AuthStackNavigator({onDone}: Props) {
           close: TransitionSpecs.TransitionIOSSpec,
         },
       }}>
-      {/* 스플래쉬 */}
-      <Stack.Screen
-        name={introNavigations.INTRO_WELCOME}
-        component={WelcomeScreen}
-        options={{
-          headerTitle: ' ',
-          headerShown: false,
-        }}
-      />
       {/* 시작전온보딩 */}
       <Stack.Screen
         name={introNavigations.PRE_ONBOARDING}
@@ -72,6 +62,15 @@ function AuthStackNavigator({onDone}: Props) {
           headerShown: false,
         }}
       />
+      {/* 스플래쉬 */}
+      {/* <Stack.Screen
+        name={introNavigations.INTRO_WELCOME}
+        component={WelcomeScreen}
+        options={{
+          headerTitle: ' ',
+          headerShown: false,
+        }}
+      /> */}
     </Stack.Navigator>
   );
 }

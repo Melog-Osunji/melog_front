@@ -4,7 +4,7 @@ import {
   CardStyleInterpolators,
   TransitionSpecs,
 } from '@react-navigation/stack';
-
+//screens
 import ConsentList from '@/screens/intro/ToS/ConsentList';
 import AgreementViewer from '@/screens/intro/ToS/AgreementViewer';
 import InitProfileStackNavigator from '@/navigations/stack/InitProfileStackNavigator';
@@ -29,13 +29,6 @@ function RegistrationStackNavigator() {
       initialRouteName="ConsentList"
       screenOptions={{
         cardStyle: {backgroundColor: '#fff'},
-        gestureEnabled: true,
-        gestureDirection: 'horizontal',
-        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-        transitionSpec: {
-          open: TransitionSpecs.TransitionIOSSpec,
-          close: TransitionSpecs.TransitionIOSSpec,
-        },
       }}>
       {/* 이용약관 */}
       <Stack.Screen

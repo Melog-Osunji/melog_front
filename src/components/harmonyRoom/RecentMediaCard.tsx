@@ -15,6 +15,7 @@ import {RecentHarmonyRoom} from '@/constants/types';
 import {harmonyRoomNavigation} from '@/constants';
 import {colors} from '@/constants';
 import {harmonyRoomMediaDTO} from '@/api/harmonyRoom/harmonyRoomApi';
+import {harmonyNavigations} from '@/constants';
 
 type Props = {
   data: harmonyRoomMediaDTO;
@@ -27,9 +28,7 @@ export default function RecentMediaCard({data}: Props) {
 
   console.log(data);
   const handlePress = () => {
-    navigation.navigate(harmonyRoomNavigation.HARMONY_PAGE, {
-      roomID: postID,
-    });
+//     navigation.navigate('HARMONY_POST_PAGE', { postId: postID });
   };
 
   const getYouTubeThumbnail = (url: string): string => {
@@ -39,7 +38,7 @@ export default function RecentMediaCard({data}: Props) {
     const videoId = videoIdMatch?.[1];
     return videoId
       ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
-      : '';
+      : null;
   };
 
   const thumbnail = mediaUrl ? getYouTubeThumbnail(mediaUrl) : null;
@@ -51,7 +50,12 @@ export default function RecentMediaCard({data}: Props) {
       activeOpacity={0.85}>
       {/* 썸네일 */}
         <View style={styles.thumbnailWrapper}>
-          <Image source={{uri: thumbnail}} style={styles.thumbnail} />
+          <Image source={
+               thumbnail && thumbnail.trim() !== ''
+                 ? { uri: thumbnail }
+                 : require('@/assets/icons/common/EmptyImage.png')
+             }
+             style={styles.thumbnail} />
           <View style={styles.playOverlay}>
             <Image
               source={require('@/assets/icons/post/PlayButton.png')}

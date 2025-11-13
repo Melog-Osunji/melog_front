@@ -15,6 +15,7 @@ import PostCard from '@/components/post/PostCard';
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import {useSearchFeed} from '@/hooks/queries/search/useSearchResult';
 import EmptyTab from '@/components/search/EmptyTab';
+import {convertSearchResponse} from '@/utils/convertSearchData';
 
 type Props = {keyword?: string};
 
@@ -24,8 +25,6 @@ const SearchResultFeedTab: React.FC<Props> = ({keyword}) => {
   const [sortBy, setSortBy] = useState<'latest' | 'popular'>('latest');
 
   const {data, isLoading, isError} = useSearchFeed(keyword);
-
-  console.log(data);
 
   if (isLoading) {
     return (
@@ -40,7 +39,7 @@ const SearchResultFeedTab: React.FC<Props> = ({keyword}) => {
     return <EmptyTab keyword={keyword} fullScreen />;
   }
 
-  let feeds = data.resultsRecent ?? [];
+  let feeds = convertSearchResponse(data?.resultsRecent ?? []);
 
   if (sortBy === 'popular') {
     feeds = [...feeds].sort((a, b) => b.post.likeCount - a.post.likeCount);
@@ -60,7 +59,7 @@ const SearchResultFeedTab: React.FC<Props> = ({keyword}) => {
     <FlatList
       data={feeds}
       keyExtractor={item => item.post.id}
-      renderItem={({item}) => <PostCard {...item.post} />}
+      renderItem={({item}) => <PostCard post={item.post} user={item.user} />}
       showsVerticalScrollIndicator={false}
       ListHeaderComponent={
         <View style={styles.headerContainer}>

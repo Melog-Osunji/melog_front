@@ -9,41 +9,56 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 //constants
-import {colors} from '@/constants';
+import {colors, postNavigations} from '@/constants';
 //types
 import {YouTubeVideo, NewPostDTO} from '@/types';
 //navigation
-import {useNavigation} from '@react-navigation/native';
+import {StackScreenProps} from '@react-navigation/stack';
+import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 //utils
-import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
-import {getAccessToken} from '@/utils/storage/UserStorage';
+import {extractVideoId} from '@/utils/providers';
 //hooks
+import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import {useUserInfo} from '@/hooks/common/useUserInfo';
-import {useCreatePost} from '@/hooks/queries/post/usePostQueries';
+import {useImagePicker} from '@/hooks/common/useImagePicker';
+import {useUploadImage} from '@/hooks/queries/common/useCommonMutations';
+import {useCreatePost} from '@/hooks/queries/post/usePostMutations';
 //components
-import PostActionButtons from '@/components/post/postcreate/PostActionButtons';
+import Toast, {ToastType} from '@/components/common/Toast';
 import CustomButton from '@/components/common/CustomButton';
-import Toast from '@/components/common/Toast';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
+import PostActionButtons from '@/components/post/postcreate/PostActionButtons';
 
-export default function PostCreateScreen() {
-  const navigation = useNavigation();
+type PostCreateScreenProps = StackScreenProps<
+  PostStackParamList,
+  typeof postNavigations.POST_CREATE
+>;
+
+export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
+  useHideTabBarOnFocus();
+  //state
   const {userInfo, isLoading: userLoading, error: userError} = useUserInfo();
-  const createPostMutation = useCreatePost();
 
+  const createPostMutation = useCreatePost();
   const [content, setContent] = useState('');
+  const [inputHeight, setInputHeight] = useState(50);
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const {selectedImage, seletedImageURI, selectImage, resetImage} =
+    useImagePicker();
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+
+  //toast
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  const [inputHeight, setInputHeight] = useState(50);
+  const [toastType, setToastType] = useState<ToastType>('none');
 
-  useHideTabBarOnFocus();
-
-  const showToast = (message: string) => {
+  const showToast = (message: string, type: ToastType = 'none') => {
     setToastMessage(message);
+    setToastType(type);
     setToastVisible(true);
   };
 
@@ -51,86 +66,108 @@ export default function PostCreateScreen() {
     setToastVisible(false);
   };
 
+  // 취소 handler (goback)
   const handleCancel = () => {
     navigation.goBack();
   };
 
+  //tag handler
   const handleTagSelect = (tag: string) => {
     if (selectedTags.includes(tag)) {
-      // 이미 선택된 태그면 제거
       setSelectedTags(prev => prev.filter(t => t !== tag));
     } else {
-      // 새로운 태그면 추가
       setSelectedTags(prev => [...prev, tag]);
     }
   };
 
-  const handlePost = async () => {
-    if (!content.trim()) {
-      showToast('내용을 입력해주세요.');
-      return;
+  // img upload mutation
+  const uploadImageMutation = useUploadImage('post');
+
+  React.useEffect(() => {
+    if (selectedImage && !uploadImageMutation.isPending) {
+      console.log('[PostCreateScreen] 이미지 선택됨, 자동 업로드 시작');
+      uploadImageMutation.mutate(selectedImage, {
+        onSuccess: data => {
+          console.log('[PostCreateScreen] 이미지 업로드 성공:', data);
+          setUploadedImageUrl(data);
+          showToast('이미지가 업로드되었습니다.', 'success');
+        },
+        onError: error => {
+          console.log('[PostCreateScreen] 이미지 업로드 실패:', error);
+          showToast('이미지 업로드에 실패했습니다.', 'error');
+        },
+      });
     }
+  }, [selectedImage]);
 
-    const accessToken = await getAccessToken();
-    console.log(
-      '[PostCreateScreen] Access Token:',
-      accessToken ? '존재함' : '없음',
-    );
-
-    if (!accessToken) {
-      console.error('[PostCreateScreen] 토큰이 없습니다. 로그인이 필요합니다.');
-      showToast('로그인이 필요합니다.');
-      return;
-    }
-
-    console.log('[PostCreateScreen] 게시글 작성 시작');
-    console.log('[PostCreateScreen] 작성자 정보:', userInfo);
-
-    const postData: NewPostDTO = {
-      title: '',
-      content: content.trim(),
-      mediaType: 'youtube',
-      mediaUrl: selectedVideo
-        ? `https://www.youtube.com/watch?v=${extractVideoId(
-            selectedVideo.thumbnail,
-          )}`
-        : '',
-      tags: selectedTags,
-    };
-
-    console.log('[PostCreateScreen] 전송할 데이터:', postData);
-
-    try {
-      await createPostMutation.mutateAsync(postData);
-      console.log('[PostCreateScreen] 게시글 작성 완료');
-      showToast('게시되었습니다.');
-
-      setTimeout(() => {
-        navigation.goBack();
-      }, 1000);
-    } catch (error) {
-      console.error('[PostCreateScreen] 게시글 작성 실패:', error);
-      showToast('게시글 작성에 실패했습니다.');
-    }
+  const handleImageSelect = () => {
+    selectImage();
   };
 
+  const handleRemoveImage = () => {
+    resetImage();
+    setUploadedImageUrl(null);
+  };
+
+  //video handler
   const handleVideoSelect = (video: YouTubeVideo) => {
     setSelectedVideo(video);
+    if (selectedImage || uploadedImageUrl) {
+      // 비디오 선택 시 이미지 제거
+      handleRemoveImage();
+    }
   };
 
   const handleRemoveVideo = () => {
     setSelectedVideo(null);
   };
 
-  // YouTube URL에서 비디오 ID 추출하는 함수
-  const extractVideoId = (url: string) => {
-    const regex =
-      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-    const match = url.match(regex);
-    return match ? match[1] : 'dQw4w9WgXcQ'; // 기본값
+  //게시 handler
+  const handlePost = async () => {
+    if (!content.trim()) {
+      showToast('내용을 입력해주세요.', 'error');
+      return;
+    }
+
+    // 이미지가 업로드 중인 경우 대기
+    if (selectedImage && uploadImageMutation.isPending) {
+      showToast('이미지 업로드 중입니다. 잠시만 기다려주세요.');
+      return;
+    }
+
+    const postData: NewPostDTO = {
+      title: 'title',
+      content: content.trim(),
+      mediaType: selectedVideo
+        ? 'youtube'
+        : uploadedImageUrl
+        ? 'image'
+        : 'text',
+      mediaUrl: selectedVideo
+        ? `https://www.youtube.com/watch?v=${extractVideoId(
+            selectedVideo.thumbnail,
+          )}`
+        : uploadedImageUrl || '',
+      tags: selectedTags,
+    };
+
+    try {
+      await createPostMutation.mutateAsync(postData);
+      console.log('[PostCreateScreen] 게시글 작성 완료', postData);
+      showToast('게시되었습니다.', 'success');
+
+      setTimeout(() => {
+        navigation.goBack();
+      }, 500);
+    } catch (error) {
+      console.error('[PostCreateScreen] 게시글 작성 실패:', error);
+      showToast('게시글 작성에 실패했습니다.', 'error');
+    }
   };
 
-  const isSubmitting = createPostMutation.isPending;
+  // 제출 또는 업로드 중인지 여부
+  const isSubmitting =
+    createPostMutation.isPending || uploadImageMutation.isPending;
 
   if (userLoading) {
     return (
@@ -151,10 +188,7 @@ export default function PostCreateScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={handleCancel}
-            style={styles.cancelButton}
-            disabled={isSubmitting}>
+          <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
             <Text
               style={[styles.cancelText, isSubmitting && styles.disabledText]}>
               취소
@@ -213,21 +247,39 @@ export default function PostCreateScreen() {
             </View>
           )}
 
+          {/* Selected Image Display */}
+          {seletedImageURI && (
+            <View style={styles.selectedContainer}>
+              <TouchableOpacity onPress={handleRemoveImage}>
+                <Image
+                  source={require('@/assets/icons/common/close.png')}
+                  style={styles.removeButtonIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+              <Image
+                source={{uri: seletedImageURI}}
+                style={styles.selectedImage}
+              />
+            </View>
+          )}
+
           {/* Selected Video Display */}
           {selectedVideo && (
-            <View style={styles.selectedVideoContainer}>
+            <View style={styles.selectedContainer}>
+              <TouchableOpacity onPress={handleRemoveVideo}>
+                <Image
+                  source={require('@/assets/icons/common/close.png')}
+                  style={styles.removeButtonIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
               <View style={styles.videoEmbedWrapper}>
                 <YouTubeEmbed
                   url={`https://www.youtube.com/watch?v=${extractVideoId(
                     selectedVideo.thumbnail,
                   )}`}
                 />
-                <TouchableOpacity
-                  style={styles.removeVideoButton}
-                  onPress={handleRemoveVideo}
-                  disabled={isSubmitting}>
-                  <Text style={styles.removeVideoText}>✕</Text>
-                </TouchableOpacity>
               </View>
             </View>
           )}
@@ -237,11 +289,19 @@ export default function PostCreateScreen() {
         <PostActionButtons
           onVideoSelect={handleVideoSelect}
           onTagSelect={handleTagSelect}
+          onImageSelect={handleImageSelect}
+          selectedTags={selectedTags}
         />
       </KeyboardAvoidingView>
 
       {/* Toast */}
-      <Toast message={toastMessage} visible={toastVisible} onHide={hideToast} />
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        type={toastType}
+        position="top"
+        onHide={hideToast}
+      />
     </SafeAreaView>
   );
 }
@@ -314,10 +374,10 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     paddingHorizontal: 6,
   },
-  selectedVideoContainer: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
+  selectedContainer: {
     marginVertical: 16,
+    alignItems: 'flex-end',
+    gap: 8,
   },
   videoEmbedWrapper: {
     width: '100%',
@@ -326,22 +386,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
-  removeVideoButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
+  removeButtonIcon: {
     width: 28,
     height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-  },
-  removeVideoText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    tintColor: colors.GRAY_200,
   },
   selectedTagsContainer: {
     marginTop: -40,
@@ -361,5 +409,11 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     color: colors.GRAY_300,
+  },
+  selectedImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    resizeMode: 'cover',
   },
 });

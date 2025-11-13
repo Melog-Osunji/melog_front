@@ -1,27 +1,37 @@
 import React, {useState} from 'react';
-import {
-  StyleSheet,
-  View,
-  TextInput,
-} from 'react-native';
+import {StyleSheet, View, TextInput} from 'react-native';
 import {colors} from '@/constants';
+import {useCreateComment} from '@/hooks/queries/post/usePostMutations';
 
 interface LikeAndCommentProps {
   onLikePress?: () => void;
   liked?: boolean;
   onSend?: (text: string) => void;
+  postId?: string;
 }
 
 function LikeAndComment({
   onLikePress,
   liked = false,
   onSend,
+  postId,
 }: LikeAndCommentProps) {
   const [comment, setComment] = useState('');
+  const createCommentMutation = useCreateComment();
 
   const handleSend = () => {
     if (onSend && comment.trim()) {
+      // call parent handler first
       onSend(comment.trim());
+      // also send to server if postId provided
+      if (postId) {
+        console.log('[CommentBar.tsx] send comment ->', postId, comment.trim());
+        createCommentMutation.mutate({
+          postId,
+          content: comment.trim(),
+          responseTo: null,
+        });
+      }
       setComment('');
     }
   };

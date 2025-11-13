@@ -24,7 +24,7 @@ import DeleteReasonSheet from '@/components/harmonyRoom/DeleteReasonSheet';
 import DeleteSuccessSheet from '@/components/harmonyRoom/DeleteSuccessSheet';
 import {useDeleteHarmonyRoom} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 import {useUserInfo} from '@/hooks/common/useUserInfo';
-import {useUpdateHarmonyRoom} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
+import {useUpdateHarmonyRoom, useWaitingUserList} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 import {useHarmonyRoomInfo} from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
@@ -51,6 +51,11 @@ function HarmonySettingScreen() {
     isLoading: isDetailLoading,
     isError,
   } = useHarmonyRoomInfo(roomID);
+  const {
+    data: waitingList,
+    isLoading : isWaitingLoading,
+    isError : waitingError,
+  } = useWaitingUserList(roomID);
 
   const [showExitPopup, setShowExitPopup] = useState(false);
   const [showReasonSheet, setShowReasonSheet] = useState(false);
@@ -60,9 +65,9 @@ function HarmonySettingScreen() {
   const [needApproval, setNeedApproval] = useState(false);
 
   useEffect(() => {
-    if (detail) {
-        setIsPublic(!detail.isPrivate);             // 서버의 isPrivate → 공개 여부 반전
-        setNeedApproval(!detail.isDirectAssign);    // 서버의 isDirectAssign → 승인 필요 반전
+    if (detail && !updateMutation.isSuccess) {
+      setIsPublic(!detail.isPrivate);
+      setNeedApproval(!detail.isDirectAssign);
     }
   }, [detail]);
 
@@ -178,7 +183,7 @@ function HarmonySettingScreen() {
         <Pressable style={styles.section} onPress={handleGoToApply}>
           <Text style={styles.menu}>가입 신청 관리</Text>
           <View style={styles.accessWrap}>
-            <Text style={styles.accessNum}>+00</Text>
+            <Text style={styles.accessNum}>+{waitingList?.waitingUsers ? String(waitingList.waitingUsers.length).padStart(2, '0') : '00'}</Text>
             <Image
               source={require('@/assets/icons/mypage/RightArrow.png')}
               style={styles.iconBtn}

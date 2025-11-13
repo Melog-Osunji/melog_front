@@ -71,3 +71,34 @@ export const updateProfile = async(
     return res.data;
 }
 
+// 이미지 전송
+export type UploadProfileImageResponse = BaseResponse<string>;
+
+export const uploadProfileImage = async (
+  file: { uri: string; name?: string; type?: string }
+): Promise<string> => {
+  const form = new FormData();
+  const name =
+    file.name ??
+    `profile_${Date.now()}.${(file.type?.split('/')[1] || 'jpg')}`;
+  const type = file.type ?? 'image/jpeg';
+
+  form.append('file', {
+    // RN FormData 규격
+    uri: file.uri,
+    name,
+    type,
+  } as any);
+
+  const res = await instance.post<UploadProfileImageResponse>(
+    `/api/images/profile`,
+    form,
+    {
+        headers: {
+        // boundary는 axios가 자동으로 붙입니다
+        'Content-Type': 'multipart/form-data',
+      },
+  }
+  );
+  return (res.data as any).data;
+};

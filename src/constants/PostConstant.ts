@@ -1,10 +1,22 @@
 import type {FeedId, FeedType, PostWithUserDTO} from '@/types';
 
 export const FEED_INFOS = [
-  {id: 'popular' as const, label: '인기 피드'},
-  {id: 'follow' as const, label: '내 팔로우'},
-  {id: 'recommend' as const, label: '추천 피드'},
-] satisfies {id: FeedId; label: string}[];
+  {
+    id: 'popular' as const,
+    icon: require('@/assets/icons/post/Popular.png'),
+    label: '인기 피드',
+  },
+  {
+    id: 'recommend' as const,
+    icon: require('@/assets/icons/post/Recommend.png'),
+    label: '추천 피드',
+  },
+  {
+    id: 'follow' as const,
+    icon: require('@/assets/icons/post/Follow.png'),
+    label: '내 팔로우',
+  },
+] satisfies {id: FeedId; icon: any; label: string}[];
 
 export const FEED_IDS = {
   POPULAR: 'popular' as const,

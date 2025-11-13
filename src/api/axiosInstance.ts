@@ -1,51 +1,104 @@
+// axiosInstance.ts
 import axios from 'axios';
-import {getAccessToken} from '@/utils/storage/UserStorage';
+import {getAccessToken, clearAuthData} from '@/utils/storage/UserStorage';
+import {logout} from '@/contexts/AuthContext';
+import {tokenRefresh} from '@/api/Auth/AuthApi';
 
 export const BASE_URL = 'https://melog.org';
 
-const instance = axios.create({
+export const api = axios.create({
   baseURL: BASE_URL,
-  headers: {
-    'Content-Type': 'application/json; charset=utf-8',
-    Accept: '*/*',
-  },
+  timeout: 10000,
+  headers: {Accept: 'application/json'},
 });
 
-// 요청 전에 accessToken 자동 추가
-instance.interceptors.request.use(
-  async config => {
-    // 로그인 관련 API는 토큰 추가하지 않음
-    const OmitApi =
-      config.url?.includes('/login/') ||
-      config.url?.includes('/auth/') ||
-      config.url?.includes('/register/');
+// 인터셉터 적용 전용이 아닌, 사이드 이펙트(인터셉터) 없이 순수 요청만 보낼 때 사용
+export const rawapi = axios.create({
+  baseURL: BASE_URL,
+  timeout: 10000,
+  headers: {Accept: 'application/json'},
+});
 
-    if (!OmitApi) {
-      const token = await getAccessToken();
-      if (token) {
-        if (config.headers) {
-          config.headers['Authorization'] = `Bearer ${token}`;
-        } else {
-          config.headers = new axios.AxiosHeaders();
-          config.headers['Authorization'] = `Bearer ${token}`;
-        }
-      }
+// ======================= 요청 인터셉터 =======================
+api.interceptors.request.use(async cfg => {
+  const at = await getAccessToken();
+  if (at) {
+    if ((cfg.headers as any)?.set) {
+      (cfg.headers as any).set('Authorization', `Bearer ${at}`);
+    } else if (cfg.headers) {
+      (cfg.headers as any)['Authorization'] = `Bearer ${at}`;
+    } else {
+      cfg.headers = {Authorization: `Bearer ${at}`} as any;
     }
-    return config;
-  },
-  error => {
-    return Promise.reject(error);
+    console.log('[axiosInstance.ts] accesstoken set', at);
+  }
+  return cfg;
+});
+
+// ======================= 401 단일-리프레시 제어 =======================
+let isRefreshing = false;
+let refreshPromise: Promise<string> | null = null;
+
+// ======================= 응답 인터셉터 =======================
+api.interceptors.response.use(
+  res => res,
+  async err => {
+    const {response, config} = err || {};
+    const original: any = config || {};
+
+    // 네트워크 에러 등
+    if (!response) {
+      console.log('[axiosInstance.ts] 네트워크/알수없는 오류:', err?.message);
+      throw err;
+    }
+
+    // 401이 아니면
+    if (response.status !== 401) {
+      // 403/405/5xx 등은 그대로 전파
+      return Promise.reject(err);
+    }
+
+    // 무한 루프 방지: 재시도는 1회만
+    if (original._retry) {
+      console.log('[axiosInstance.ts] 재시도 후에도 401 → 세션 종료');
+      await clearAuthData();
+      logout();
+      return Promise.reject(err);
+    }
+    original._retry = true;
+
+    try {
+      // 싱글-플라이트: 리프레시는 오직 1회
+      if (!isRefreshing) {
+        isRefreshing = true;
+        console.log('[axiosInstance.ts] 리프레시 시작');
+        refreshPromise = tokenRefresh().finally(() => {
+          isRefreshing = false;
+          refreshPromise = null;
+        });
+      } else {
+        console.log('[axiosInstance.ts] 리프레시 진행중 → 대기');
+      }
+
+      const newAT = await (refreshPromise as Promise<string>);
+
+      // 원요청 Authorization 갱신
+      if ((original.headers as any)?.set) {
+        (original.headers as any).set('Authorization', `Bearer ${newAT}`);
+      } else if (original.headers) {
+        (original.headers as any)['Authorization'] = `Bearer ${newAT}`;
+      } else {
+        original.headers = {Authorization: `Bearer ${newAT}`} as any;
+      }
+
+      console.log('[axiosInstance.ts] 리프레시 성공 → 원요청 재시도');
+      return api(original);
+    } catch (e) {
+      // tokenRefresh 내부에서 세션 정리/로그아웃 수행됨
+      console.log('[axiosInstance.ts] 리프레시 실패 → 에러 전파');
+      return Promise.reject(e);
+    }
   },
 );
 
-// 응답 인터셉터도 추가 (선택사항)
-instance.interceptors.response.use(
-  response => {
-    return response;
-  },
-  error => {
-    return Promise.reject(error);
-  },
-);
-
-export default instance;
+export default api;

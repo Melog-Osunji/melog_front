@@ -25,6 +25,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+export let logout: () => void = () => {};
+
 export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
   children,
 }) => {
@@ -64,12 +66,11 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
     setIsLogin(true);
   };
 
-  const logout = async () => {
+  logout = async () => {
     try {
       await clearAuthData();
       setUser(null);
       setIsLogin(false);
-      setIsRegistered(false);
     } catch (error) {
       console.error('로그아웃 실패:', error);
     }
@@ -90,19 +91,19 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
     try {
       await setRegistrationStatus(true);
       setIsRegistered(true);
-      console.log('✅ 가입 완료 처리됨');
+      console.log('가입 완료 처리됨');
     } catch (error) {
       console.error('가입 완료 처리 실패:', error);
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     isLogin,
     isRegistered,
     isLoading,
     login,
-    logout,
+    logout: logout as () => Promise<void>,
     refreshUserInfo,
     completeRegistration,
     setIsLogin,

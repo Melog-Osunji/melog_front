@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 60,
   },
-  inValid: {opacity: 0.5},
+  inValid: {backgroundColor: colors.GRAY_100},
 
   // variant
   filled: {backgroundColor: colors.BLUE_400},

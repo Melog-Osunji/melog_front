@@ -1,5 +1,12 @@
-import React, {useState} from 'react';
-import {View, Text, Image, TouchableOpacity, StyleSheet} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import CustomButton from '@/components/common/CustomButton';
 import {colors} from '@/constants';
@@ -8,47 +15,118 @@ import {StackScreenProps} from '@react-navigation/stack';
 import {InitProfileNavigatorParamList} from '@/navigations/stack/InitProfileStackNavigator';
 import {InitProfileNavigations} from '@/constants';
 
+import type {PickedImage} from '@/types';
+import {useUploadImage} from '@/hooks/queries/common/useCommonMutations';
+import Toast, {ToastType} from '@/components/common/Toast';
+
 type InitProfileScreenProps = StackScreenProps<
   InitProfileNavigatorParamList,
   typeof InitProfileNavigations.INIT_PROFILE_NICKNAME
 >;
 
 function InitProfileImgScreen({navigation}: InitProfileScreenProps) {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<PickedImage | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+
+  // img upload mutation
+  const uploadImageMutation = useUploadImage('profile');
+
+  // toast state
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<ToastType>('none');
+
+  const showToast = (message: string, type: ToastType = 'none') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
+  const hideToast = () => setToastVisible(false);
+
+  useEffect(() => {
+    if (selectedImage) {
+      console.log('[InitProfileImgScreen] 이미지 선택됨, 자동 업로드 시작');
+      uploadImageMutation.mutate(selectedImage, {
+        onSuccess: data => {
+          console.log('[InitProfileImgScreen] 이미지 업로드 성공:', data);
+          setUploadedImageUrl(data);
+        },
+        onError: error => {
+          console.log('[InitProfileImgScreen] 이미지 업로드 실패:', error);
+          showToast('이미지 업로드에 실패했습니다.', 'error');
+        },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedImage]);
 
   const handleSelectImage = () => {
     launchImageLibrary({mediaType: 'photo', quality: 0.8}, response => {
       if (response.assets && response.assets.length > 0) {
-        setSelectedImage(response.assets[0].uri || null);
+        const asset = response.assets[0];
+        setSelectedImage({
+          uri: asset.uri ?? '',
+          name: asset.fileName ?? `img_${Date.now()}.jpg`,
+          type: asset.type ?? 'image/jpeg',
+        });
       }
     });
   };
 
   return (
     <View style={styles.container}>
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        type={toastType}
+        position="top"
+        onHide={hideToast}
+      />
       <Text style={styles.Titletext}>프로필을 등록해주세요</Text>
       <TouchableOpacity onPress={handleSelectImage} activeOpacity={0.7}>
-        <Image
-          source={
-            selectedImage
-              ? {uri: selectedImage}
-              : require('@/assets/icons/intro/select_img_btn.png')
-          }
-          style={{
-            width: 160,
-            height: 160,
-            resizeMode: 'contain',
-          }}
-        />
+        {selectedImage ? (
+          <Image
+            source={{uri: selectedImage.uri}}
+            style={{
+              width: 160,
+              height: 160,
+              resizeMode: 'cover',
+              borderRadius: 80,
+            }}
+          />
+        ) : (
+          <Image
+            source={require('@/assets/icons/intro/select_img_btn.png')}
+            style={{
+              width: 160,
+              height: 160,
+              resizeMode: 'contain',
+            }}
+          />
+        )}
       </TouchableOpacity>
       <View style={styles.buttonwrapper}>
         <CustomButton
           label="다음"
           onPress={() => {
-            navigation.navigate(InitProfileNavigations.INIT_PROFILE_NICKNAME);
+            navigation.navigate(InitProfileNavigations.INIT_PROFILE_NICKNAME, {
+              // uploadedImageUrl: 서버에 업로드 되어 사용될 URL (API 용)
+              uploadedImageUrl: uploadedImageUrl ?? null,
+              // selectedImage.uri: 로컬에서 화면에 보여줄 이미지 URI (화면 출력용)
+              selectedImage: selectedImage?.uri ?? null,
+            });
           }}
+          inValid={!selectedImage}
         />
-        <Text style={styles.text}>나중에 등록하기</Text>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate(InitProfileNavigations.INIT_PROFILE_NICKNAME, {
+              uploadedImageUrl: null,
+              selectedImage: null,
+            })
+          }>
+          <Text style={styles.text}>나중에 등록하기</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

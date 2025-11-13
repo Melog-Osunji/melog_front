@@ -4,11 +4,12 @@ import {colors} from '@/constants';
 import {PostDTO, UserDTO} from '@/types';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 import PostStats from '@/components/post/PostStats';
-import IconButton from '@/components/common/IconButton';
+import PostOptionsSheet from '@/components/post/PostOptionsSheet';
+
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
-import {postNavigations} from '@/constants';
+import {postNavigations, myPageNavigations, harmonyNavigations} from '@/constants';
 
 type PostCardNavigationProp = StackNavigationProp<PostStackParamList>;
 
@@ -21,9 +22,18 @@ function PostCard({post, user}: PostCardProps) {
   const navigation = useNavigation<PostCardNavigationProp>();
 
   const handlePress = () => {
-    navigation.navigate(postNavigations.POST_PAGE, {
-      postId: post.id,
-    });
+    const routes = navigation.getState()?.routeNames ?? [];
+
+    if (routes.includes(myPageNavigations.MYPAGE_HOME)) {
+      // ✅ 마이페이지 스택 내에 있으면
+      navigation.navigate('MYPAGE_POST_PAGE', { postId: post.id });
+    } else if (routes.includes(harmonyNavigations.HARMONY_HOME)) {
+      // ✅ 하모니룸 스택 내에 있으면
+//       navigation.navigate('HARMONY_POST_PAGE', { postId: post.id });
+    } else {
+      // ✅ 그 외엔 기본 포스트 페이지로 이동
+      navigation.navigate(postNavigations.POST_PAGE, { postId: post.id });
+    }
   };
 
   return (
@@ -35,16 +45,20 @@ function PostCard({post, user}: PostCardProps) {
       {/* 사용자 정보 */}
       <View style={styles.header}>
         <View style={styles.userWrapper}>
-          <Image source={{uri: user.profileImg}} style={styles.profileImage} />
+          <Image
+            source={
+              user?.profileImg
+                ? { uri: user.profileImg }
+                : require('@/assets/icons/common/EmptyProfile.png')
+            }
+            style={styles.profileImage}
+          />
           <View style={styles.userInfo}>
             <Text style={styles.nickName}>{user.nickName}</Text>
             <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
           </View>
         </View>
-        <IconButton
-          imageSource={require('@/assets/icons/post/Info.png')}
-          size={24}
-        />
+        <PostOptionsSheet user={user} postId={post.id} />
       </View>
 
       {/* 본문 */}
@@ -67,7 +81,11 @@ function PostCard({post, user}: PostCardProps) {
         )}
 
       {/* 상태바 */}
-      <PostStats likeCount={post.likeCount} commentCount={post.commentCount} />
+      <PostStats
+        id={post.id}
+        likeCount={post.likeCount}
+        commentCount={post.commentCount}
+      />
 
       {/* 베스트 댓글 */}
       {post.bestComment && (

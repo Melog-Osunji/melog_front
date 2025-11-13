@@ -27,6 +27,9 @@ import {
 
   fetchIsWaiting,
   type isWaitingDTO,
+
+  fetchHarmonySearch,
+  type recommendRoom
 } from '@/api/harmonyRoom/harmonyRoomApi';
 
 // -----------------------------
@@ -43,6 +46,7 @@ export const HarmonyQueryKeys = {
   isMember: (harmonyId: string) => ['harmony', harmonyId, 'isMember'] as const,
 
   insidePosts: (harmonyId: string) => ['harmony', harmonyId, 'insidePosts'] as const,
+  search: (q: string) => ['harmony', 'search', q] as const,
 };
 
 // 공통 기본 옵션
@@ -160,6 +164,19 @@ export const useHarmonyIsWaiting = (
     queryKey: HarmonyQueryKeys.insidePosts(harmonyId),
     queryFn: () => fetchIsWaiting(harmonyId),
     enabled: !!harmonyId,
+    ...DEFAULTS,
+    ...options,
+  });
+
+/** 하모니룸 검색 결과 */
+export const useHarmonySearch = (
+  q: string,
+  options?: Opt<recommendRoom[]>
+) =>
+  useQuery({
+    queryKey: HarmonyQueryKeys.search(q),
+    queryFn: () => fetchHarmonySearch(q),
+    enabled: !!q, // 검색어 있을 때만 실행
     ...DEFAULTS,
     ...options,
   });

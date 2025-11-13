@@ -34,6 +34,7 @@ import {
   useHarmonyRoomDetailInfo,
   useHarmonyIsMember,
   useHarmonyRoomInfo,
+  useHarmonyIsWaiting,
 } from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 import {
   useRequestJoinHarmonyRoom,
@@ -53,7 +54,7 @@ type HarmonyPageScreenRouteProp = StackScreenProps<
 
 export default function HarmonyInfoScreen() {
   useHideTabBarOnFocus();
-
+  const navigation = useNavigation<StackNavigationProp<HarmonyPageScreenRouteProp>>();
   const route = useRoute<HarmonyPageScreenRouteProp>();
   const {roomID} = route.params;
   const {rooms} = useHarmonyRoomContext();
@@ -78,14 +79,11 @@ export default function HarmonyInfoScreen() {
     useLeaveHarmonyRoom(roomID);
   const {mutateAsync: toggleBookmark, isPending: bookmarkLoading} =
     useBookmarkHarmonyRoom();
+  const { data: waitingDTO } = useHarmonyIsWaiting(roomID);
 
   const [fav, setFav] = useState<boolean>(false);
   const [showExitPopup, setShowExitPopup] = useState(false);
   const [showOutPopup, setShowOutPopup] = useState(false);
-  // 상태: 가입 상태(버튼 문구/노출 제어), 팝업 모드
-  const [joinStatus, setJoinStatus] = useState<'none' | 'pending' | 'joined'>(
-    'none',
-  );
   const [popupMode, setPopupMode] = useState<'joined' | 'applied'>('joined');
 
   // 변수
@@ -101,10 +99,6 @@ export default function HarmonyInfoScreen() {
     if (detail) setFav(!!detail.isBookmark);
   }, [detail]);
 
-  React.useEffect(() => {
-    if (isMemberDTO?.isMember) setJoinStatus('joined');
-    else setJoinStatus('none'); // 서버에 대기중 플래그가 없으면 로컬로만 관리
-  }, [isMemberDTO]);
 
   useFocusEffect(
     useCallback(() => {
@@ -115,8 +109,9 @@ export default function HarmonyInfoScreen() {
   const currentUserId = userInfo?.id ?? null;
 
   const {data: isMemberDTO} = useHarmonyIsMember(roomID);
+  const isWaiting = waitingDTO?.isWaiting ?? false;
   const isMember = isMemberDTO?.isMember ?? false;
-  const effectiveIsMember = isMember || joinStatus === 'joined';
+  const effectiveIsMember = isMember;
   const {data: roomInfo} = useHarmonyRoomInfo(roomID);
   const isOwner = roomInfo ? roomInfo.owner === currentUserId : false;
 
@@ -129,10 +124,8 @@ export default function HarmonyInfoScreen() {
     try {
       await requestJoin(); // API는 하나만: 백엔드가 isDirectAssign로 처리
       if (detail.isDirectAssign) {
-        setJoinStatus('joined');
         setPopupMode('joined'); // "가입 완료"
       } else {
-        setJoinStatus('pending');
         setPopupMode('applied'); // "가입 신청 완료"
       }
       setShowExitPopup(true);
@@ -149,7 +142,6 @@ export default function HarmonyInfoScreen() {
     try {
       await leaveRoom(); // 서버에서 나가기 처리
       setShowOutPopup(false); // 팝업 닫기
-      setJoinStatus('none'); // 로컬 상태도 비회원으로
       navigation.navigate(harmonyNavigations.HARMONY_HOME);
     } catch (e) {
       console.warn(e);
@@ -299,12 +291,12 @@ export default function HarmonyInfoScreen() {
         {!effectiveIsMember && !isOwner && (
           <View style={styles.bottom}>
             <CustomButton
-              label={joinStatus === 'pending' ? '가입 진행중' : '가입하기'}
+              label={isWaiting ? '가입 진행중' : '가입하기'}
               onPress={handleAccess}
-              disabled={joinStatus === 'pending' || joinLoading}
+              disabled={isWaiting || joinLoading}
               style={[
                 {backgroundColor: colors.BLUE_500},
-                (joinStatus === 'pending' || joinLoading) && {opacity: 0.6},
+                (isWaiting || joinLoading) && {backgroundColor: 'rgba(180,195,195,0.25)'},
               ]}
             />
           </View>

@@ -1,17 +1,17 @@
 import React from 'react';
 import {
-    Modal,
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    Dimensions,
-    ColorValue,
-    ViewStyle,
-    Pressable,
-    Image,
+  Modal,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+  ColorValue,
+  ViewStyle,
+  Pressable,
+  Image,
 } from 'react-native';
-import { colors } from '@/constants';
+import {colors} from '@/constants';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
@@ -26,62 +26,77 @@ interface Props {
   rightBtnColor: ColorValue;
   leftBtnTextColor: ColorValue;
   rightBtnTextColor: ColorValue;
-  leftBtnText: string,
-  rightBtnText: string,
+  leftBtnText: string;
+  rightBtnText: string;
   leftBtnBorderColor?: ColorValue;
+  rightBtnBorderColor?: ColorValue;
 }
 
 export default function CheckPopup({
-    visible,
-    onClose,
-    onExit,
-    iconImg,
-    title,
-    content,
-    leftBtnColor,
-    leftBtnTextColor,
-    rightBtnColor,
-    rightBtnTextColor,
-    leftBtnText,
-    rightBtnText,
-    leftBtnBorderColor
-}: Props){
+  visible,
+  onClose,
+  onExit,
+  iconImg,
+  title,
+  content,
+  leftBtnColor,
+  leftBtnTextColor,
+  rightBtnColor,
+  rightBtnTextColor,
+  leftBtnText,
+  rightBtnText,
+  leftBtnBorderColor,
+  rightBtnBorderColor,
+}: Props) {
+  return (
+    <Modal
+      transparent
+      animationType="fade"
+      visible={visible}
+      onRequestClose={onClose}>
+      <View style={styles.backdrop}>
+        <View style={styles.modalContainer}>
+          {iconImg && <Image source={iconImg} style={styles.icon} />}
 
-    return (
-        <Modal
-              transparent
-              animationType="fade"
-              visible={visible}
-              onRequestClose={onClose}
-        >
-            <View style={styles.backdrop}>
-                <View style={styles.modalContainer}>
-                    {iconImg && <Image source={iconImg} style={styles.icon} />}
+          {title && <Text style={styles.title}>{title}</Text>}
+          <Text style={styles.subtitle}>{content}</Text>
 
-                    {title && <Text style={styles.title}>{title}</Text>}
-                    <Text style={styles.subtitle}>{content}</Text>
+          <View style={styles.buttonRow}>
+            <Pressable
+              style={[
+                styles.button,
+                {
+                  backgroundColor: leftBtnColor,
+                  borderWidth: leftBtnBorderColor ? 1 : 0,
+                  borderColor: leftBtnBorderColor,
+                },
+              ]}
+              onPress={onExit}>
+              <Text style={[styles.exitText, {color: leftBtnTextColor}]}>
+                {leftBtnText}
+              </Text>
+            </Pressable>
 
-                    <View style={styles.buttonRow}>
-                        <Pressable style={[styles.button,
-                                           {
-                                             backgroundColor: leftBtnColor,
-                                             borderWidth: leftBtnBorderColor ? 1 : 0,
-                                             borderColor: leftBtnBorderColor
-                                           }
-                                         ]}
-                                    onPress={onExit}>
-                          <Text style={[styles.exitText, {color: leftBtnTextColor}]}>{leftBtnText}</Text>
-                        </Pressable>
-
-                        <Pressable style={[styles.button, {backgroundColor: rightBtnColor}]} onPress={onClose}>
-                            <Text style={[styles.exitText, {color: rightBtnTextColor}]} >{rightBtnText}</Text>
-                        </Pressable>
-                    </View>
-                </View>
-            </View>
-        </Modal>
-    )
-};
+            <Pressable
+              style={[
+                styles.button,
+                {
+                  backgroundColor: rightBtnColor,
+                  borderWidth: rightBtnBorderColor ? 1 : 0,
+                  borderColor: rightBtnBorderColor,
+                },
+              ]}
+              onPress={onClose}>
+              <Text style={[styles.exitText, {color: rightBtnTextColor}]}>
+                {rightBtnText}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
 
 const styles = StyleSheet.create({
   backdrop: {
@@ -93,10 +108,10 @@ const styles = StyleSheet.create({
   modalContainer: {
     width: DEVICE_WIDTH - 40,
     backgroundColor: colors.WHITE,
-    borderRadius: 8,
+    borderRadius: 15,
     paddingHorizontal: 20,
     paddingTop: 24,
-    paddingBottom : 20,
+    paddingBottom: 20,
     alignItems: 'center',
     shadowColor: colors.BLACK,
     shadowOffset: {
@@ -114,7 +129,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: '700',
     letterSpacing: 0.15,
     lineHeight: 22,
     textAlign: 'center',
@@ -139,7 +154,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
-    borderRadius:999,
+    borderRadius: 999,
   },
   exitText: {
     fontSize: 15,
