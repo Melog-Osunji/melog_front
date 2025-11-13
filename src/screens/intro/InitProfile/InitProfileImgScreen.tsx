@@ -16,7 +16,7 @@ import {InitProfileNavigatorParamList} from '@/navigations/stack/InitProfileStac
 import {InitProfileNavigations} from '@/constants';
 
 import type {PickedImage} from '@/types';
-import {useUploadImage} from '@/hooks/queries/common/useCommon';
+import {useUploadImage} from '@/hooks/queries/common/useCommonMutations';
 import Toast, {ToastType} from '@/components/common/Toast';
 
 type InitProfileScreenProps = StackScreenProps<

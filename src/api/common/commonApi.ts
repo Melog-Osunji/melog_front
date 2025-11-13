@@ -1,34 +1,28 @@
-import {BASE_URL} from '../axiosInstance';
-import {getAccessToken} from '@/utils/storage/UserStorage';
-import type {BaseResponse} from '../baseResponse';
-import type {PickedImage} from '@/types';
+import api from '@/api/axiosInstance';
 
-// 이미지 업로드
-export type ImageUploadType = 'profile' | 'post';
+/**
+ * DTO for youtube search response (use local DTO instead of shared constants type)
+ */
+export interface YouTubeVideoDto {
+  url: string;
+  title: string;
+  thumbnail: string;
+  description: string;
+}
 
-export const uploadImage = async (
-  type: ImageUploadType = 'post',
-  file: PickedImage,
-): Promise<BaseResponse<string>> => {
-  const path = type === 'profile' ? '/api/images/profile' : '/api/images/post';
-  const fullUrl = `${BASE_URL}${path}`;
-  const token = await getAccessToken();
-
-  const form = new FormData();
-  form.append('file', {
-    uri: file.uri,
-    name: file.name ?? `img_${Date.now()}.jpg`,
-    type: file.type ?? 'image/jpeg',
-  } as any);
-
-  const fetchHeaders: Record<string, string> = {};
-  if (token) fetchHeaders.Authorization = `Bearer ${token}`;
-
-  const res = await fetch(fullUrl, {
-    method: 'POST',
-    headers: fetchHeaders,
-    body: form,
+/**
+ * 유튜브 검색 (서버 프록시)
+ * 요청: GET /api/youtube/search?word=검색어&items=5
+ * 항상 items=5 고정
+ */
+export const searchYouTube = async (
+  word: string,
+): Promise<YouTubeVideoDto[]> => {
+  const res = await api.get<YouTubeVideoDto[]>('/api/youtube/search', {
+    params: {
+      word,
+      items: 5,
+    },
   });
-
-  return (await res.json()) as BaseResponse<string>;
+  return res.data;
 };

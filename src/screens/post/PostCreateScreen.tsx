@@ -24,7 +24,7 @@ import {extractVideoId} from '@/utils/providers';
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import {useUserInfo} from '@/hooks/common/useUserInfo';
 import {useImagePicker} from '@/hooks/common/useImagePicker';
-import {useUploadImage} from '@/hooks/queries/common/useCommon';
+import {useUploadImage} from '@/hooks/queries/common/useCommonMutations';
 import {useCreatePost} from '@/hooks/queries/post/usePostMutations';
 //components
 import Toast, {ToastType} from '@/components/common/Toast';
