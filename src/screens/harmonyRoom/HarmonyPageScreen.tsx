@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef, useMemo} from 'react';
+import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
 import axios from 'axios';
 import {StyleSheet, Text, View, ScrollView, Image, Dimensions, FlatList, TouchableOpacity, Keyboard, Pressable, ActivityIndicator} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -18,6 +18,7 @@ import {
   useHarmonyRoomInfo,
   useHarmonyRoomPosts,
   useHarmonyIsMember,
+  useHarmonyIsWaiting,
 } from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 // PostCard 가져오기
 import PostCard from '@/components/post/PostCard';
@@ -37,6 +38,8 @@ type HarmonyPageScreenRouteProp = StackScreenProps<
 export default function HarmonyPageScreen() {
     const navigation = useNavigation<StackNavigationProp<HarmonyStackParamList>>();
 
+    const queryClient = useQueryClient();
+
     const route = useRoute<HarmonyPageScreenRouteProp>();
     const { roomID, roomData } = route.params ?? {};
     const scrollRef = useRef<ScrollView>(null);
@@ -47,7 +50,6 @@ export default function HarmonyPageScreen() {
     const [modalVisible, setModalVisible] = useState(false);
     const [selectTab, setSelectTab] = useState<'rcmd' | 'popular'>('rcmd');
     // 상태: 가입 상태(버튼 문구/노출 제어), 팝업 모드
-    const [joinStatus, setJoinStatus] = useState<'none' | 'pending' | 'joined'>('none');
     const [popupMode, setPopupMode] = useState<'joined' | 'applied'>('joined');
 
     const {
@@ -70,29 +72,24 @@ export default function HarmonyPageScreen() {
       refetch: refetchPosts,
     } = useHarmonyRoomPosts(roomID);
 
-    console.log(roomInfo);
-
     const {
       data: memberDTO,
       isLoading: memberLoading,
+      refetch: refetchMember,
     } = useHarmonyIsMember(roomID);
 
-    useEffect(() => {
-      if (memberDTO?.isMember) setJoinStatus('joined');
-      else setJoinStatus('none'); // (대기중 여부를 서버가 안주면 로컬로만 관리)
-    }, [memberDTO]);
+    const { data: waitingDTO, refetch: refetchWaiting } = useHarmonyIsWaiting(roomID);
 
     const { mutateAsync: requestJoin, isPending: requestLoading } = useRequestJoinHarmonyRoom(roomID);
 
     const currentUserId = userInfo?.id ?? null;
-
     const isOwner = useMemo(() => {
       if (!roomInfo) return false;
       return currentUserId ? roomInfo.owner === currentUserId : false;
     }, [roomInfo, currentUserId]);
-
     const serverIsMember = memberDTO?.isMember ?? false;
-    const effectiveIsMember = serverIsMember || joinStatus === 'joined';
+    const isWaiting = waitingDTO?.isWaiting ?? false;
+    const effectiveIsMember = serverIsMember;
 
     // 헤더 표시용 데이터 파생
     const headerName = roomInfo?.name ?? '하모니룸';
@@ -104,23 +101,19 @@ export default function HarmonyPageScreen() {
     type FeedItem = PostDTO & { author?: UserDTO };
 
     // post[]와 user[]를 같은 index로 병합
-    const pairPosts = (blocks?: harmonyRoomPosts[]) => {
-      if (!blocks?.length) return [] as FeedItem[];
-      const merged: FeedItem[] = [];
-      for (const b of blocks) {
-        const posts = b.post ?? [];
-        const users = b.user ?? [];
-        for (let i = 0; i < posts.length; i++) {
-          merged.push({ ...posts[i], author: users[i] });
-        }
-      }
-      return merged;
+    const pairPosts = (blocks?: any[]) => {
+      if (!blocks?.length) return [];
+      return blocks.map(b => ({
+        ...b.post,
+        author: b.user,
+      }));
     };
 
     // 탭에 맞는 원천 피드
     const recommendFeed = useMemo(() => pairPosts(postsDTO?.recommend), [postsDTO]);
     const popularFeed   = useMemo(() => pairPosts(postsDTO?.popular),   [postsDTO]);
 
+    console.log(postsDTO?.recommend)
     // ★ PostCard 타입으로 최종 매핑
     const toPostCardModel = (src: FeedItem): PostDTO => {
       return {
@@ -140,6 +133,7 @@ export default function HarmonyPageScreen() {
               content: src.bestComment.content ?? '',
             }
           : undefined,
+        user: src.author,
       };
     };
 
@@ -148,12 +142,20 @@ export default function HarmonyPageScreen() {
       () => activeFeedRaw.map(toPostCardModel),
       [activeFeedRaw]
     );
+
     const isEmpty = activeFeed.length === 0;
 
     // info로 이동
     const handlePress = () => {
         navigation.navigate(harmonyNavigations.HARMONY_INFO, { roomID: roomID, roomData: roomInfo });
     };
+
+    useFocusEffect(
+      useCallback(() => {
+        refetchWaiting();
+        refetchMember();
+      }, [refetchWaiting, refetchMember]),
+    );
 
     // 가입 모달 오픈
     const handleAccess = async () => {
@@ -163,29 +165,20 @@ export default function HarmonyPageScreen() {
         // 백엔드가 isDirectAssign에 맞게 처리 (멤버 추가 또는 대기열 추가)
         await requestJoin();
 
+        await Promise.all([refetchWaiting(), refetchMember()]);
+
         if (roomInfo.isDirectAssign) {
           // 즉시 가입
-          setJoinStatus('joined');     // 글쓰기 버튼 노출, 가입 버튼 숨김
           setPopupMode('joined');      // "가입 완료" 팝업
         } else {
           // 승인제: 대기 등록
-          setJoinStatus('pending');    // 버튼 "가입 대기중"으로 변경/비활성화
           setPopupMode('applied');     // "가입 신청 완료" 팝업
         }
+
         setShowExitPopup(true);
         // 쿼리 무효화는 훅 내부 onSuccess에서 이미 처리됨
       } catch (e) {
-        if (axios.isAxiosError(e)) {
-            console.warn('❌ Axios Error!');
-            console.warn('URL:', e.config?.baseURL + e.config?.url);
-            console.warn('Method:', e.config?.method?.toUpperCase());
-            console.warn('Status:', e.response?.status);
-            console.warn('Response data:', e.response?.data);
-            console.warn('Headers:', e.config?.headers);
-            console.warn('Request body:', e.config?.data);
-          } else {
-            console.warn('❌ 일반 Error:', e);
-          }
+        console.warn('❌ Join Error', e);
       }
     };
 
@@ -295,14 +288,25 @@ export default function HarmonyPageScreen() {
                     <EmptyTab subtitle={"우측 하단의 글쓰기 버튼으로\n첫 글을 작성해보세요."} />
                   </View>
                 ) : (
-                  <FlatList
-                    data={activeFeed}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => <PostCard {...item} />}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 60 }}
-                    ListHeaderComponent={<View style={{ height: 0 }} />} // 상단 여백 조절용(선택)
-                  />
+                    <View>
+                    {activeFeed.map(item => (
+                      <PostCard
+                        key={item.id}
+                        post={item}
+                        user={item.user}
+                      />
+                    ))}
+                    </View>
+//                     <FlatList
+//                       data={activeFeed}
+//                       keyExtractor={(item) => item.id}
+//                       renderItem={({ item }) => (
+//                           <PostCard post={item} user={item.user!} />
+//                       )}
+//                       showsVerticalScrollIndicator={false}
+//                       contentContainerStyle={{ paddingBottom: 20 }}
+//                       ListHeaderComponent={<View style={{ height: 0 }} />}
+//                     />
                 )}
 
 
@@ -330,14 +334,22 @@ export default function HarmonyPageScreen() {
               <Pressable
                 style={[
                   styles.accessBtn,
-                  (joinStatus === 'pending' || requestLoading) && { opacity: 0.6 },
+                  (isWaiting || requestLoading) && styles.pendingBtn
                 ]}
                 onPress={handleAccess}
-                disabled={joinStatus === 'pending' || requestLoading}
+                disabled={isWaiting || requestLoading}
               >
-                <Image source={require('@/assets/icons/harmonyRoom/Apply.png')} style={styles.icon} />
-                <Text style={styles.btnText}>
-                  {joinStatus === 'pending' ? '가입 대기중' : '가입하기'}
+                {
+                   (isWaiting || requestLoading)
+                   ? null
+                   : <Image source={require('@/assets/icons/harmonyRoom/Apply.png')} style={styles.icon} />
+                }
+                <Text
+                    style={[
+                       styles.btnText,
+                       (isWaiting || requestLoading) && {color: colors.BLUE_500}
+                     ]}>
+                  {isWaiting ? '가입 대기중' : '가입하기'}
                 </Text>
               </Pressable>
             )}
@@ -510,8 +522,7 @@ const styles = StyleSheet.create({
     accessBtn: {
         position: 'absolute',
         bottom: 60,
-        left: '50%',
-        transform: [{ translateX: -0.5 * 120 }],
+        alignSelf: 'center',
         height: 44,
         paddingHorizontal: 16,
         paddingVertical: 8,
@@ -522,6 +533,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: colors.BLUE_400,
         marginBottom: 22,
+    },
+    pendingBtn: {
+        backgroundColor: colors.WHITE,
+        borderWidth: 1,
+        borderColor: colors.BLUE_500,
     },
     icon: {
         width: 28,

@@ -24,6 +24,7 @@ function MyPageHomeScreen() {
   const { data, isLoading, isError, refetch, isRefetching } = useMyPage();
   const userInfo = useUserInfo();
 
+  console.log(data);
   useFocusEffect(
       useCallback(() => {
         refetch();
@@ -123,6 +124,7 @@ function MyPageHomeScreen() {
             <HarmonyRoomStrip
               communities={communities}
               onChange={(id) => {}}
+              from="mypage"
             />
 
             {/* 마이페이지 피드 */}

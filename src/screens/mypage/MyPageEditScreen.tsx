@@ -10,7 +10,8 @@ import {
   KeyboardAvoidingView,
   TextInput,
   Keyboard,
-  Alert
+  Alert,
+  Platform,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -21,7 +22,8 @@ import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import IconButton from '@/components/common/IconButton';
 import CustomButton from '@/components/common/CustomButton';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {useUpdateProfile} from '@/hooks/queries/myPage/useMyPage';
+import {useUpdateProfile, useMyPage} from '@/hooks/queries/myPage/useMyPage';
+import { uploadProfileImage } from '@/api/myPage/myPageApi';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
@@ -29,6 +31,7 @@ function MyPageEditScreen() {
   useHideTabBarOnFocus();
   const navigation = useNavigation<StackNavigationProp<MyPageStackParamList>>();
 
+  const { data, isLoading, isError } = useMyPage();
   const { mutate: updateProfile, isPending } = useUpdateProfile();
 
   const [nickname, setNickname] = useState('');
@@ -36,6 +39,14 @@ function MyPageEditScreen() {
   const [introduction, setIntroduction] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+      if (data) {
+        setNickname(data.nickname ?? '');
+        setIntroduction(data.introduction ?? '');
+        setSelectedImage(data.profileImg ?? null);
+      }
+  }, [data]);
 
   const handleSelectImage = () => {
     launchImageLibrary({mediaType: 'photo', quality: 0.8}, response => {
@@ -65,7 +76,7 @@ function MyPageEditScreen() {
   const isTooLong = nickname.length > 10;
   const hasError = isInvalidChar || isTooLong;
 
-  const handleSave = () => {
+  const handleSave = async () => {
       if (!nickname.trim()) {
         Alert.alert('알림', '닉네임을 입력해주세요.');
         return;
@@ -75,27 +86,46 @@ function MyPageEditScreen() {
         return;
       }
 
-      updateProfile(
-        {
-          nickName: nickname,
-          intro: introduction,
-          profileImg: selectedImage ?? undefined,
-        },
-        {
-          onSuccess: () => {
-            Alert.alert('완료', '프로필이 수정되었습니다.', [
-              {
-                text: '확인',
-                onPress: () => navigation.navigate(myPageNavigations.MYPAGE_HOME),
-              },
-            ]);
-          },
-          onError: (error) => {
-            console.error(error);
-            Alert.alert('오류', '프로필 수정 중 문제가 발생했습니다.');
-          },
+      try {
+        let uploadedUrl: string | undefined = undefined;
+
+        // ✅ 선택된 이미지가 있고, 로컬 파일 URI인 경우만 업로드
+        if (selectedImage && !selectedImage.startsWith('http')) {
+          const file = {
+            uri: selectedImage,
+            type: 'image/jpeg',
+            name: `profile_${Date.now()}.jpg`,
+          };
+          uploadedUrl = await uploadProfileImage(file);
+        } else if (selectedImage?.startsWith('http')) {
+          uploadedUrl = selectedImage; // 기존 URL 그대로 사용
         }
-      );
+
+        updateProfile(
+          {
+            nickName: nickname,
+            intro: introduction,
+            profileImg: uploadedUrl,
+          },
+          {
+            onSuccess: () => {
+              Alert.alert('완료', '프로필이 수정되었습니다.', [
+                {
+                  text: '확인',
+                  onPress: () => navigation.navigate(myPageNavigations.MYPAGE_HOME),
+                },
+              ]);
+            },
+            onError: error => {
+              console.error('[handleSave] 프로필 수정 실패:', error);
+              Alert.alert('오류', '프로필 수정 중 문제가 발생했습니다.');
+            },
+          },
+        );
+      } catch (error) {
+        console.error('[handleSave] 이미지 업로드 실패:', error);
+        Alert.alert('오류', '이미지 업로드 중 문제가 발생했습니다.');
+      }
     };
 
   return (
@@ -119,6 +149,21 @@ function MyPageEditScreen() {
               onPress={() => {
                 handleSelectImage();
               }}>
+              {selectedImage ? (
+                  <Image
+                    source={{ uri: selectedImage }}
+                    style={{ width: 103, height: 103, borderRadius: 999 }}
+                  />
+                ) : (
+                  <View
+                    style={{
+                      width: 103,
+                      height: 103,
+                      borderRadius: 999,
+                      backgroundColor: colors.GRAY_200,
+                    }}
+                  />
+                )}
               <Image
                 source={require('@/assets/icons/mypage/ProfileCamera.png')}
                 style={styles.icon}
@@ -216,6 +261,7 @@ function MyPageEditScreen() {
                 label={isPending ? '저장 중...' : '저장하기'}
                 onPress={handleSave}
                 disabled={isPending}
+                style={{backgroundColor: colors.BLUE_500}}
               />
             </View>
           )}

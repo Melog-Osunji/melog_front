@@ -174,9 +174,10 @@ export const fetchInsideHarmonyRoomPosts = async (
 };
 
 export type isWaitingDTO = {
-    wait: boolean;
+    harmonyRoomId: string;
+    harmonyRoomName: string;
+    isWaiting: boolean;
 };
-
 
 // 가입 대기 유무 확인
 export const fetchIsWaiting = async (
@@ -187,3 +188,11 @@ export const fetchIsWaiting = async (
     );
     return res.data.data;
 }
+
+// 하모니룸 검색
+export const fetchHarmonySearch = async (keyword: string): Promise<recommendRoom[]> => {
+  const res = await instance.get<BaseResponse<recommendRoom[]>>('/api/harmony/roomSearch', {
+    params: { keyword },
+  });
+  return res.data.data;
+};
