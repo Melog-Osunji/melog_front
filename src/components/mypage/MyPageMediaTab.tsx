@@ -10,29 +10,17 @@ const MyPageMediaTab = () => {
   const { data, isLoading, isError, refetch, isRefetching } = useMyPage();
 
   const postMedias = useMemo(() => {
-    if (!data?.mediaPosts) return [];
+     if (!data?.mediaPosts) return [];
 
-    const userInfo = {
-        id: data.id ?? '',
-        nickName: data.nickname ?? '알 수 없음',
-        profileImg: data.profileImg ?? '',
-    };
-    return data.mediaPosts.map((p: any) => ({
-        post: {
-          id: p.id,
-          title: p.title,
-          content: p.content,
-          mediaType: p.mediaType,
-          mediaUrl: p.mediaUrl,
-          tags: p.tags || [],
-          createdAgo: p.createdAgo ?? 0,  // 없을 수 있으므로 0 기본값
-          likeCount: p.likeCount ?? 0,
-          commentCount: p.commentCount ?? 0,
-          bestComment: p.bestComment,
-        },
-        user: userInfo, // 모든 포스트에 동일한 유저 정보 넣기
-    }));
-  }, [data]);
+     return data.posts.map((p: any) => ({
+       post: p.post, // ✔ 서버 그대로 사용
+       user: {
+         id: data.id,
+         nickName: data.nickname,
+         profileImg: data.profileImg,
+       },
+     }));
+   }, [data]);
 
   if (isLoading) {
     return (
