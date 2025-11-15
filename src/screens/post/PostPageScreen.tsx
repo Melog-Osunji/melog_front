@@ -156,6 +156,8 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
               likeCount={post.likeCount}
               commentCount={post.commentCount}
               visibleStats={['like', 'share', 'bookmark']}
+              initialIsLiked={post.isLike}
+              initialIsBookmarked={post.isBookmark}
             />
           </View>
 

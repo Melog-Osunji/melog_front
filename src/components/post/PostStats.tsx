@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {colors} from '@/constants';
 import {PostDTO} from '@/types';
@@ -11,6 +11,8 @@ type StatsType = 'like' | 'comment' | 'share' | 'bookmark';
 
 type PostStatsProps = Pick<PostDTO, 'id' | 'likeCount' | 'commentCount'> & {
   visibleStats?: StatsType[];
+  initialIsLiked?: boolean;
+  initialIsBookmarked?: boolean;
 };
 
 const PostStats = ({
@@ -18,16 +20,32 @@ const PostStats = ({
   likeCount,
   commentCount,
   visibleStats = ['like', 'comment', 'share', 'bookmark'],
+  initialIsLiked = false,
+  initialIsBookmarked = false,
 }: PostStatsProps) => {
   const toggleLikeMutation = useTogglePostLike();
   const toggleBookmarkMutation = useTogglePostBookmark();
-  const [isLiked, setIsLiked] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+
+  const [isLiked, setIsLiked] = useState<boolean>(initialIsLiked);
+  const [isBookmarked, setIsBookmarked] =
+    useState<boolean>(initialIsBookmarked);
   const [currentLikeCount, setCurrentLikeCount] = useState(likeCount || 0);
+
+  // props가 바뀌면 상태 동기화
+  useEffect(() => {
+    setIsLiked(Boolean(initialIsLiked));
+  }, [initialIsLiked]);
+
+  useEffect(() => {
+    setIsBookmarked(Boolean(initialIsBookmarked));
+  }, [initialIsBookmarked]);
+
+  useEffect(() => {
+    setCurrentLikeCount(likeCount ?? 0);
+  }, [likeCount]);
 
   const handleLikePress = () => {
     const prev = isLiked;
-    // optimistic UI
     setIsLiked(!prev);
     setCurrentLikeCount(prevCount =>
       prev ? Math.max(prevCount - 1, 0) : prevCount + 1,
@@ -41,7 +59,6 @@ const PostStats = ({
       },
       onError: err => {
         console.error('[PostStats.tsx] 좋아요 실패:', err);
-        // 롤백
         setIsLiked(prev);
         setCurrentLikeCount(prevCount =>
           prev ? prevCount + 1 : Math.max(prevCount - 1, 0),
@@ -52,7 +69,6 @@ const PostStats = ({
 
   const handleBookmarkPress = () => {
     const prev = isBookmarked;
-    // optimistic toggle
     setIsBookmarked(!prev);
 
     toggleBookmarkMutation.mutate(postId, {
@@ -63,7 +79,6 @@ const PostStats = ({
       },
       onError: err => {
         console.error('[PostStats.tsx] 북마크 실패:', err);
-        // rollback
         setIsBookmarked(prev);
       },
     });

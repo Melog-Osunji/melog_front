@@ -60,7 +60,7 @@ function PostCard({post, user}: PostCardProps) {
           <View style={styles.userInfo}>
             <Text style={styles.nickName}>{user.nickName}</Text>
             {post.createdAgo && (
-              <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
+              <Text style={styles.timeText}>{post.createdAgo}</Text>
             )}
           </View>
         </View>
