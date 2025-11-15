@@ -9,13 +9,7 @@ import {
   Image,
   Text,
 } from 'react-native';
-
-const extractYouTubeVideoId = (url: string): string | null => {
-  const regex =
-    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/;
-  const match = url.match(regex);
-  return match ? match[1] : null;
-};
+import {extractVideoId} from '@/utils';
 
 const YouTubeEmbed = ({
   url,
@@ -28,7 +22,7 @@ const YouTubeEmbed = ({
   height?: number;
   borderRadius?: number;
 }) => {
-  const videoId = extractYouTubeVideoId(url);
+  const videoId = extractVideoId(url);
 
   if (!videoId) return null;
 

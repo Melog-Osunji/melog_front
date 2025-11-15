@@ -18,10 +18,10 @@ import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 import {usePostsByFeedId} from '@/hooks/queries/post/usePostQueries';
 import {useHarmonyRecommendRooms} from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 //components
-import HroomNaviBtn from '@/components/post/HroomNaviBtn';
+import HroomNaviBtn from '@/components/post/posthome/HroomNaviBtn';
 import PostList from '@/components/post/PostList';
 import IconButton from '@/components/common/IconButton';
-import FeedSelector from '@/components/post/FeedSelector';
+import FeedSelector from '@/components/post/posthome/FeedSelector';
 import GradientBg from '@/components/common/styles/GradientBg';
 import Toast, {ToastType} from '@/components/common/Toast';
 

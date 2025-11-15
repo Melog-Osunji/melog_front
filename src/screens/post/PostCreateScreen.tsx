@@ -18,8 +18,6 @@ import {YouTubeVideo, NewPostDTO} from '@/types';
 //navigation
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
-//utils
-import {extractVideoId} from '@/utils/providers';
 //hooks
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import {useUserInfo} from '@/hooks/common/useUserInfo';
@@ -31,6 +29,7 @@ import Toast, {ToastType} from '@/components/common/Toast';
 import CustomButton from '@/components/common/CustomButton';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 import PostActionButtons from '@/components/post/postcreate/PostActionButtons';
+import MusicSearchBottomSheet from '@/components/post/postcreate/MusicSearchBottomSheet';
 
 type PostCreateScreenProps = StackScreenProps<
   PostStackParamList,
@@ -39,23 +38,28 @@ type PostCreateScreenProps = StackScreenProps<
 
 export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
   useHideTabBarOnFocus();
-  //state
+
+  //user info state
   const {userInfo, isLoading: userLoading, error: userError} = useUserInfo();
 
-  const createPostMutation = useCreatePost();
-  const [content, setContent] = useState('');
+  // view state
+  const [musicSheetVisible, setMusicSheetVisible] = useState(false);
   const [inputHeight, setInputHeight] = useState(50);
+
+  //post create state
+  const [content, setContent] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const {selectedImage, seletedImageURI, selectImage, resetImage} =
     useImagePicker();
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null); //backend req
 
-  //toast
+  //toast state
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<ToastType>('none');
 
+  //---------toast---------
   const showToast = (message: string, type: ToastType = 'none') => {
     setToastMessage(message);
     setToastType(type);
@@ -66,21 +70,12 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
     setToastVisible(false);
   };
 
-  // 취소 handler (goback)
+  // 취소btn handler
   const handleCancel = () => {
     navigation.goBack();
   };
 
-  //tag handler
-  const handleTagSelect = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(prev => prev.filter(t => t !== tag));
-    } else {
-      setSelectedTags(prev => [...prev, tag]);
-    }
-  };
-
-  // img upload mutation
+  // ---------img---------
   const uploadImageMutation = useUploadImage('post');
 
   React.useEffect(() => {
@@ -109,27 +104,38 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
     setUploadedImageUrl(null);
   };
 
-  //video handler
+  //---------video---------
   const handleVideoSelect = (video: YouTubeVideo) => {
     setSelectedVideo(video);
-    if (selectedImage || uploadedImageUrl) {
-      // 비디오 선택 시 이미지 제거
-      handleRemoveImage();
-    }
+    setMusicSheetVisible(false);
   };
 
   const handleRemoveVideo = () => {
     setSelectedVideo(null);
   };
 
-  //게시 handler
+  const handleMusicSheetVideoSelect = (video: YouTubeVideo) => {
+    handleVideoSelect(video);
+  };
+
+  //---------tag---------
+  const handleTagSelect = (tag: string) => {
+    if (selectedTags.includes(tag)) {
+      setSelectedTags(prev => prev.filter(t => t !== tag));
+    } else {
+      setSelectedTags(prev => [...prev, tag]);
+    }
+  };
+
+  //---------create post handler---------
+  const createPostMutation = useCreatePost();
+
   const handlePost = async () => {
     if (!content.trim()) {
       showToast('내용을 입력해주세요.', 'error');
       return;
     }
 
-    // 이미지가 업로드 중인 경우 대기
     if (selectedImage && uploadImageMutation.isPending) {
       showToast('이미지 업로드 중입니다. 잠시만 기다려주세요.');
       return;
@@ -144,9 +150,7 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
         ? 'image'
         : 'text',
       mediaUrl: selectedVideo
-        ? `https://www.youtube.com/watch?v=${extractVideoId(
-            selectedVideo.thumbnail,
-          )}`
+        ? `https://www.youtube.com/watch?v=${selectedVideo.id}`
         : uploadedImageUrl || '',
       tags: selectedTags,
     };
@@ -165,7 +169,6 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
     }
   };
 
-  // 제출 또는 업로드 중인지 여부
   const isSubmitting =
     createPostMutation.isPending || uploadImageMutation.isPending;
 
@@ -276,9 +279,11 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
               </TouchableOpacity>
               <View style={styles.videoEmbedWrapper}>
                 <YouTubeEmbed
-                  url={`https://www.youtube.com/watch?v=${extractVideoId(
-                    selectedVideo.thumbnail,
-                  )}`}
+                  // 우선 YouTubeVideo.url 사용, 없으면 id로 watch URL 구성하여 전달
+                  url={
+                    selectedVideo.url ||
+                    `https://www.youtube.com/watch?v=${selectedVideo.id}`
+                  }
                 />
               </View>
             </View>
@@ -287,12 +292,21 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
 
         {/* Action Buttons */}
         <PostActionButtons
-          onVideoSelect={handleVideoSelect}
+          onOpenMusicSheet={() => setMusicSheetVisible(true)} // 바텀시트 열기 요청
+          onVideoSelect={handleMusicSheetVideoSelect} // 영상 선택 콜백 부모에 전달
           onTagSelect={handleTagSelect}
           onImageSelect={handleImageSelect}
           selectedTags={selectedTags}
+          hasMediaSelected={!!seletedImageURI || !!selectedVideo}
         />
       </KeyboardAvoidingView>
+
+      {/* Music Search Bottom Sheet */}
+      <MusicSearchBottomSheet
+        visible={musicSheetVisible}
+        onClose={() => setMusicSheetVisible(false)}
+        onVideoSelect={handleMusicSheetVideoSelect}
+      />
 
       {/* Toast */}
       <Toast

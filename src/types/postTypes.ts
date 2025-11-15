@@ -7,7 +7,7 @@ export type PostDTO = {
   mediaType: string;
   mediaUrl: string;
   tags: string[];
-  createdAgo: number;
+  createdAgo?: number;
   likeCount: number;
   hiddenUser?: string[];
   commentCount: number;

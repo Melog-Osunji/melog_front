@@ -27,15 +27,13 @@ const PostOptionsSheet: React.FC<Props> = ({
   onBlock,
   onReport,
 }) => {
+  const targetUserId = user?.id ?? userId;
+  const targetNick = user?.nickName ?? '';
+
   const [visible, setVisible] = useState(false);
   const [blockPopupVisible, setBlockPopupVisible] = useState(false);
   const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
-
   const handleClose = () => setVisible(false);
-
-  // user가 있으면 그 id를 우선 사용, 없으면 props로 들어온 userId 사용
-  const targetUserId = user?.id ?? userId;
-  const targetNick = user?.nickName ?? '';
 
   return (
     <>
@@ -55,7 +53,6 @@ const PostOptionsSheet: React.FC<Props> = ({
                 return;
               }
               console.log('[PostOptionsSheet] follow user', targetUserId);
-              // 서버 API 스펙에 맞춰 follower 필드에 대상 유저 id 전송
               followUser(targetUserId, {
                 onSuccess: _data => {
                   onFollow?.(targetUserId);
