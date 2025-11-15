@@ -12,6 +12,8 @@ export type PostDTO = {
   hiddenUser?: string[];
   commentCount: number;
   bestComment?: BestCommentDTO;
+  isLike?: boolean;
+  isBookmark?: boolean;
 };
 
 export type PostWithUserDTO = {

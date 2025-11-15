@@ -35,7 +35,6 @@ const PostStats = ({
 
     toggleLikeMutation.mutate(postId, {
       onSuccess: data => {
-        // 서버가 최신 카운트를 줄 경우 동기화
         if (data && typeof data.likeCount === 'number') {
           setCurrentLikeCount(data.likeCount);
         }

@@ -8,20 +8,28 @@ interface PostActionButtonsProps {
   onVideoSelect?: (video: YouTubeVideo) => void;
   onTagSelect?: (tag: string) => void;
   onImageSelect?: () => void;
-  onOpenMusicSheet?: () => void; // 추가: 바텀시트 열기 요청
+  onOpenMusicSheet?: () => void;
   selectedTags?: string[];
   hasMediaSelected?: boolean;
+  forceShowTagBar?: boolean; // 추가: 부모에서 강제로 태그바 표시
+  suggestedTags?: string[]; // 추가: 자동완성 결과 전달
 }
 
 export default function PostActionButtons({
-  onVideoSelect,
   onTagSelect,
   onImageSelect,
   onOpenMusicSheet,
   selectedTags = [],
   hasMediaSelected = false,
+  forceShowTagBar = false,
+  suggestedTags = [],
 }: PostActionButtonsProps) {
   const [showTagBar, setShowTagBar] = useState(false);
+
+  // 상위에서 관리
+  React.useEffect(() => {
+    setShowTagBar(forceShowTagBar);
+  }, [forceShowTagBar]);
 
   const handleTagSelect = (tag: string) => {
     onTagSelect?.(tag);
@@ -34,10 +42,6 @@ export default function PostActionButtons({
   const handleMusicPress = () => {
     // 부모에게 바텀시트 열기 요청
     onOpenMusicSheet?.();
-  };
-
-  const handleTagPress = () => {
-    setShowTagBar(!showTagBar);
   };
 
   const renderIcon = (iconSource: any) => (
@@ -62,6 +66,7 @@ export default function PostActionButtons({
         visible={showTagBar}
         selectedTags={selectedTags}
         onTagSelect={handleTagSelect}
+        suggestions={suggestedTags} // 전달
       />
 
       <View style={styles.buttonContainer}>
@@ -79,7 +84,9 @@ export default function PostActionButtons({
           </>
         )}
 
-        <TouchableOpacity style={styles.button} onPress={handleTagPress}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setShowTagBar(!showTagBar)}>
           {renderIcon(require('@/assets/icons/post/Tag.png'))}
           {renderText('tag', '태그')}
         </TouchableOpacity>
@@ -91,10 +98,8 @@ export default function PostActionButtons({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.WHITE,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    // 일반적인 레이아웃 요소로 변경 — 부모의 레이아웃(KeyboardAvoidingView)에서 위치 제어
+    width: '100%',
     zIndex: 10,
   },
   buttonContainer: {

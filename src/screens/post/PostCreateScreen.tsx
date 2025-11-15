@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   StyleSheet,
   View,
@@ -10,7 +10,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Keyboard,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 //constants
 import {colors, postNavigations} from '@/constants';
 //types
@@ -24,6 +26,8 @@ import {useUserInfo} from '@/hooks/common/useUserInfo';
 import {useImagePicker} from '@/hooks/common/useImagePicker';
 import {useUploadImage} from '@/hooks/queries/common/useCommonMutations';
 import {useCreatePost} from '@/hooks/queries/post/usePostMutations';
+import {useDebounce} from '@/hooks/useDebounce';
+import {useSearching} from '@/hooks/queries/search/useSearching';
 //components
 import Toast, {ToastType} from '@/components/common/Toast';
 import CustomButton from '@/components/common/CustomButton';
@@ -36,8 +40,24 @@ type PostCreateScreenProps = StackScreenProps<
   typeof postNavigations.POST_CREATE
 >;
 
+// 최대 글자수 상수
+const MAX_CONTENT_LENGTH = 500;
+
 export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
   useHideTabBarOnFocus();
+
+  // prev content length ref to show toast only once when reaching max
+  const prevContentLengthRef = useRef(0);
+  const handleContentChange = (text: string) => {
+    if (
+      text.length === MAX_CONTENT_LENGTH &&
+      prevContentLengthRef.current < MAX_CONTENT_LENGTH
+    ) {
+      showToast('최대 글자수에 도달했습니다.', 'error');
+    }
+    prevContentLengthRef.current = text.length;
+    setContent(text);
+  };
 
   //user info state
   const {userInfo, isLoading: userLoading, error: userError} = useUserInfo();
@@ -85,10 +105,10 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
         onSuccess: data => {
           console.log('[PostCreateScreen] 이미지 업로드 성공:', data);
           setUploadedImageUrl(data);
-          showToast('이미지가 업로드되었습니다.', 'success');
         },
         onError: error => {
           console.log('[PostCreateScreen] 이미지 업로드 실패:', error);
+          handleRemoveImage();
           showToast('이미지 업로드에 실패했습니다.', 'error');
         },
       });
@@ -120,11 +140,15 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
 
   //---------tag---------
   const handleTagSelect = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(prev => prev.filter(t => t !== tag));
-    } else {
-      setSelectedTags(prev => [...prev, tag]);
-    }
+    // toggle selected tag
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag],
+    );
+
+    // remove currently-typed #token at end of content (if any)
+    setContent(prev => prev.replace(/#([^\s#]*)$/, ''));
+    // clear typing state so tag bar closes (forceShowTagBar depends on tagTyping)
+    setTagTyping('');
   };
 
   //---------create post handler---------
@@ -172,6 +196,56 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
   const isSubmitting =
     createPostMutation.isPending || uploadImageMutation.isPending;
 
+  // 추가: 현재 입력에서 마지막으로 타이핑중인 '#...' 토큰 추출
+  const [tagTyping, setTagTyping] = useState('');
+  useEffect(() => {
+    const match = content.match(/#([^\s#]*)$/);
+    setTagTyping(match ? match[1] : '');
+  }, [content]);
+
+  const debouncedTagTyping = useDebounce(tagTyping, 100); // 추가: 아래에서 tagTyping 계산
+  const {data: tagSearchData} = useSearching(debouncedTagTyping);
+  const tagSuggestions: string[] = tagSearchData?.suggestions ?? [];
+
+  // 자동 태그 선택: 사용자가 스페이스 입력해서 '#tag ' 형태가 된 경우
+  useEffect(() => {
+    const m = content.match(/#([^\s#]+)\s$/);
+    if (m) {
+      const tag = m[1];
+      handleTagSelect(tag);
+      // 입력에서 마지막 '#tag ' 토큰 제거
+      setContent(prev => prev.replace(/#([^\s#]+)\s$/, ''));
+      // 초기화
+      setTagTyping('');
+    }
+  }, [content]);
+
+  const insets = useSafeAreaInsets();
+  const [keyboardVerticalOffset, setKeyboardVerticalOffset] = useState(0);
+
+  useEffect(() => {
+    // 키보드가 올라오기 전엔 offset 0
+    const showEvent =
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent =
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const onShow = (e: any) => {
+      const base = Platform.OS === 'ios' ? insets.top + 10 : insets.top + 48;
+      setKeyboardVerticalOffset(base);
+    };
+    const onHide = () => {
+      setKeyboardVerticalOffset(0);
+    };
+
+    const showSub = Keyboard.addListener(showEvent, onShow);
+    const hideSub = Keyboard.addListener(hideEvent, onHide);
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [insets]);
+
   if (userLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -187,117 +261,131 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
-            <Text
-              style={[styles.cancelText, isSubmitting && styles.disabledText]}>
-              취소
-            </Text>
-          </TouchableOpacity>
+        style={{flex: 1}}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={keyboardVerticalOffset}>
+        {/* main content 영역은 flex:1으로 키보드에 따라 줄어듦 */}
+        <View style={{flex: 1}}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={handleCancel}
+              style={styles.cancelButton}>
+              <Text
+                style={[
+                  styles.cancelText,
+                  isSubmitting && styles.disabledText,
+                ]}>
+                취소
+              </Text>
+            </TouchableOpacity>
 
-          <CustomButton
-            label={isSubmitting ? '게시 중...' : '게시'}
-            variant="filled"
-            size="small"
-            inValid={!content.trim() || isSubmitting}
-            onPress={handlePost}
-          />
-        </View>
+            <CustomButton
+              label={isSubmitting ? '게시 중...' : '게시'}
+              variant="filled"
+              size="small"
+              inValid={!content.trim() || isSubmitting}
+              onPress={handlePost}
+            />
+          </View>
 
-        {/* User Profile Section */}
-        <View style={styles.profileSection}>
-          <View style={styles.profileImage} />
-          <Text style={styles.userId}>{userInfo?.nickName || '사용자'}</Text>
-        </View>
+          {/* User Profile Section */}
+          <View style={styles.profileSection}>
+            <View style={styles.profileImage} />
+            <Text style={styles.userId}>{userInfo?.nickName || '사용자'}</Text>
+          </View>
 
-        {/* Content Input */}
-        <View style={styles.contentSection}>
-          <TextInput
-            style={[
-              styles.contentInput,
-              {height: content.trim() ? Math.max(100, inputHeight + 50) : 100},
-            ]}
-            placeholder="오늘은 어떤 클래식을 감상했나요?"
-            placeholderTextColor={colors.GRAY_300}
-            multiline
-            textAlignVertical="top"
-            value={content}
-            onChangeText={text => {
-              setContent(text);
-            }}
-            onContentSizeChange={event => {
-              const newHeight = event.nativeEvent.contentSize.height;
-              // 텍스트가 있을 때만 높이 업데이트
-              if (content.trim()) {
-                setInputHeight(newHeight);
-              }
-            }}
-            editable={!isSubmitting}
-          />
+          {/* Content Input */}
+          <View style={styles.contentSection}>
+            <TextInput
+              style={[
+                styles.contentInput,
+                {
+                  height: content.trim()
+                    ? Math.max(100, inputHeight + 50)
+                    : 100,
+                },
+              ]}
+              placeholder="오늘은 어떤 클래식을 감상했나요?"
+              placeholderTextColor={colors.GRAY_300}
+              multiline
+              textAlignVertical="top"
+              value={content}
+              onChangeText={handleContentChange}
+              onContentSizeChange={event => {
+                const newHeight = event.nativeEvent.contentSize.height;
+                // 텍스트가 있을 때만 높이 업데이트
+                if (content.trim()) {
+                  setInputHeight(newHeight);
+                }
+              }}
+              editable={!isSubmitting}
+              maxLength={MAX_CONTENT_LENGTH}
+            />
 
-          {selectedTags.length > 0 && (
-            <View style={styles.selectedTagsContainer}>
-              {selectedTags.map(tag => (
-                <View key={tag} style={styles.selectedTag}>
-                  <TouchableOpacity onPress={() => handleTagSelect(tag)}>
-                    <Text style={styles.selectedTagText}>#{tag}</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
+            {selectedTags.length > 0 && (
+              <View style={styles.selectedTagsContainer}>
+                {selectedTags.map(tag => (
+                  <View key={tag} style={styles.selectedTag}>
+                    <TouchableOpacity onPress={() => handleTagSelect(tag)}>
+                      <Text style={styles.selectedTagText}>#{tag}</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
 
-          {/* Selected Image Display */}
-          {seletedImageURI && (
-            <View style={styles.selectedContainer}>
-              <TouchableOpacity onPress={handleRemoveImage}>
+            {/* Selected Image Display */}
+            {seletedImageURI && (
+              <View style={styles.selectedContainer}>
+                <TouchableOpacity onPress={handleRemoveImage}>
+                  <Image
+                    source={require('@/assets/icons/common/close.png')}
+                    style={styles.removeButtonIcon}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
                 <Image
-                  source={require('@/assets/icons/common/close.png')}
-                  style={styles.removeButtonIcon}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-              <Image
-                source={{uri: seletedImageURI}}
-                style={styles.selectedImage}
-              />
-            </View>
-          )}
-
-          {/* Selected Video Display */}
-          {selectedVideo && (
-            <View style={styles.selectedContainer}>
-              <TouchableOpacity onPress={handleRemoveVideo}>
-                <Image
-                  source={require('@/assets/icons/common/close.png')}
-                  style={styles.removeButtonIcon}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-              <View style={styles.videoEmbedWrapper}>
-                <YouTubeEmbed
-                  // 우선 YouTubeVideo.url 사용, 없으면 id로 watch URL 구성하여 전달
-                  url={
-                    selectedVideo.url ||
-                    `https://www.youtube.com/watch?v=${selectedVideo.id}`
-                  }
+                  source={{uri: seletedImageURI}}
+                  style={styles.selectedImage}
                 />
               </View>
-            </View>
-          )}
+            )}
+
+            {/* Selected Video Display */}
+            {selectedVideo && (
+              <View style={styles.selectedContainer}>
+                <TouchableOpacity onPress={handleRemoveVideo}>
+                  <Image
+                    source={require('@/assets/icons/common/close.png')}
+                    style={styles.removeButtonIcon}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+                <View style={styles.videoEmbedWrapper}>
+                  <YouTubeEmbed
+                    // 우선 YouTubeVideo.url 사용, 없으면 id로 watch URL 구성하여 전달
+                    url={
+                      selectedVideo.url ||
+                      `https://www.youtube.com/watch?v=${selectedVideo.id}`
+                    }
+                  />
+                </View>
+              </View>
+            )}
+          </View>
         </View>
 
-        {/* Action Buttons */}
+        {/* PostActionButtons는 부모(KeyboardAvoidingView) 하단에 배치 — 키보드가 올라오면 전체 레이아웃이 줄어들어 버튼이 키보드 위에 위치 */}
         <PostActionButtons
-          onOpenMusicSheet={() => setMusicSheetVisible(true)} // 바텀시트 열기 요청
-          onVideoSelect={handleMusicSheetVideoSelect} // 영상 선택 콜백 부모에 전달
+          onOpenMusicSheet={() => setMusicSheetVisible(true)}
+          onVideoSelect={handleMusicSheetVideoSelect}
           onTagSelect={handleTagSelect}
           onImageSelect={handleImageSelect}
           selectedTags={selectedTags}
           hasMediaSelected={!!seletedImageURI || !!selectedVideo}
+          forceShowTagBar={!!tagTyping}
+          suggestedTags={tagSuggestions}
         />
       </KeyboardAvoidingView>
 
