@@ -22,7 +22,7 @@ function RootNavigator() {
 
       switch (TEST_SCENARIO) {
         case 'REGISTRATION':
-          setIsLogin(true);
+          setIsLogin(false);
           setIsRegistered(false);
           console.log('[dev] 회원가입 프로세스 상태로 설정됨');
           break;

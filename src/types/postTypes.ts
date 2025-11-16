@@ -41,6 +41,7 @@ export type UserDTO = {
 export interface CommentDTO {
   id: string;
   userID: string;
+  nickname?: string;
   profileUrl: string;
   content: string;
   likes: number;

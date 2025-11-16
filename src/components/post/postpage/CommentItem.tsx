@@ -80,7 +80,9 @@ const CommentItem = ({
             />
             <View style={styles.userInfo}>
               <View style={styles.nameTimeRow}>
-                <Text style={styles.userName}>사용자</Text>
+                <Text style={styles.userName}>
+                  {comment.nickname ? comment.nickname : 'user'}
+                </Text>
                 <View style={styles.dot} />
                 <Text style={styles.timeText}>방금 전</Text>
               </View>

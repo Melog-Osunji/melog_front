@@ -2,7 +2,7 @@ import {useState} from 'react';
 import {useMutation} from '@tanstack/react-query';
 import {
   kakaoLoginApi,
-  // googleLoginApi,
+  googleLoginApi,
   // naverLoginApi,
   type PlatformTokens,
 } from '@/api/Auth/ProviderApi';
@@ -35,14 +35,7 @@ export const useSocialLogin = () => {
     () => Promise<PlatformTokens>
   > = {
     KAKAO: kakaoLoginApi,
-    GOOGLE: async () => {
-      // TODO: 실제 googleLoginApi 구현 필요
-      return {
-        idToken: 'mock-google-id-token',
-        accessToken: 'mock-google-access-token',
-        platform: 'GOOGLE',
-      };
-    },
+    GOOGLE: googleLoginApi,
     NAVER: async () => {
       // TODO: 실제 naverLoginApi 구현 필요
       return {
@@ -70,7 +63,10 @@ export const useSocialLogin = () => {
 
       const platformTokens: PlatformTokens = await platformLoginFunction();
 
-      console.log(`[useSocialLogin] ${platform} 플랫폼 토큰 획득 완료`);
+      console.log(
+        `[useSocialLogin] ${platform} 플랫폼 토큰 획득 완료`,
+        platformTokens,
+      );
 
       // 2단계: 백엔드에 토큰 전송하고 응답 받기
       console.log(`[useSocialLogin] ${platform} 2단계: 백엔드 로그인 요청`);
