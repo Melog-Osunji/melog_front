@@ -1,10 +1,13 @@
 // src/api/login/ProviderApi.ts
 import {Platform} from 'react-native';
 import Config from '@/config';
-import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {SocialProvider} from '@/types';
-import {login as kakaoLogin} from '@react-native-seoul/kakao-login';
 
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import {login as kakaoLogin} from '@react-native-seoul/kakao-login';
+import NaverLogin from '@react-native-seoul/naver-login';
+
+// ------dto------
 export interface PlatformTokens {
   idToken?: string;
   accessToken: string;
@@ -83,20 +86,51 @@ export const googleLoginApi = async (): Promise<PlatformTokens> => {
     };
   } catch (error) {
     console.error('[ProviderApi]err : google SDK 호출 실패:', error);
-    if (typeof error === 'object' && error !== null) {
-      console.log('error.code =', (error as any).code);
-      console.log('error.message =', (error as any).message);
-    }
     throw error;
   }
 };
 
-// export const naverLoginApi = async (): Promise<PlatformTokens> => {
-//   try {
-//     // 네이버 SDK 호출 로직
-//     throw new Error('네이버 로그인 미구현');
-//   } catch (error) {
-//     console.error('err : 네이버 SDK 호출 실패:', error);
-//     throw error;
-//   }
-// };
+// ------naver------
+export const naverLoginApi = async (): Promise<PlatformTokens> => {
+  try {
+    // 초기화: 앱 전역에서 이미 초기화하고 있다면 중복 호출하지 않아도 됩니다.
+    // Config에 네이버 키가 정의되어 있다고 가정합니다.
+    if (Platform.OS === 'ios') {
+      NaverLogin.initialize({
+        appName: Config.NAVER_APP_NAME,
+        consumerKey: Config.NAVER_CONSUMER_KEY,
+        consumerSecret: Config.NAVER_CONSUMER_SECRET,
+        serviceUrlSchemeIOS: Config.NAVER_SERVICE_URL_SCHEME,
+        disableNaverAppAuthIOS: true,
+      });
+    } else {
+      NaverLogin.initialize({
+        appName: Config.NAVER_APP_NAME,
+        consumerKey: Config.NAVER_CONSUMER_KEY,
+        consumerSecret: Config.NAVER_CONSUMER_SECRET,
+      });
+    }
+
+    const {successResponse, failureResponse} = await NaverLogin.login();
+
+    if (failureResponse) {
+      console.error('[ProviderApi] 네이버 로그인 실패:', failureResponse);
+      throw new Error(JSON.stringify(failureResponse));
+    }
+
+    if (!successResponse || !successResponse.accessToken) {
+      throw new Error('네이버 로그인 결과에 accessToken이 없습니다.');
+    }
+
+    console.log('[ProviderApi] 네이버 로그인 성공:', successResponse);
+
+    return {
+      idToken: undefined,
+      accessToken: successResponse.accessToken,
+      platform: 'NAVER',
+    };
+  } catch (error) {
+    console.error('[ProviderApi]err : naver SDK 호출 실패:', error);
+    throw error;
+  }
+};

@@ -1,18 +1,21 @@
 import {useState} from 'react';
 import {useMutation} from '@tanstack/react-query';
-import {
-  kakaoLoginApi,
-  googleLoginApi,
-  // naverLoginApi,
-  type PlatformTokens,
-} from '@/api/Auth/ProviderApi';
-import {socialLogin} from '@/api/Auth/AuthApi';
+import {SocialProvider, SocialLoginResponse} from '@/types';
+//user
+import {useAuthContext} from '@/contexts/AuthContext';
 import {
   setTokens,
   setUserInfo as setUserInfoStorage,
 } from '@/utils/storage/UserStorage';
-import {SocialProvider, SocialLoginResponse} from '@/types';
-import {useAuthContext} from '@/contexts/AuthContext'; // AuthContext 추가
+//api
+import {
+  kakaoLoginApi,
+  googleLoginApi,
+  naverLoginApi,
+  type PlatformTokens,
+} from '@/api/Auth/ProviderApi';
+import {socialLogin} from '@/api/Auth/AuthApi';
+
 
 export const useSocialLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -36,14 +39,7 @@ export const useSocialLogin = () => {
   > = {
     KAKAO: kakaoLoginApi,
     GOOGLE: googleLoginApi,
-    NAVER: async () => {
-      // TODO: 실제 naverLoginApi 구현 필요
-      return {
-        idToken: 'mock-naver-id-token',
-        accessToken: 'mock-naver-access-token',
-        platform: 'NAVER',
-      };
-    },
+    NAVER: naverLoginApi,
   };
 
   // 통합 소셜 로그인 함수
@@ -95,7 +91,21 @@ export const useSocialLogin = () => {
 
       return result.data;
     } catch (error) {
-      console.error(`[useSocialLogin] ${platform} 로그인 플로우 실패:`, error);
+      if (error instanceof Error) {
+        console.error(
+          `[useSocialLogin] ${platform} 로그인 플로우 실패: ${error.message}`,
+          {
+            name: error.name,
+            stack: error.stack,
+            error,
+          },
+        );
+      } else {
+        console.error(
+          `[useSocialLogin] ${platform} 로그인 플로우 실패:`,
+          error,
+        );
+      }
       throw error;
     } finally {
       setIsLoading(false);
