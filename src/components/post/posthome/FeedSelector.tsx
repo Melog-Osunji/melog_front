@@ -25,9 +25,9 @@ const FeedSelector: React.FC<FeedSelectorProps> = ({
       <TouchableOpacity
         style={styles.headerTitle}
         onPress={() => setIsBottomSheetVisible(true)}>
-        {selectedFeed.icon && (
+        {/* {selectedFeed.icon && (
           <Image source={selectedFeed.icon} style={styles.selectedIcon} />
-        )}
+        )} */}
         <Text style={styles.headerTitleText}>{selectedFeed.label}</Text>
         <Image
           source={require('@/assets/icons/post/UpArrow.png')}
@@ -68,19 +68,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.BLACK,
   },
-  // icon next to header title label (now on the left)
   selectedIcon: {
     width: 20,
     height: 20,
-    marginRight: 8,
+    marginRight: 4,
     resizeMode: 'contain',
   },
   dropdownIcon: {
     width: 24,
     height: 24,
-    marginTop: 7,
+    marginTop: 8,
     transform: [{rotate: '180deg'}],
-    marginLeft: 8,
+    marginLeft: 2,
   },
   feedOption: {
     flexDirection: 'row',
@@ -93,7 +92,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.BLACK,
   },
-  // icon at the left of each feed option
   feedIcon: {
     width: 20,
     height: 20,

@@ -38,6 +38,18 @@ const YouTubeEmbed = ({
     <TouchableOpacity
       style={[styles.container, {height, borderRadius}]}
       onPress={handlePress}>
+      <Image
+        source={require('@/assets/icons/common/youtube.png')}
+        style={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          width: 32,
+          height: 18,
+          resizeMode: 'contain',
+          zIndex: 2,
+        }}
+      />
       <Image source={{uri: thumbnailUrl}} style={styles.thumbnail} />
       {showPlayButton && (
         <View style={styles.overlay}>

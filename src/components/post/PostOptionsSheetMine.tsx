@@ -10,30 +10,14 @@ import {showToast} from '@/components/common/ToastService';
 
 type Props = {
   user?: UserDTO;
-  userId?: string;
+  commentId?: string;
   postId: string;
-  // optional callbacks
-  onFollow?: (userId: string) => void;
-  onHideFeed?: (postId: string) => void;
-  onBlock?: (userId: string) => void;
-  onReport?: (postId: string) => void;
+  onPostDelete?: (userId: string) => void;
+  onCommentDelete?: (postId: string, commentId: string) => void;
 };
 
-const PostOptionsSheet: React.FC<Props> = ({
-  user,
-  userId,
-  postId,
-  onFollow,
-  onHideFeed,
-  onBlock,
-  onReport,
-}) => {
-  const targetUserId = user?.id ?? userId;
-  const targetNick = user?.nickName ?? '';
-
+const PostOptionsSheet: React.FC<Props> = ({postId}) => {
   const [visible, setVisible] = useState(false);
-  const [blockPopupVisible, setBlockPopupVisible] = useState(false);
-  const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
   const handleClose = () => setVisible(false);
 
   return (
@@ -44,83 +28,25 @@ const PostOptionsSheet: React.FC<Props> = ({
         onPress={() => setVisible(true)}
       />
 
-      <BottomSheet visible={visible} onClose={handleClose} height="40%">
+      <BottomSheet visible={visible} onClose={handleClose} height="20%">
         <View style={styles.sheet}>
           <TouchableOpacity
             style={styles.row}
             onPress={() => {
-              if (!targetUserId) {
-                console.warn('[PostOptionsSheet] no userId to follow');
-                return;
-              }
-              console.log('[PostOptionsSheet] follow user', targetUserId);
-              followUser(targetUserId, {
-                onSuccess: _data => {
-                  onFollow?.(targetUserId);
-                  handleClose();
-                },
-                onError: err => {
-                  console.error('[PostOptionsSheet] follow error:', err);
-                },
-              });
-            }}
-            disabled={isFollowingLoading}>
-            <Image
-              source={require('@/assets/icons/post/Follow.png')}
-              style={styles.icon}
-            />
-            <Text style={styles.label}>{targetNick}님 팔로우하기</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.row}
-            onPress={() => {
-              console.log('[PostOptionsSheet] hide feed', postId);
-              onHideFeed?.(postId);
-              handleClose();
-            }}>
-            <Image
-              source={require('@/assets/icons/post/Hide.png')}
-              style={styles.icon}
-            />
-            <Text style={styles.label}>이 피드 숨기기</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.row}
-            onPress={() => {
-              setBlockPopupVisible(true);
-            }}>
-            <Image
-              source={require('@/assets/icons/post/Block.png')}
-              style={styles.icon}
-            />
-            <Text style={styles.label}>{targetNick}님 차단하기</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.row}
-            onPress={() => {
-              console.log(
-                '[PostOptionsSheet] report post',
-                postId,
-                'user:',
-                targetUserId,
-              );
-              onReport?.(postId);
+              console.log('[PostOptionsSheet] report post', postId);
               handleClose();
             }}>
             <Image
               source={require('@/assets/icons/post/Abuse.png')}
               style={[styles.icon, styles.reportIcon]}
             />
-            <Text style={[styles.label, styles.reportLabel]}>신고하기</Text>
+            <Text style={[styles.label, styles.reportLabel]}>삭제하기</Text>
           </TouchableOpacity>
         </View>
       </BottomSheet>
 
       {/* popup */}
-      <CheckPopup
+      {/* <CheckPopup
         visible={blockPopupVisible}
         onExit={() => setBlockPopupVisible(false)}
         onClose={() => {
@@ -148,7 +74,7 @@ const PostOptionsSheet: React.FC<Props> = ({
         leftBtnText="취소"
         rightBtnText="차단하기"
         rightBtnBorderColor={colors.RED_300}
-      />
+      /> */}
     </>
   );
 };

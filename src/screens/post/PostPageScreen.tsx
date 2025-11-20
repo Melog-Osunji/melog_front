@@ -132,7 +132,7 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
                 />
                 <View style={styles.userInfo}>
                   <Text style={styles.nickName}>{user.nickName}</Text>
-                  <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
+                  <Text style={styles.timeText}>{post.createdAgo}</Text>
                 </View>
               </View>
               <PostOptionsSheet user={user} postId={post.id} />
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   nickname: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   postContainer: {

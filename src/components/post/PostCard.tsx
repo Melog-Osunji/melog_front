@@ -2,10 +2,13 @@ import React from 'react';
 import {Image, Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
 import {PostDTO, UserDTO} from '@/types';
+import {useAuthContext} from '@/contexts/AuthContext';
+//components
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 import PostStats from '@/components/post/PostStats';
 import PostOptionsSheet from '@/components/post/PostOptionsSheet';
-
+import PostOptionsSheetMine from '@/components/post/PostOptionsSheetMine';
+//navigation
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
@@ -24,6 +27,7 @@ type PostCardProps = {
 
 function PostCard({post, user}: PostCardProps) {
   const navigation = useNavigation<PostCardNavigationProp>();
+  const {user: authUser} = useAuthContext();
 
   const handlePress = () => {
     const routes = navigation.getState()?.routeNames ?? [];
@@ -64,7 +68,11 @@ function PostCard({post, user}: PostCardProps) {
             )}
           </View>
         </View>
-        <PostOptionsSheet user={user} postId={post.id} />
+        {authUser?.nickName === user.nickName ? (
+          <PostOptionsSheetMine user={user} postId={post.id} />
+        ) : (
+          <PostOptionsSheet user={user} postId={post.id} />
+        )}
       </View>
 
       {/* 본문 */}
@@ -141,6 +149,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   nickName: {
+    fontSize: 14,
     fontWeight: 'bold',
     color: colors.BLACK,
   },

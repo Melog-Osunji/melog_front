@@ -6,6 +6,7 @@ import {
   useTogglePostLike,
   useTogglePostBookmark,
 } from '@/hooks/queries/post/usePostMutations';
+import {showToast} from '@/components/common/ToastService';
 
 type StatsType = 'like' | 'comment' | 'share' | 'bookmark';
 
@@ -56,9 +57,11 @@ const PostStats = ({
         if (data && typeof data.likeCount === 'number') {
           setCurrentLikeCount(data.likeCount);
         }
+        setIsBookmarked(prev);
+        console.log('[PostStats] 좋아요 성공:', data);
       },
       onError: err => {
-        console.error('[PostStats.tsx] 좋아요 실패:', err);
+        console.error('[PostStats] 좋아요 실패:', err);
         setIsLiked(prev);
         setCurrentLikeCount(prevCount =>
           prev ? prevCount + 1 : Math.max(prevCount - 1, 0),
@@ -75,11 +78,13 @@ const PostStats = ({
       onSuccess: data => {
         if (data && typeof data.bookmarked === 'boolean') {
           setIsBookmarked(data.bookmarked);
+          showToast('피드를 저장했어요.', 'success');
         }
       },
       onError: err => {
-        console.error('[PostStats.tsx] 북마크 실패:', err);
+        console.error('[PostStats] 북마크 실패:', err);
         setIsBookmarked(prev);
+        showToast('피드를 저장에 실패했어요.', 'error');
       },
     });
   };
@@ -113,7 +118,10 @@ const PostStats = ({
           source={require('@/assets/icons/post/Comment.png')}
           style={styles.icon}
         />
-        <Text style={styles.statText}>{commentCount || 0}</Text>
+        {/* 균형을 위해 임의로 마진 추가 */}
+        <Text style={[styles.statText, {marginLeft: 3}]}>
+          {commentCount || 0}
+        </Text>
       </View>
     );
   };
@@ -181,7 +189,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   statText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     color: colors.GRAY_300,
   },

@@ -2,10 +2,10 @@ import React, {useEffect} from 'react';
 import queryClient from './src/api/queryClient';
 import {QueryClientProvider} from '@tanstack/react-query';
 import {AuthProvider} from '@/contexts/AuthContext';
-import {ToastProvider} from '@/contexts/ToastContext';
 import {NavigationContainer} from '@react-navigation/native';
 import RootNavigator from '@/navigations/root/RootNavigator';
 import {getAccessToken, getRefreshToken} from '@/utils/storage/UserStorage';
+import GlobalToast from '@/components/common/GlobalToast';
 
 function App() {
   useEffect(() => {
@@ -27,11 +27,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ToastProvider>
-          <NavigationContainer>
-            <RootNavigator />
-          </NavigationContainer>
-        </ToastProvider>
+        <NavigationContainer>
+          <RootNavigator />
+          <GlobalToast />
+        </NavigationContainer>
       </AuthProvider>
     </QueryClientProvider>
   );
