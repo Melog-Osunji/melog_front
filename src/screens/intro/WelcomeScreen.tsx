@@ -8,7 +8,7 @@ function WelcomeScreen() {
     <View style={styles.container}>
       <Image
         source={require('../../assets/common/bg.png')}
-        style={{position: 'absolute', width: '100%', height: '100%'}}
+        style={[StyleSheet.absoluteFill, {width: '100%', height: '100%'}]}
         resizeMode="cover"
       />
       <Image
