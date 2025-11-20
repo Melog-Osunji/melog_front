@@ -98,6 +98,8 @@ function InitProfileImgScreen({navigation}: InitProfileScreenProps) {
             });
           }}
           inValid={!selectedImage}
+          inValidStyle={{backgroundColor: colors.BLUE_400, opacity: 0.2}}
+          style={{backgroundColor: colors.BLUE_500}}
         />
         <TouchableOpacity
           onPress={() =>

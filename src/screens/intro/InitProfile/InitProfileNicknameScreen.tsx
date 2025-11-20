@@ -14,6 +14,7 @@ import {StackScreenProps} from '@react-navigation/stack';
 import {IntroStackParamList} from '@/navigations/stack/IntroStackNavigator';
 import {introNavigations} from '@/constants';
 import {useUpdateUserProfile} from '@/hooks/queries/User/useUserMutations';
+import {showToast} from '@/components/common/ToastService';
 
 type InitProfileScreenProps = StackScreenProps<
   IntroStackParamList,
@@ -33,14 +34,15 @@ function InitProfileNicknameScreen({
 
   const updateProfile = useUpdateUserProfile();
 
-  // 에러 조건 변수화
+  // 조건 변수화
   const isInvalidChar =
     nickname !== '' && !/^[a-zA-Z0-9가-힣]+$/.test(nickname);
   const isTooLong = nickname.length > 10;
+  const isTooShort = nickname.length < 2;
   const hasError = isInvalidChar || isTooLong;
 
   const handleNext = () => {
-    if (!nickname || hasError) {
+    if (!nickname || hasError || isTooShort) {
       console.log(
         '[InitProfileNicknameScreen.tsx] invalid nickname, cannot submit',
       );
@@ -123,7 +125,9 @@ function InitProfileNicknameScreen({
               ]}
             />
             {nickname === '' && (
-              <Text style={styles.placeholder_text}>닉네임을 입력하세요</Text>
+              <Text style={styles.placeholder_text}>
+                2~10자인 한글, 영문, 숫자만 사용할 수 있어요.
+              </Text>
             )}
             <TouchableOpacity
               style={[
@@ -135,6 +139,7 @@ function InitProfileNicknameScreen({
               onPress={() => {
                 if (!hasError && nickname) {
                   setChecked(true);
+                  showToast('중복확인 되었습니다!', 'success', 'top', 30);
                 } else {
                   setChecked(false);
                 }
@@ -154,9 +159,9 @@ function InitProfileNicknameScreen({
         </View>
       </View>
       <CustomButton
-        label="다음"
+        label="시작하기"
         onPress={handleNext}
-        inValid={!nickname || hasError}
+        inValid={!nickname || hasError || isTooShort}
       />
     </View>
   );
@@ -201,7 +206,7 @@ const styles = StyleSheet.create({
     top: 8,
     paddingVertical: 6,
     paddingHorizontal: 16,
-    backgroundColor: colors.GRAY_300,
+    backgroundColor: colors.GRAY_200,
     borderRadius: 50,
   },
   duplicate_btn_text: {

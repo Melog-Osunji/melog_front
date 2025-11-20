@@ -11,6 +11,7 @@ import {AGREEMENTS} from '@/constants/agreements';
 //components
 import IconButton from '@/components/common/IconButton';
 import {useAgreeToTerms} from '@/hooks/queries/User/useUserMutations';
+import {showToast} from '@/components/common/ToastService';
 
 type ConsentListProps = StackScreenProps<
   IntroStackParamList,
@@ -43,6 +44,7 @@ export default function ConsentList({navigation}: ConsentListProps) {
         },
         onError: err => {
           console.error('[ConsentList.tsx] submit agreements failed:', err);
+          showToast('약관 동의에 실패했습니다.', 'error', 'top', 30);
           navigation.navigate(introNavigations.INTRO_PROFILE);
         },
       });
