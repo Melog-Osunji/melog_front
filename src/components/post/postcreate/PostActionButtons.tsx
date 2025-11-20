@@ -98,9 +98,11 @@ export default function PostActionButtons({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.WHITE,
-    // 일반적인 레이아웃 요소로 변경 — 부모의 레이아웃(KeyboardAvoidingView)에서 위치 제어
     width: '100%',
     zIndex: 10,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -128,7 +130,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   buttonText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
     lineHeight: 20,
     letterSpacing: 0.2,

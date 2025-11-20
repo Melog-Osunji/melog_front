@@ -10,9 +10,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
-  Keyboard,
 } from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+//context
+import {useAuthContext} from '@/contexts/AuthContext';
 //constants
 import {colors, postNavigations} from '@/constants';
 //types
@@ -22,14 +22,13 @@ import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 //hooks
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
-import {useUserInfo} from '@/hooks/common/useUserInfo';
 import {useImagePicker} from '@/hooks/common/useImagePicker';
 import {useUploadImage} from '@/hooks/queries/common/useCommonMutations';
 import {useCreatePost} from '@/hooks/queries/post/usePostMutations';
 import {useDebounce} from '@/hooks/useDebounce';
 import {useSearching} from '@/hooks/queries/search/useSearching';
 //components
-import Toast, {ToastType} from '@/components/common/Toast';
+import {showToast} from '@/components/common/ToastService';
 import CustomButton from '@/components/common/CustomButton';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 import PostActionButtons from '@/components/post/postcreate/PostActionButtons';
@@ -53,14 +52,14 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
       text.length === MAX_CONTENT_LENGTH &&
       prevContentLengthRef.current < MAX_CONTENT_LENGTH
     ) {
-      showToast('최대 글자수에 도달했습니다.', 'error');
+      showToast('최대 글자수에 도달했습니다.', 'error', 'top', 10);
     }
     prevContentLengthRef.current = text.length;
     setContent(text);
   };
 
   //user info state
-  const {userInfo, isLoading: userLoading, error: userError} = useUserInfo();
+  const {user} = useAuthContext();
 
   // view state
   const [musicSheetVisible, setMusicSheetVisible] = useState(false);
@@ -73,22 +72,6 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
   const {selectedImage, seletedImageURI, selectImage, resetImage} =
     useImagePicker();
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null); //backend req
-
-  //toast state
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<ToastType>('none');
-
-  //---------toast---------
-  const showToast = (message: string, type: ToastType = 'none') => {
-    setToastMessage(message);
-    setToastType(type);
-    setToastVisible(true);
-  };
-
-  const hideToast = () => {
-    setToastVisible(false);
-  };
 
   // 취소btn handler
   const handleCancel = () => {
@@ -220,163 +203,120 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
     }
   }, [content]);
 
-  const insets = useSafeAreaInsets();
-  const [keyboardVerticalOffset, setKeyboardVerticalOffset] = useState(0);
-
-  useEffect(() => {
-    // 키보드가 올라오기 전엔 offset 0
-    const showEvent =
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent =
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const onShow = (e: any) => {
-      const base = Platform.OS === 'ios' ? insets.top + 10 : insets.top + 48;
-      setKeyboardVerticalOffset(base);
-    };
-    const onHide = () => {
-      setKeyboardVerticalOffset(0);
-    };
-
-    const showSub = Keyboard.addListener(showEvent, onShow);
-    const hideSub = Keyboard.addListener(hideEvent, onHide);
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, [insets]);
-
-  if (userLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text>사용자 정보를 불러오는 중...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.WHITE} />
 
-      <KeyboardAvoidingView
-        style={{flex: 1}}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={keyboardVerticalOffset}>
-        {/* main content 영역은 flex:1으로 키보드에 따라 줄어듦 */}
-        <View style={{flex: 1}}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity
-              onPress={handleCancel}
-              style={styles.cancelButton}>
-              <Text
-                style={[
-                  styles.cancelText,
-                  isSubmitting && styles.disabledText,
-                ]}>
-                취소
-              </Text>
-            </TouchableOpacity>
+      <KeyboardAvoidingView style={{flex: 1}} behavior={'padding'}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
+            <Text
+              style={[styles.cancelText, isSubmitting && styles.disabledText]}>
+              취소
+            </Text>
+          </TouchableOpacity>
 
-            <CustomButton
-              label={isSubmitting ? '게시 중...' : '게시'}
-              variant="filled"
-              size="small"
-              inValid={!content.trim() || isSubmitting}
-              onPress={handlePost}
-            />
-          </View>
-
-          {/* User Profile Section */}
-          <View style={styles.profileSection}>
-            <View style={styles.profileImage} />
-            <Text style={styles.userId}>{userInfo?.nickName || '사용자'}</Text>
-          </View>
-
-          {/* Content Input */}
-          <View style={styles.contentSection}>
-            <TextInput
-              style={[
-                styles.contentInput,
-                {
-                  height: content.trim()
-                    ? Math.max(100, inputHeight + 50)
-                    : 100,
-                },
-              ]}
-              placeholder="오늘은 어떤 클래식을 감상했나요?"
-              placeholderTextColor={colors.GRAY_300}
-              multiline
-              textAlignVertical="top"
-              value={content}
-              onChangeText={handleContentChange}
-              onContentSizeChange={event => {
-                const newHeight = event.nativeEvent.contentSize.height;
-                // 텍스트가 있을 때만 높이 업데이트
-                if (content.trim()) {
-                  setInputHeight(newHeight);
-                }
-              }}
-              editable={!isSubmitting}
-              maxLength={MAX_CONTENT_LENGTH}
-            />
-
-            {selectedTags.length > 0 && (
-              <View style={styles.selectedTagsContainer}>
-                {selectedTags.map(tag => (
-                  <View key={tag} style={styles.selectedTag}>
-                    <TouchableOpacity onPress={() => handleTagSelect(tag)}>
-                      <Text style={styles.selectedTagText}>#{tag}</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {/* Selected Image Display */}
-            {seletedImageURI && (
-              <View style={styles.selectedContainer}>
-                <TouchableOpacity onPress={handleRemoveImage}>
-                  <Image
-                    source={require('@/assets/icons/common/close.png')}
-                    style={styles.removeButtonIcon}
-                    resizeMode="contain"
-                  />
-                </TouchableOpacity>
-                <Image
-                  source={{uri: seletedImageURI}}
-                  style={styles.selectedImage}
-                />
-              </View>
-            )}
-
-            {/* Selected Video Display */}
-            {selectedVideo && (
-              <View style={styles.selectedContainer}>
-                <TouchableOpacity onPress={handleRemoveVideo}>
-                  <Image
-                    source={require('@/assets/icons/common/close.png')}
-                    style={styles.removeButtonIcon}
-                    resizeMode="contain"
-                  />
-                </TouchableOpacity>
-                <View style={styles.videoEmbedWrapper}>
-                  <YouTubeEmbed
-                    // 우선 YouTubeVideo.url 사용, 없으면 id로 watch URL 구성하여 전달
-                    url={
-                      selectedVideo.url ||
-                      `https://www.youtube.com/watch?v=${selectedVideo.id}`
-                    }
-                  />
-                </View>
-              </View>
-            )}
-          </View>
+          <CustomButton
+            label={isSubmitting ? '게시 중...' : '게시'}
+            variant="filled"
+            size="small"
+            inValid={!content.trim() || isSubmitting}
+            onPress={handlePost}
+          />
         </View>
 
-        {/* PostActionButtons는 부모(KeyboardAvoidingView) 하단에 배치 — 키보드가 올라오면 전체 레이아웃이 줄어들어 버튼이 키보드 위에 위치 */}
+        {/* User Profile Section */}
+        <View style={styles.profileSection}>
+          {user?.profileImg ? (
+            <Image
+              source={{uri: user.profileImg}}
+              style={styles.profileImage}
+            />
+          ) : (
+            <View style={styles.profileImage} />
+          )}
+          <Text style={styles.userId}>{user?.nickName || '사용자'}</Text>
+        </View>
+
+        {/* Content Input */}
+        <View style={styles.contentSection}>
+          <TextInput
+            style={[
+              styles.contentInput,
+              {
+                height: content.trim() ? Math.max(100, inputHeight + 50) : 100,
+              },
+            ]}
+            placeholder="오늘은 어떤 클래식을 감상했나요?"
+            placeholderTextColor={colors.GRAY_300}
+            multiline
+            textAlignVertical="top"
+            value={content}
+            onChangeText={handleContentChange}
+            onContentSizeChange={event => {
+              const newHeight = event.nativeEvent.contentSize.height;
+              // 텍스트가 있을 때만 높이 업데이트
+              if (content.trim()) {
+                setInputHeight(newHeight);
+              }
+            }}
+            editable={!isSubmitting}
+            maxLength={MAX_CONTENT_LENGTH}
+          />
+
+          {selectedTags.length > 0 && (
+            <View style={styles.selectedTagsContainer}>
+              {selectedTags.map(tag => (
+                <View key={tag} style={styles.selectedTag}>
+                  <TouchableOpacity onPress={() => handleTagSelect(tag)}>
+                    <Text style={styles.selectedTagText}>#{tag}</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Selected Image Display */}
+          {seletedImageURI && (
+            <View style={styles.selectedContainer}>
+              <TouchableOpacity onPress={handleRemoveImage}>
+                <Image
+                  source={require('@/assets/icons/common/close.png')}
+                  style={styles.removeButtonIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+              <Image
+                source={{uri: seletedImageURI}}
+                style={styles.selectedImage}
+              />
+            </View>
+          )}
+
+          {/* Selected Video Display */}
+          {selectedVideo && (
+            <View style={styles.selectedContainer}>
+              <TouchableOpacity onPress={handleRemoveVideo}>
+                <Image
+                  source={require('@/assets/icons/common/close.png')}
+                  style={styles.removeButtonIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+              <View style={styles.videoEmbedWrapper}>
+                <YouTubeEmbed
+                  // 우선 YouTubeVideo.url 사용, 없으면 id로 watch URL 구성하여 전달
+                  url={
+                    selectedVideo.url ||
+                    `https://www.youtube.com/watch?v=${selectedVideo.id}`
+                  }
+                />
+              </View>
+            </View>
+          )}
+        </View>
+
         <PostActionButtons
           onOpenMusicSheet={() => setMusicSheetVisible(true)}
           onVideoSelect={handleMusicSheetVideoSelect}
@@ -394,15 +334,6 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
         visible={musicSheetVisible}
         onClose={() => setMusicSheetVisible(false)}
         onVideoSelect={handleMusicSheetVideoSelect}
-      />
-
-      {/* Toast */}
-      <Toast
-        message={toastMessage}
-        visible={toastVisible}
-        type={toastType}
-        position="top"
-        onHide={hideToast}
       />
     </SafeAreaView>
   );
@@ -468,7 +399,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   contentInput: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '400',
     lineHeight: 20,
     letterSpacing: 0.2,

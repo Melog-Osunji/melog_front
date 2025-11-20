@@ -105,7 +105,7 @@ export default function MusicSearchBottomSheet({
             <TextInput
               style={styles.searchInput}
               placeholder="어떤 클래식을 찾고있나요?"
-              placeholderTextColor={colors.GRAY_400}
+              placeholderTextColor={colors.GRAY_300}
               value={searchQuery}
               onChangeText={setSearchQuery}
               onSubmitEditing={handleSearch}

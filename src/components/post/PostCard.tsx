@@ -26,8 +26,9 @@ type PostCardProps = {
 };
 
 function PostCard({post, user}: PostCardProps) {
-  const navigation = useNavigation<PostCardNavigationProp>();
   const {user: authUser} = useAuthContext();
+  //navigation
+  const navigation = useNavigation<PostCardNavigationProp>();
 
   const handlePress = () => {
     const routes = navigation.getState()?.routeNames ?? [];

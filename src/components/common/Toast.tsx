@@ -7,7 +7,7 @@ export type ToastPosition = 'top' | 'bottom';
 
 interface ToastProps {
   message: string;
-  type?: ToastType;
+  type?: ToastType; //'none' | 'success' | 'error';
   visible: boolean;
   position?: ToastPosition; // 'top' | 'bottom'
   offset?: number; // px 단위
