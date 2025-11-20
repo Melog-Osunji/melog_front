@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
-import {StyleSheet, View, TextInput} from 'react-native';
+import {StyleSheet, View, TextInput, Image, Pressable} from 'react-native';
 import {colors} from '@/constants';
+import {useAuthContext} from '@/contexts/AuthContext';
 import {useCreateComment} from '@/hooks/queries/post/usePostMutations';
 
 interface LikeAndCommentProps {
@@ -18,6 +19,7 @@ function LikeAndComment({
 }: LikeAndCommentProps) {
   const [comment, setComment] = useState('');
   const createCommentMutation = useCreateComment();
+  const {user} = useAuthContext();
 
   const handleSend = () => {
     if (onSend && comment.trim()) {
@@ -38,14 +40,17 @@ function LikeAndComment({
 
   return (
     <View style={styles.container}>
-      {/* 프로필 이미지 */}
-      <View style={styles.profileImage} />
-
+      {/*  프로필 이미지  */}
+      {user?.profileImg ? (
+        <Image source={{uri: user.profileImg}} style={styles.profileImage} />
+      ) : (
+        <View style={styles.profileImage} />
+      )}
       {/* 댓글 입력 영역 */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.textInput}
-          placeholder="어떤 감상을 나누고 싶나요? "
+          placeholder="💬 어떤 감상을 나누고 싶나요?"
           placeholderTextColor={colors.GRAY_500}
           value={comment}
           onChangeText={setComment}
@@ -54,6 +59,22 @@ function LikeAndComment({
           multiline={false}
         />
       </View>
+      {comment && (
+        <Pressable
+          style={styles.sendbtn}
+          onPress={handleSend}
+          android_ripple={{color: 'rgba(0,0,0,0.1)'}}
+          pressRetentionOffset={30}
+          hitSlop={10}>
+          {({pressed}) => (
+            <Image
+              source={require('@/assets/icons/post/sendbtn.png')}
+              style={[styles.sendbtn, {opacity: pressed ? 0.5 : 1}]}
+              resizeMode="contain"
+            />
+          )}
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -66,11 +87,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     width: '100%',
-    height: 60,
     backgroundColor: colors.WHITE,
     borderTopWidth: 1,
     borderTopColor: '#ECECEC',
-    gap: 10,
+    gap: 12,
   },
   profileImage: {
     width: 36,
@@ -80,7 +100,6 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flex: 1,
-    height: 36,
     backgroundColor: colors.GRAY_100,
     borderRadius: 8,
     justifyContent: 'center',
@@ -90,13 +109,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.BLACK,
     paddingHorizontal: 12,
-    paddingVertical: 0,
+    paddingVertical: 8,
     margin: 0,
     textAlignVertical: 'center',
   },
   placeholder: {
     fontSize: 14,
     color: colors.GRAY_500,
+  },
+  sendbtn: {
+    width: 24,
+    height: 24,
   },
 });
 

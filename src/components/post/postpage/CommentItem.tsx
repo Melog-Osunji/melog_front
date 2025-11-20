@@ -99,7 +99,7 @@ const CommentItem = ({
                 source={
                   isLiked
                     ? require('@/assets/icons/post/Like_activate.png')
-                    : require('@/assets/icons/post/Like.png')
+                    : require('@/assets/icons/post/Like-2.png')
                 }
                 style={styles.actionIcon}
               />
