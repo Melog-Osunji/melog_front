@@ -5,8 +5,10 @@ const colors = {
   KAKAO_YELLOW: '#FFE733',
 
   GRAY_100: '#EEF1F7',
-  GRAY_200: '#BDCAD8',
+
+  GRAY_200: '#BDCAD8', //G_1
   GRAY_300: '#8C9CAA',
+  GRAY_350: '#989B9E', //Grey 07
   GRAY_400: '#636C73',
   GRAY_500: '#40474C',
   GRAY_600: '#1C1E1F',
@@ -29,7 +31,7 @@ const colors = {
   LINE_GREY: '#E3E6ED',
 
   DOT_ACTIVE: '#888888',
-  DOT_DEFAULT: '#D9D9D9'
+  DOT_DEFAULT: '#D9D9D9',
 };
 
 export {colors};

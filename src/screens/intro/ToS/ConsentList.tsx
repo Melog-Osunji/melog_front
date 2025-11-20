@@ -32,7 +32,6 @@ export default function ConsentList({navigation}: ConsentListProps) {
   useEffect(() => {
     if (allRequiredAgreed && !navigatedRef.current) {
       navigatedRef.current = true;
-      // submit agreements to server (send marketing boolean only)
       const marketing = !!checked['marketing'];
       console.log('[ConsentList.tsx] all agreed -> submit agreements', {
         marketing,
@@ -44,7 +43,6 @@ export default function ConsentList({navigation}: ConsentListProps) {
         },
         onError: err => {
           console.error('[ConsentList.tsx] submit agreements failed:', err);
-          // still navigate or show error depending on UX; for now, navigate
           navigation.navigate(introNavigations.INTRO_PROFILE);
         },
       });
@@ -89,7 +87,7 @@ export default function ConsentList({navigation}: ConsentListProps) {
           </TouchableOpacity>
 
           <View>
-            <Text style={styles.total_text_h1}>모두동의</Text>
+            <Text style={styles.total_text_h1}>모두 동의</Text>
             <Text style={styles.total_text_h2}>
               약관 및 개인정보 보호방침, 마케팅 수신에 동의합니다.
             </Text>
@@ -130,11 +128,16 @@ export default function ConsentList({navigation}: ConsentListProps) {
               </Text>
             </View>
 
-            <IconButton
-              imageSource={require('@/assets/icons/common/RightArrow.png')}
-              target={[introNavigations.TOS_AGREEMENT_VIEWER, {docId: item.id}]}
-              size={24}
-            />
+            {item.isFile && (
+              <IconButton
+                imageSource={require('@/assets/icons/common/RightArrow.png')}
+                target={[
+                  introNavigations.TOS_AGREEMENT_VIEWER,
+                  {docId: item.id},
+                ]}
+                size={24}
+              />
+            )}
           </View>
         ))}
       </View>
@@ -163,7 +166,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     lineHeight: 22,
   },
-  total_text_h2: {fontSize: 12, color: colors.GRAY_500, lineHeight: 22},
+  total_text_h2: {fontSize: 12, color: colors.GRAY_350, lineHeight: 22},
   tos_item_text: {fontSize: 15, color: colors.BLACK},
   tos_item_wrapper: {
     flexDirection: 'row',

@@ -7,11 +7,15 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import {loadDummyAgreement} from '@/utils/agreements_loader';
-import Markdown from 'react-native-markdown-display';
+//navigator
 import {StackScreenProps} from '@react-navigation/stack';
 import {IntroStackParamList} from '@/navigations/stack/IntroStackNavigator';
-import {introNavigations} from '@/constants';
+//data loader
+import {AgreementsLoader} from '@/utils/AgreementsLoader';
+import Markdown from 'react-native-markdown-display';
+//constants
+import {introNavigations, colors} from '@/constants';
+//components
 import CustomButton from '@/components/common/CustomButton';
 
 type AgreementViewerProps = StackScreenProps<
@@ -25,33 +29,41 @@ export default function AgreementViewer({
 }: AgreementViewerProps) {
   const {docId} = route.params;
   const [doc, setDoc] = useState<any>(null);
-  console.log('****docId:', docId);
+
   useEffect(() => {
-    loadDummyAgreement(docId).then(setDoc);
-    console.log('docId:', docId);
-    loadDummyAgreement(docId).then(data => console.log('Loaded doc:', data));
+    AgreementsLoader(docId).then(setDoc);
+    AgreementsLoader(docId).then(data => console.log('Loaded doc:', data));
   }, [docId]);
 
   if (!doc) return <ActivityIndicator style={{marginTop: 20}} />;
 
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <Text style={styles.header}>{doc.title}</Text>
         <Markdown>{doc.body}</Markdown>
+        <CustomButton
+          label="확인되었습니다"
+          style={{
+        marginVertical: 20,
+        backgroundColor: colors.BLUE_500,
+          }}
+          onPress={() => {
+        navigation.goBack();
+          }}
+        />
       </ScrollView>
-      <CustomButton
-        label="뒤로가기"
-        style={{position: 'absolute', bottom: 30, left: 24, right: 24}}
-        onPress={() => {
-          navigation.goBack();
-        }}
-      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {flex: 1, padding: 20, backgroundColor: '#fff'},
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignContent: 'center',
+  },
   header: {fontSize: 18, fontWeight: 'bold', marginBottom: 12},
 });
