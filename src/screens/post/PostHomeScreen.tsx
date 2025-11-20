@@ -23,7 +23,7 @@ import PostList from '@/components/post/PostList';
 import IconButton from '@/components/common/IconButton';
 import FeedSelector from '@/components/post/posthome/FeedSelector';
 import GradientBg from '@/components/common/styles/GradientBg';
-import Toast, {ToastType} from '@/components/common/Toast';
+import {showToast} from '@/components/common/ToastService';
 
 type PostHomeScreenProps = StackScreenProps<
   PostStackParamList,
@@ -36,21 +36,6 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
     defaultFeedTypes[0],
   );
   const [selectedRoomId, setSelectedRoomId] = useState<string>('room1');
-
-  //toast
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<ToastType>('none');
-
-  const showToast = (message: string, type: ToastType = 'none') => {
-    setToastMessage(message);
-    setToastType(type);
-    setToastVisible(true);
-  };
-
-  const hideToast = () => {
-    setToastVisible(false);
-  };
 
   // 하모니룸 추천 API에서 데이터 가져와서 navibtn에 전달
   const {data, isLoading, error} = useHarmonyRecommendRooms();
@@ -182,13 +167,6 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
     <GradientBg>
       <SafeAreaView style={styles.container}>
         {renderHeader()}
-        <Toast
-          message={toastMessage}
-          visible={toastVisible}
-          type={toastType}
-          position="top"
-          onHide={hideToast}
-        />
         {content}
       </SafeAreaView>
     </GradientBg>
