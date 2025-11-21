@@ -14,20 +14,20 @@ type Props = {
   postId: string;
   // optional callbacks
   onFollow?: (userId: string) => void;
-  onHideFeed?: (postId: string) => void;
+  onHide?: (postId: string) => void;
   onBlock?: (userId: string) => void;
   onReport?: (postId: string) => void;
 };
 
-const PostOptionsSheet: React.FC<Props> = ({
+function PostOptionsSheet({
   user,
   userId,
   postId,
   onFollow,
-  onHideFeed,
+  onHide,
   onBlock,
   onReport,
-}) => {
+}: Props) {
   const targetUserId = user?.id ?? userId;
   const targetNick = user?.nickName ?? '';
 
@@ -53,7 +53,6 @@ const PostOptionsSheet: React.FC<Props> = ({
                 console.warn('[PostOptionsSheet] no userId to follow');
                 return;
               }
-              console.log('[PostOptionsSheet] follow user', targetUserId);
               followUser(targetUserId, {
                 onSuccess: _data => {
                   onFollow?.(targetUserId);
@@ -75,8 +74,7 @@ const PostOptionsSheet: React.FC<Props> = ({
           <TouchableOpacity
             style={styles.row}
             onPress={() => {
-              console.log('[PostOptionsSheet] hide feed', postId);
-              onHideFeed?.(postId);
+              onHide?.(postId);
               handleClose();
             }}>
             <Image
@@ -101,12 +99,6 @@ const PostOptionsSheet: React.FC<Props> = ({
           <TouchableOpacity
             style={styles.row}
             onPress={() => {
-              console.log(
-                '[PostOptionsSheet] report post',
-                postId,
-                'user:',
-                targetUserId,
-              );
               onReport?.(postId);
               handleClose();
             }}>
@@ -124,7 +116,6 @@ const PostOptionsSheet: React.FC<Props> = ({
         visible={blockPopupVisible}
         onExit={() => setBlockPopupVisible(false)}
         onClose={() => {
-          // confirm block
           if (!targetUserId) {
             console.warn('[PostOptionsSheet] no userId to block');
             setBlockPopupVisible(false);
@@ -132,11 +123,10 @@ const PostOptionsSheet: React.FC<Props> = ({
             showToast(`오류가 발생했어요`, 'error');
             return;
           }
-          onBlock?.(targetUserId); //구현 필요
+          onBlock?.(targetUserId);
           setBlockPopupVisible(false);
           handleClose();
           showToast(`${targetNick}님을 차단했어요`, 'success');
-          console.log('[PostOptionsSheet] block user', targetUserId);
         }}
         iconImg={require('@/assets/icons/common/error_red.png')}
         title={`${targetNick}님을 차단할까요?`}
@@ -151,7 +141,7 @@ const PostOptionsSheet: React.FC<Props> = ({
       />
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   sheet: {

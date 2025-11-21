@@ -9,10 +9,7 @@ interface FeedSelectorProps {
   onFeedSelect: (feed: FeedType) => void;
 }
 
-const FeedSelector: React.FC<FeedSelectorProps> = ({
-  selectedFeed,
-  onFeedSelect,
-}) => {
+function FeedSelector({selectedFeed, onFeedSelect}: FeedSelectorProps) {
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
   const handleFeedSelect = (feed: FeedType) => {
@@ -56,7 +53,7 @@ const FeedSelector: React.FC<FeedSelectorProps> = ({
       </BottomSheet>
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   headerTitle: {

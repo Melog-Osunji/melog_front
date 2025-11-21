@@ -16,7 +16,7 @@ type Props = {
   onCommentDelete?: (postId: string, commentId: string) => void;
 };
 
-const PostOptionsSheet: React.FC<Props> = ({postId}) => {
+function PostOptionsSheet({postId}: Props) {
   const [visible, setVisible] = useState(false);
   const handleClose = () => setVisible(false);
 
@@ -77,7 +77,7 @@ const PostOptionsSheet: React.FC<Props> = ({postId}) => {
       /> */}
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   sheet: {
