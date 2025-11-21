@@ -24,15 +24,14 @@ const iconColorMap = {
   error: colors.ERROR_RED,
 };
 
-const Toast: React.FC<ToastProps> = ({
+function Toast({
   message,
   type = 'none',
   visible,
   onHide,
   position = 'top',
   offset = 82,
-}) => {
-  // 애니메이션 방향
+}: ToastProps) {
   const initialTranslate = position === 'top' ? -100 : 100;
   const translateY = useRef(new Animated.Value(initialTranslate)).current;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -80,7 +79,6 @@ const Toast: React.FC<ToastProps> = ({
     });
   };
 
-  // 위치 스타일 동적으로 생성
   const positionStyle =
     position === 'top'
       ? {
@@ -122,7 +120,7 @@ const Toast: React.FC<ToastProps> = ({
       </Animated.View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   toastContainer: {

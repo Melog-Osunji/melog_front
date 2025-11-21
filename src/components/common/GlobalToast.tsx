@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import Toast, {ToastType, ToastPosition} from './Toast';
 import {registerToastHandler} from './ToastService';
 
-const GlobalToast: React.FC = () => {
+function GlobalToast() {
   const [visible, setVisible] = useState(false);
   const [message, setMessage] = useState('');
   const [type, setType] = useState<ToastType>('none');
@@ -40,6 +40,6 @@ const GlobalToast: React.FC = () => {
       offset={offset}
     />
   );
-};
+}
 
 export default GlobalToast;

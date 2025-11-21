@@ -5,7 +5,7 @@ const colors = {
   KAKAO_YELLOW: '#FFE733',
 
   GRAY_100: '#EEF1F7',
-
+  GRAY_150: '#F5F7FA', //delete modal
   GRAY_200: '#BDCAD8', //G_1
   GRAY_300: '#8C9CAA',
   GRAY_350: '#989B9E', //Grey 07

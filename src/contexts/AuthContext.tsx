@@ -27,9 +27,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export let logout: () => void = () => {};
 
-export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
-  children,
-}) => {
+// 변경: 함수 선언식 컴포넌트로 정의
+export function AuthProvider({children}: {children: React.ReactNode}) {
   const [user, setUser] = useState<ProfileDTO | null>(null);
   const [isLogin, setIsLogin] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -38,6 +37,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
   // 앱 시작 시 인증 상태 확인
   useEffect(() => {
     checkAuthStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAuthStatus = async () => {
@@ -111,7 +111,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+}
 
 // 명시적으로 함수로 export
 export const useAuthContext = (): AuthContextType => {
