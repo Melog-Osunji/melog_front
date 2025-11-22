@@ -1,77 +1,113 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
+  findNodeHandle,
   StyleSheet,
   Text,
   TouchableOpacity,
-  ViewStyle,
-  Modal,
+  UIManager,
+  View,
+  Dimensions,
 } from 'react-native';
-import {UserDTO} from '@/types';
 import {colors} from '@/constants';
 import IconButton from '@/components/common/IconButton';
-import {showToast} from '../common/ToastService';
+import {useOverlay} from '@/components/overlay/OverlayProvider';
 
 type Props = {
-  user?: UserDTO;
-  commentId?: string;
-  postId: string;
-  onPostDelete?: (userId: string) => void;
-  onCommentDelete?: (postId: string, commentId: string) => void;
+  onPress?: () => void;
 };
-function PostOptionsBtn({
-  user,
-  commentId,
-  postId,
-  onPostDelete,
-  onCommentDelete,
-}: Props) {
+function PostOptionsBtn({onPress}: Props) {
   const [visible, setVisible] = useState(false);
-  const handleClose = () => {
+  const overlay = useOverlay();
+  const overlayIdRef = useRef<string | null>(null);
+  const triggerRef = useRef<View | null>(null);
+
+  const closeOverlay = () => {
+    if (overlayIdRef.current) {
+      overlay.hide(overlayIdRef.current);
+      overlayIdRef.current = null;
+    }
     setVisible(false);
   };
-  const userId = user?.id || '';
 
-  return (
-    <>
-      <IconButton
-        imageSource={require('@/assets/icons/post/Info.png')}
-        size={24}
-        onPress={() => setVisible(true)}
-      />
-      {visible && (
-        <TouchableOpacity
-          onPress={() => {
-            onPostDelete?.(userId);
-            handleClose();
-          }}
-          activeOpacity={0.75}
-          style={styles.btn}>
-          <IconButton
-            imageSource={require('@/assets/icons/common/trash.png')}
-            size={20}
-            style={{marginRight: 8}}
-            onPress={() => {
-              onPostDelete?.(userId);
-              handleClose();
-            }}
-          />
-          <Text style={styles.text}>삭제하기</Text>
-        </TouchableOpacity>
-      )}
+  const openAtTrigger = () => {
+    // 측정하고 오버레이 등록
+    const handle = findNodeHandle(triggerRef.current);
 
-      {visible && (
-        <Modal
-          transparent
-          animationType="none"
-          visible={visible}
-          onRequestClose={handleClose}>
+    const showMenuAt = (top: number, left: number, menuWidth = 160) => {
+      if (overlayIdRef.current) return;
+      overlayIdRef.current = overlay.show(
+        <View style={{flex: 1}}>
           <TouchableOpacity
             style={styles.overlay}
             activeOpacity={1}
-            onPress={handleClose}
+            onPress={closeOverlay}
           />
-        </Modal>
-      )}
+          <View style={[styles.menuContainer, {top, left, width: menuWidth}]}>
+            <TouchableOpacity
+              onPress={() => {
+                onPress?.();
+                closeOverlay();
+                console.log('PostOptionsBtn] 삭제하기 버튼 클릭됨');
+              }}
+              activeOpacity={0.75}
+              style={styles.btnInner}>
+              <IconButton
+                imageSource={require('@/assets/icons/common/trash.png')}
+                size={24}
+                onPress={() => {}}
+              />
+              <Text style={styles.text}>삭제하기</Text>
+            </TouchableOpacity>
+          </View>
+        </View>,
+      );
+      // 오버레이가 등록된 뒤에 상태 켜기 — 깜박임 방지
+      setVisible(true);
+    };
+
+    if (!handle) {
+      // fallback: 화면 우측 상단 기준으로 위치 계산(원하시는 값으로 조정)
+      const {width: w} = Dimensions.get('window');
+      const menuWidth = 160;
+      const top = 30;
+      const left = Math.max(8, w - menuWidth - 5); // 오른쪽 정렬
+      showMenuAt(top, left, menuWidth);
+      return;
+    }
+
+    UIManager.measureInWindow(
+      handle,
+      (x: number, y: number, width: number, height: number) => {
+        const menuWidth = 160;
+        const top = y + height + 8;
+        const left = Math.max(8, x + width - menuWidth);
+        showMenuAt(top, left, menuWidth);
+      },
+    );
+  };
+
+  useEffect(() => {
+    return () => {
+      if (overlayIdRef.current) {
+        console.log(
+          '[PostOptionsBtn] unmount cleanup hide',
+          overlayIdRef.current,
+        );
+        overlay.hide(overlayIdRef.current);
+        overlayIdRef.current = null;
+      }
+    };
+  }, []);
+
+  return (
+    <>
+      <View ref={triggerRef} collapsable={false}>
+        <IconButton
+          imageSource={require('@/assets/icons/post/Info.png')}
+          size={24}
+          onPress={openAtTrigger}
+        />
+      </View>
     </>
   );
 }
@@ -79,21 +115,20 @@ function PostOptionsBtn({
 export default PostOptionsBtn;
 
 const styles = StyleSheet.create({
-  btn: {
+  menuContainer: {
     position: 'absolute',
-    top: 30,
-    right: 5,
+    zIndex: 1001,
+  },
+  btnInner: {
     display: 'flex',
     flexDirection: 'row',
-    height: 44,
-    paddingHorizontal: 16,
     alignItems: 'center',
+    paddingHorizontal: 12,
+    height: 44,
     backgroundColor: colors.GRAY_50,
     borderRadius: 8,
-    zIndex: 2,
-    // 그림자
     shadowColor: colors.GRAY_300,
-    shadowOffset: {width: 10, height: 2},
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 8,
@@ -101,16 +136,10 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 14,
     color: colors.ERROR_RED,
+    marginLeft: 8,
   },
   overlay: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'transparent',
-    zIndex: 1,
   },
 });

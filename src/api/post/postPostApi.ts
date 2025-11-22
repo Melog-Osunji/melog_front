@@ -17,7 +17,22 @@ export const createPost = async (postData: NewPostDTO): Promise<void> => {
 };
 
 // del post
-// (DELETE endpoint placeholder)
+// DELETE /api/posts/{postId}
+export const deletePost = async (postId: string) => {
+  try {
+    const res = await instance.delete<BaseResponse<any>>(
+      `/api/posts/${postId}`,
+    );
+
+    if (!res.data.success) {
+      throw new Error('게시글 삭제에 실패했습니다.');
+    }
+
+    return res.data.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
 // #4) post stats (mutations)
 // 1) like

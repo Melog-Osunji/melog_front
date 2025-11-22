@@ -8,6 +8,7 @@ import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 import PostStats from '@/components/post/PostStats';
 import PostOptionsSheet from '@/components/post/PostOptionsSheet';
 import PostOptionsBtn from '@/components/post/PostOptionsBtn';
+import {useDeletePost} from '@/hooks/queries/post/usePostMutations';
 //navigation
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -17,6 +18,7 @@ import {
   myPageNavigations,
   harmonyNavigations,
 } from '@/constants';
+import {showToast} from '../common/ToastService';
 
 type PostCardNavigationProp = StackNavigationProp<PostStackParamList>;
 
@@ -29,6 +31,19 @@ function PostCard({post, user}: PostCardProps) {
   const {user: authUser} = useAuthContext();
   //navigation
   const navigation = useNavigation<PostCardNavigationProp>();
+  const deletePostMutation = useDeletePost();
+
+  const handlePostDelete = (postId: string) => {
+    deletePostMutation.mutate(postId, {
+      onSuccess: () => {
+        console.log('[PostCard] post deleted:', postId);
+        showToast('포스트가 삭제되었습니다.', 'success');
+      },
+      onError: () => {
+        showToast('포스트 삭제에 실패했습니다.', 'error');
+      },
+    });
+  };
 
   const handlePress = () => {
     const routes = navigation.getState()?.routeNames ?? [];
@@ -70,7 +85,7 @@ function PostCard({post, user}: PostCardProps) {
           </View>
         </View>
         {authUser?.nickName === user.nickName ? (
-          <PostOptionsBtn user={user} postId={post.id} />
+          <PostOptionsBtn onPress={() => handlePostDelete(post.id)} />
         ) : (
           <PostOptionsSheet user={user} postId={post.id} />
         )}

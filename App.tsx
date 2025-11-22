@@ -6,6 +6,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import RootNavigator from '@/navigations/root/RootNavigator';
 import {getAccessToken, getRefreshToken} from '@/utils/storage/UserStorage';
 import GlobalToast from '@/components/common/GlobalToast';
+import {OverlayProvider} from '@/components/overlay/OverlayProvider';
 
 function App() {
   useEffect(() => {
@@ -28,8 +29,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <NavigationContainer>
-          <RootNavigator />
-          <GlobalToast />
+          <OverlayProvider>
+            <RootNavigator />
+            <GlobalToast />
+          </OverlayProvider>
         </NavigationContainer>
       </AuthProvider>
     </QueryClientProvider>

@@ -1,2 +1,2 @@
-export * from './postApiGet';
+export * from './postGetApi';
 export * from './postPostApi';
