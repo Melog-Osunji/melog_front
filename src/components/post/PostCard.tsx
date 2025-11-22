@@ -7,7 +7,7 @@ import {useAuthContext} from '@/contexts/AuthContext';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 import PostStats from '@/components/post/PostStats';
 import PostOptionsSheet from '@/components/post/PostOptionsSheet';
-import PostOptionsSheetMine from '@/components/post/PostOptionsSheetMine';
+import PostOptionsBtn from '@/components/post/PostOptionsBtn';
 //navigation
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -70,7 +70,7 @@ function PostCard({post, user}: PostCardProps) {
           </View>
         </View>
         {authUser?.nickName === user.nickName ? (
-          <PostOptionsSheetMine user={user} postId={post.id} />
+          <PostOptionsBtn user={user} postId={post.id} />
         ) : (
           <PostOptionsSheet user={user} postId={post.id} />
         )}
@@ -105,10 +105,10 @@ function PostCard({post, user}: PostCardProps) {
       {/* 베스트 댓글 */}
       {post.bestComment && (
         <View style={styles.bestCommentContainer}>
-          {/* <Image
+          <Image
             source={{uri: post.bestComment.profileImg}}
             style={styles.bestCommentProfileImage}
-          /> */}
+          />
           <Text
             style={styles.bestCommentContent}
             numberOfLines={1}

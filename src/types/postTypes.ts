@@ -52,7 +52,10 @@ export type CommentsDTO = {
   comments: CommentDTO[];
 };
 
-export type BestCommentDTO = Pick<CommentDTO, 'userID' | 'content'>;
+export type BestCommentDTO = Pick<
+  CommentDTO,
+  'userID' | 'content' | 'profileUrl'
+>;
 
 // feed
 export type FeedId = 'popular' | 'follow' | 'recommend';
