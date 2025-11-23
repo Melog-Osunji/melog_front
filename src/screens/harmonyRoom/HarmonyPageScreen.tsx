@@ -21,7 +21,7 @@ import {
   useHarmonyIsWaiting,
 } from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 // PostCard 가져오기
-import PostCard from '@/components/post/PostCard';
+import PostCard from '@/components/harmonyRoom/harmonyPost/PostCard';
 import type { PostDTO, UserDTO } from '@/types/postTypes';
 import { RefreshControl } from 'react-native';
 import { useRequestJoinHarmonyRoom } from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';

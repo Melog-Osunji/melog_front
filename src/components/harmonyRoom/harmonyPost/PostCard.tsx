@@ -3,15 +3,14 @@ import {Image, Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
 import {PostDTO, UserDTO} from '@/types';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
-import PostStats from '@/components/post/PostStats';
-import PostOptionsSheet from '@/components/post/PostOptionsSheet';
-
+import PostStats from '@/components/harmonyRoom/harmonyPost/PostStats';
+import PostOptionsSheet from '@/components/harmonyRoom/harmonyPost/PostOptionsSheet';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
-import {postNavigations, myPageNavigations, harmonyNavigations} from '@/constants';
+import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
+import {harmonyNavigations} from '@/constants';
 
-type PostCardNavigationProp = StackNavigationProp<PostStackParamList>;
+type PostCardNavigationProp = StackNavigationProp<HarmonyStackParamList>;
 
 type PostCardProps = {
   post: PostDTO;
@@ -24,13 +23,7 @@ function PostCard({post, user}: PostCardProps) {
   const handlePress = () => {
     const routes = navigation.getState()?.routeNames ?? [];
 
-    if (routes.includes(myPageNavigations.MYPAGE_HOME)) {
-      // ✅ 마이페이지 스택 내에 있으면
-      navigation.navigate('MYPAGE_POST_PAGE', { postId: post.id });
-    } else {
-      // ✅ 그 외엔 기본 포스트 페이지로 이동
-      navigation.navigate(postNavigations.POST_PAGE, { postId: post.id });
-    }
+    navigation.navigate(harmonyNavigations.POST_PAGE, { postId: post.id });
   };
 
   return (
