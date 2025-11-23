@@ -70,3 +70,12 @@ export const toggleCommentLike = async (postId: string, commentId: string) => {
   );
   return res.data.data;
 };
+
+// 4) hide post
+// POST /api/posts/{postId}/hidden (피드 숨기기)
+export const hidePost = async (postId: string) => {
+  const res = await instance.post<BaseResponse<null>>(
+    `/api/posts/${postId}/hidden`,
+  );
+  return res.data.data;
+};
