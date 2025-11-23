@@ -37,6 +37,7 @@ const harmonyNavigations = {
   HARMONY_POST_PAGE: 'HarmonyPostPage',
   HARMONY_SEARCH: 'HarmonySearch',
   HARMONY_SEARCH_RESULT: 'HarmonySearchResult',
+  HARMONY_FEED: 'HarmonyFeed',
 } as const;
 
 //프로필설정

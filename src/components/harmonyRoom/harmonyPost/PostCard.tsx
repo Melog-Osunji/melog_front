@@ -23,7 +23,7 @@ function PostCard({post, user}: PostCardProps) {
   const handlePress = () => {
     const routes = navigation.getState()?.routeNames ?? [];
 
-    navigation.navigate(harmonyNavigations.POST_PAGE, { postId: post.id });
+//     navigation.navigate(harmonyNavigations.HARMONY_FEED, { postId: post.id });
   };
 
   return (
