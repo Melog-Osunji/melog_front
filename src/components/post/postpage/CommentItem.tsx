@@ -6,6 +6,7 @@ import {useAuthContext} from '@/contexts/AuthContext';
 import {useToggleCommentLike} from '@/hooks/queries/post/usePostMutations';
 import PostOptionsSheet from '@/components/post/PostOptionsSheet';
 import PostOptionsBtn from '../PostOptionsBtn';
+import {showToast} from '@/components/common/ToastService';
 
 interface CommentItemProps {
   comment: CommentDTO;
@@ -13,7 +14,7 @@ interface CommentItemProps {
   postId: string;
   userId?: string;
   onReply?: (target: {commentId: string; nickname: string}) => void;
-  onDelete?: (commentId: string) => void; // added
+  onDelete?: (commentId: string) => void;
 }
 
 const CommentItem = ({
@@ -76,7 +77,7 @@ const CommentItem = ({
     );
   };
 
-  // new: commentContent 클릭 시 호출
+  // commentContent 클릭 시 호출
   const handleContentPress = () => {
     onReply?.({commentId: comment.id, nickname: comment.nickname ?? 'user'}); // changed
   };
@@ -138,7 +139,13 @@ const CommentItem = ({
         {authUser?.id === userId ? (
           <PostOptionsBtn onPress={() => onDelete?.(comment.id)} />
         ) : (
-          <PostOptionsSheet postId={postId} />
+          <PostOptionsBtn
+            onPress={() => {
+              showToast('신고 되었습니다(임시)', 'success');
+            }}
+            btnIcon={require('@/assets/icons/common/trash.png')}
+            btnText={'신고하기'}
+          />
         )}
       </View>
 

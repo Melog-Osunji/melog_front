@@ -7,6 +7,7 @@ import {
   UIManager,
   View,
   Dimensions,
+  ImageSourcePropType,
 } from 'react-native';
 import {colors} from '@/constants';
 import IconButton from '@/components/common/IconButton';
@@ -14,8 +15,15 @@ import {useOverlay} from '@/components/overlay/OverlayProvider';
 
 type Props = {
   onPress?: () => void;
+  btnIcon?: ImageSourcePropType; // 버튼 아이콘을 props로 받음
+  btnText?: string; // 버튼 텍스트를 props로 받음
 };
-function PostOptionsBtn({onPress}: Props) {
+
+function PostOptionsBtn({
+  onPress,
+  btnIcon = require('@/assets/icons/common/trash.png'),
+  btnText = '삭제하기',
+}: Props) {
   const [visible, setVisible] = useState(false);
   const overlay = useOverlay();
   const overlayIdRef = useRef<string | null>(null);
@@ -30,7 +38,6 @@ function PostOptionsBtn({onPress}: Props) {
   };
 
   const openAtTrigger = () => {
-    // 측정하고 오버레이 등록
     const handle = findNodeHandle(triggerRef.current);
 
     const showMenuAt = (top: number, left: number, menuWidth = 160) => {
@@ -47,30 +54,23 @@ function PostOptionsBtn({onPress}: Props) {
               onPress={() => {
                 onPress?.();
                 closeOverlay();
-                console.log('PostOptionsBtn] 삭제하기 버튼 클릭됨');
               }}
               activeOpacity={0.75}
               style={styles.btnInner}>
-              <IconButton
-                imageSource={require('@/assets/icons/common/trash.png')}
-                size={24}
-                onPress={() => {}}
-              />
-              <Text style={styles.text}>삭제하기</Text>
+              <IconButton imageSource={btnIcon} size={24} />
+              <Text style={styles.text}>{btnText}</Text>
             </TouchableOpacity>
           </View>
         </View>,
       );
-      // 오버레이가 등록된 뒤에 상태 켜기 — 깜박임 방지
       setVisible(true);
     };
 
     if (!handle) {
-      // fallback: 화면 우측 상단 기준으로 위치 계산(원하시는 값으로 조정)
       const {width: w} = Dimensions.get('window');
       const menuWidth = 160;
       const top = 30;
-      const left = Math.max(8, w - menuWidth - 5); // 오른쪽 정렬
+      const left = Math.max(8, w - menuWidth - 5);
       showMenuAt(top, left, menuWidth);
       return;
     }
@@ -89,10 +89,6 @@ function PostOptionsBtn({onPress}: Props) {
   useEffect(() => {
     return () => {
       if (overlayIdRef.current) {
-        console.log(
-          '[PostOptionsBtn] unmount cleanup hide',
-          overlayIdRef.current,
-        );
         overlay.hide(overlayIdRef.current);
         overlayIdRef.current = null;
       }
