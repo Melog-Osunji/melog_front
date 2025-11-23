@@ -119,7 +119,7 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
   const renderError = () => (
     <View style={s_styles.container}>
       <Text style={s_styles.errorText}>
-        {selectedFeed.label} 피드를 불러오는데 실패했습니다
+        {selectedFeed.label}를 불러오는데 실패했습니다
       </Text>
       <TouchableOpacity style={s_styles.retryButton} onPress={handleRetry}>
         <Text style={s_styles.retryText}>다시 시도</Text>

@@ -7,8 +7,9 @@ import {
   deletePost,
   deleteComment,
   hidePost,
+  addPostBookmark,
+  deletePostBookmark,
 } from '@/api/post/postPostApi';
-import {addPostBookmark} from '@/api/post/postPostApi';
 import {POST_QUERY_KEYS} from './usePostQueries';
 import type {NewPostDTO} from '@/types';
 import {MY_PAGE_QK} from '@/hooks/queries/myPage/useMyPage';
@@ -111,13 +112,22 @@ export const useTogglePostLike = () =>
     onError: err => console.warn('[useTogglePostLike] 좋아요 토글 실패:', err),
   });
 
-// useTogglePostBookmark: 게시글 북마크 토글
-export const useTogglePostBookmark = () =>
+// useAddPostBookmark: 게시글 북마크 추가
+export const useAddPostBookmark = () =>
   useMutation({
     // 북마크 엔드포인트는 GET 기반이므로 get 함수를 호출
     mutationFn: (postId: string) => addPostBookmark(postId),
     onError: err =>
-      console.warn('[useTogglePostBookmark] 북마크 토글 실패:', err),
+      console.warn('[useTogglePostBookmark] 북마크 add 실패:', err),
+    
+  });
+
+// useDeletePostBookmark: 게시글 북마크 해제
+export const useDeletePostBookmark = () =>
+  useMutation({
+    mutationFn: (postId: string) => deletePostBookmark(postId),
+    onError: err =>
+      console.warn('[useTogglePostBookmark] 북마크 delete 실패:', err),
   });
 
 // ======== #3) 댓글 관련 뮤테이션 훅 ========

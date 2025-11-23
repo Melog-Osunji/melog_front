@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Button,
+  RefreshControl,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StackScreenProps} from '@react-navigation/stack';
@@ -15,7 +16,7 @@ import {postNavigations} from '@/constants';
 import {colors} from '@/constants';
 //utils
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
-//navigation
+//navigations
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 //components
 import PostStats from '@/components/post/PostStats';
@@ -26,6 +27,7 @@ import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
 import CustomButton from '@/components/common/CustomButton';
 import {showToast} from '@/components/common/ToastService';
+import Loading from '@/components/common/Loading';
 //Queries
 import {usePostDetail} from '@/hooks/queries/post/usePostQueries';
 import {usePostComments} from '@/hooks/queries/post/usePostQueries';
@@ -41,10 +43,11 @@ type PostPageScreenProp = StackScreenProps<
 const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   const {postId} = route.params;
   const [isFollow, setIsFollow] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
   useHideTabBarOnFocus();
 
-  // === API 호출 ===
+  // post 및 commnet 데이터 로드
   const {
     data: postData,
     isLoading: postLoading,
@@ -57,7 +60,31 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     error: commentsError,
   } = usePostComments(postId);
 
-  const {post, user}: {post?: PostDTO; user?: UserDTO} = postData || {};
+  // 로딩 상태 처리
+  if (postLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Loading text={'게시글을 불러오는 중...'} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // 에러 상태 처리
+  if (isPostError || !postData) {
+    console.error('[PostPageScreen] 게시글 로드 실패:', postError);
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text>게시글을 불러올 수 없습니다.</Text>
+          <Button title="다시 시도" onPress={() => navigation.goBack()} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const {post, user} = postData as {post: PostDTO; user: UserDTO};
 
   // follow 상태 초기화
   const {data: followingData} = useGetUserFollowing(user?.nickName ?? '');
@@ -89,16 +116,21 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     });
   }, [followMutation, user?.id, isFollow]);
 
-  // replyTarget 상태 (항상 선언)
-  const [replyTarget, setReplyTarget] = useState<{
-    commentId: string;
-    nickname: string;
-  } | null>(null);
+  // replyTarget: CommentBar가 기대하는 형태 { id: string; nickname: string; commentId?: string }
+  type ReplyTarget = {id: string; nickname: string; commentId?: string} | null;
+  const [replyTarget, setReplyTarget] = useState<ReplyTarget>(null);
 
+  // normalize incoming target (some callers pass { commentId, nickname }, others may pass { id, nickname })
   const handleReply = useCallback(
-    (target: {commentId: string; nickname: string}) => {
+    (target: {commentId?: string; id?: string; nickname: string}) => {
       console.log('[PostPageScreen] handleReply', target);
-      setReplyTarget(target);
+      const id = target.id ?? target.commentId;
+      if (!id) return;
+      setReplyTarget({
+        id,
+        nickname: target.nickname,
+        commentId: target.commentId ?? undefined,
+      });
     },
     [],
   );
@@ -110,46 +142,24 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
 
   // 댓글 전송 핸들러
   const handleSendComment = useCallback(
-    (text: string, reply?: {commentId: string; nickname: string} | null) => {
+    (
+      text: string,
+      reply?: {id: string; nickname: string; commentId?: string} | null,
+    ) => {
       console.log('[PostPageScreen] send comment', {text, reply});
       setReplyTarget(null);
     },
     [route.params.postId],
   );
 
-  if (!user) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text>사용자 정보를 불러오는 중...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // 로딩 상태 처리
-  if (postLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text>게시글을 불러오는 중...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // 에러 상태 처리
-  if (isPostError || !postData) {
-    console.error('[PostPageScreen] 게시글 로드 실패:', postError);
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text>게시글을 불러올 수 없습니다.</Text>
-          <Button title="다시 시도" onPress={() => navigation.goBack()} />
-        </View>
-      </SafeAreaView>
-    );
-  }
+  // 새로 고침 핸들러
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // 여기에 데이터 새로 고침 로직 추가 (예: 쿼리 재요청)
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -178,7 +188,22 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
         <ScrollView
           style={{flex: 1}}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{paddingBottom: 100}}>
+          contentContainerStyle={{paddingBottom: 100}}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[colors.BLUE_400]}
+              tintColor={colors.BLUE_400}
+            />
+          }>
+          {/* 작게 상단에 20px 높이로 표시 */}
+          {/* {refreshing && (
+            <View style={styles.refreshOverlay}>
+              <Loading size={20} />
+            </View>
+          )} */}
+
           {/* 미디어 */}
           {post.mediaUrl && (
             <View style={styles.media}>
@@ -276,9 +301,9 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
         {/* 댓글 입력 바 */}
         <CommentBar
           postId={postId}
-          replyTarget={replyTarget} // 전달
-          onCancelReply={handleCancelReply} // 전달
-          onSend={handleSendComment} // 전달
+          replyTarget={replyTarget}
+          onCancelReply={handleCancelReply}
+          onSend={handleSendComment}
         />
       </GradientBg>
     </SafeAreaView>
@@ -406,6 +431,17 @@ const styles = StyleSheet.create({
     color: 'red',
     textAlign: 'center',
     paddingVertical: 16,
+  },
+  refreshOverlay: {
+    position: 'absolute' as const,
+    top: 6, // 화면 상단에서 살짝 아래
+    left: 0,
+    right: 0,
+    height: 20, // 작게 20px
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+    backgroundColor: 'transparent',
   },
 });
 

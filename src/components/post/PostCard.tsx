@@ -127,6 +127,8 @@ function PostCard({post, user, onHide, onBlock, onReport}: PostCardProps) {
           id={post.id}
           likeCount={post.likeCount}
           commentCount={post.commentCount}
+          initialIsLiked={post.isLike || false}
+          initialIsBookmarked={post.isBookmark || false}
         />
 
         {/* 베스트 댓글 */}
