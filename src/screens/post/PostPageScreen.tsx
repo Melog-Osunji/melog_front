@@ -20,7 +20,6 @@ import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 //components
 import PostStats from '@/components/post/PostStats';
 import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
-import {useDeleteComment} from '@/hooks/queries/post/usePostMutations';
 import CommentList from '@/components/post/postpage/CommentList';
 import CommentBar from '@/components/post/postpage/CommentBar';
 import IconButton from '@/components/common/IconButton';
@@ -31,6 +30,8 @@ import {showToast} from '@/components/common/ToastService';
 import {usePostDetail} from '@/hooks/queries/post/usePostQueries';
 import {usePostComments} from '@/hooks/queries/post/usePostQueries';
 import {useFollowUser} from '@/hooks/queries/User/useUserMutations';
+import {useGetUserFollowing} from '@/hooks/queries/User/useUserQueries';
+import {PostDTO, UserDTO} from '@/types';
 
 type PostPageScreenProp = StackScreenProps<
   PostStackParamList,
@@ -39,10 +40,11 @@ type PostPageScreenProp = StackScreenProps<
 
 const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   const {postId} = route.params;
+  const [isFollow, setIsFollow] = useState<boolean>(false);
 
   useHideTabBarOnFocus();
 
-  // API 호출
+  // === API 호출 ===
   const {
     data: postData,
     isLoading: postLoading,
@@ -55,14 +57,37 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     error: commentsError,
   } = usePostComments(postId);
 
-  // isFollow을 로컬 state로 선언 (초기값 false)
-  // const [isFollow, setIsFollow] = useState<boolean>(
-  //   () => !!postData?.user?.isFollow,
-  // );
-  const [isFollow, setIsFollow] = useState<boolean>(false); //임시
+  const {post, user}: {post?: PostDTO; user?: UserDTO} = postData || {};
 
-  // follow mutation 훅 (항상 호출되어야 함)
+  // follow 상태 초기화
+  const {data: followingData} = useGetUserFollowing(user?.nickName ?? '');
+
+  // 서버 응답 적용 (data: { isFollowing: boolean })
+  useEffect(() => {
+    if (followingData) {
+      const isFollowing = (followingData as any).result ?? false;
+      setIsFollow(!!isFollowing);
+    }
+  }, [followingData]);
+
+  // 팔로우/언팔로우 토글 핸들러
   const followMutation = useFollowUser();
+  const handleToggleFollow = useCallback(() => {
+    if (!user?.id) return;
+
+    const previous = isFollow;
+    setIsFollow(!previous);
+
+    followMutation.mutate(user.id, {
+      onError: () => {
+        setIsFollow(previous);
+        showToast(
+          previous ? '언팔로우에 실패했어요.' : '팔로우에 실패했어요.',
+          'error',
+        );
+      },
+    });
+  }, [followMutation, user?.id, isFollow]);
 
   // replyTarget 상태 (항상 선언)
   const [replyTarget, setReplyTarget] = useState<{
@@ -70,10 +95,13 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     nickname: string;
   } | null>(null);
 
-  const handleReply = useCallback((target: {commentId: string; nickname: string}) => {
-    console.log('[PostPageScreen] handleReply', target);
-    setReplyTarget(target);
-  }, []);
+  const handleReply = useCallback(
+    (target: {commentId: string; nickname: string}) => {
+      console.log('[PostPageScreen] handleReply', target);
+      setReplyTarget(target);
+    },
+    [],
+  );
 
   const handleCancelReply = useCallback(() => {
     console.log('[PostPageScreen] cancelReply');
@@ -88,6 +116,16 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     },
     [route.params.postId],
   );
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text>사용자 정보를 불러오는 중...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   // 로딩 상태 처리
   if (postLoading) {
@@ -112,11 +150,6 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
       </SafeAreaView>
     );
   }
-
-  console.log('[PostPageScreen] 게시글 데이터 로드 완료');
-  console.log('[PostPageScreen] 댓글 데이터 로드 완료');
-
-  const {post, user} = postData;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -177,23 +210,7 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
               <CustomButton
                 label={isFollow ? '언팔로우' : '팔로우'}
                 size="small"
-                onPress={() => {
-                  // 서버에 팔로우/언팔로우 요청 실행
-                  followMutation.mutate(user.id, {
-                    onSuccess: () => {
-                      setIsFollow(prev => !prev);
-                    },
-                    onError: () => {
-                      showToast(
-                        isFollow
-                          ? '언팔로우에 실패했어요.'
-                          : '팔로우에 실패했어요.',
-                        'error',
-                      );
-                    },
-                  });
-                }}
-                inValid={isFollow}
+                onPress={handleToggleFollow}
                 style={{
                   backgroundColor: isFollow ? colors.GRAY_200 : colors.BLUE_400,
                 }}
