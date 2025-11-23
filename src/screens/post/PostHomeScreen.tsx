@@ -69,6 +69,29 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
   // 포스트 조회
   const {data: apiPosts, refetch} = usePostsByFeedId(selectedFeed.id);
 
+  // 로컬 복사본으로 관리 (optimistic update)
+  const [posts, setPosts] = useState<PostWithUserDTO[]>([]);
+  useEffect(() => {
+    setPosts((apiPosts?.results as PostWithUserDTO[]) ?? []);
+  }, [apiPosts]);
+
+  const handleHidePost = useCallback((postId: string) => {
+    setPosts(prev => prev.filter(p => p.post.id !== postId));
+    showToast('피드를 숨겼습니다.', 'success');
+  }, []);
+
+  const handleBlockUser = useCallback((userId: string) => {
+    setPosts(prev => prev.filter(p => p.user.id !== userId));
+    showToast('사용자를 차단했습니다.', 'success');
+  }, []);
+
+  // 신고 처리: 신고 후 해당 포스트를 목록에서 제거
+  const handleReportPost = useCallback((postId: string) => {
+    setPosts(prev => prev.filter(p => p.post.id !== postId));
+    showToast('신고가 접수되었습니다. 해당 피드를 숨깁니다.', 'success');
+    // TODO: 서버 신고 API 호출이 필요하면 여기서 실행
+  }, []);
+
   // 재시도 handler
   const handleRetry = useCallback(() => {
     console.log('[PostHomeScreen] 포스트 다시 불러오기 시도');
@@ -142,7 +165,7 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
     content = (
       <>
         <PostList
-          data={apiPosts?.results as PostWithUserDTO[]}
+          data={posts}
           ListHeaderComponent={
             <HroomNaviBtn
               rooms={rooms}
@@ -151,6 +174,9 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
               error={error}
             />
           }
+          onHide={handleHidePost}
+          onBlock={handleBlockUser}
+          onReport={handleReportPost}
         />
         <View style={styles.writeButton}>
           <IconButton

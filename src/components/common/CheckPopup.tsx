@@ -21,7 +21,7 @@ interface Props {
   onExit: () => void;
   iconImg?: any; // 아이콘 이미지
   title?: string;
-  content: string;
+  content?: string;
   leftBtnColor: ColorValue;
   rightBtnColor: ColorValue;
   leftBtnTextColor: ColorValue;
@@ -59,7 +59,7 @@ export default function CheckPopup({
           {iconImg && <Image source={iconImg} style={styles.icon} />}
 
           {title && <Text style={styles.title}>{title}</Text>}
-          <Text style={styles.subtitle}>{content}</Text>
+          {content && <Text style={styles.subtitle}>{content}</Text>}
 
           <View style={styles.buttonRow}>
             <Pressable

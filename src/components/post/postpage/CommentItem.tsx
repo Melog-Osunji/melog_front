@@ -3,10 +3,13 @@ import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
 import type {CommentDTO} from '@/types';
 import {useAuthContext} from '@/contexts/AuthContext';
+//hooks
 import {useToggleCommentLike} from '@/hooks/queries/post/usePostMutations';
-import PostOptionsSheet from '@/components/post/PostOptionsSheet';
-import PostOptionsBtn from '../PostOptionsBtn';
+import {useDeleteComment} from '@/hooks/queries/post/usePostMutations';
+//components
+import PostOptionsBtn from '@//components/post/PostOptionsBtn';
 import {showToast} from '@/components/common/ToastService';
+import CheckPopup from '@/components/common/CheckPopup';
 
 interface CommentItemProps {
   comment: CommentDTO;
@@ -31,6 +34,7 @@ const CommentItem = ({
   const [currentLikeCount, setCurrentLikeCount] = useState<number>(
     comment.likes,
   );
+  const [confirmVisible, setConfirmVisible] = useState(false); // added
 
   const {mutate: toggleLike} = useToggleCommentLike();
 
@@ -72,6 +76,22 @@ const CommentItem = ({
           // 롤백
           setIsLiked(prevLiked);
           setCurrentLikeCount(prevCount);
+        },
+      },
+    );
+  };
+
+  const deleteCommentMutation = useDeleteComment();
+
+  const handleDeleteComment = () => {
+    deleteCommentMutation.mutate(
+      {postId: postId, commentId: comment.id},
+      {
+        onSuccess: () => {
+          showToast('댓글이 삭제되었습니다.', 'success');
+        },
+        onError: () => {
+          showToast('댓글 삭제에 실패했습니다.', 'error');
         },
       },
     );
@@ -137,7 +157,8 @@ const CommentItem = ({
         </View>
 
         {authUser?.id === userId ? (
-          <PostOptionsBtn onPress={() => onDelete?.(comment.id)} />
+          // open confirmation popup first
+          <PostOptionsBtn onPress={() => setConfirmVisible(true)} />
         ) : (
           <PostOptionsBtn
             onPress={() => {
@@ -149,6 +170,26 @@ const CommentItem = ({
         )}
       </View>
 
+      {/* 삭제 확인 팝업 */}
+      <CheckPopup
+        visible={confirmVisible}
+        onClose={() => {
+          setConfirmVisible(false);
+          handleDeleteComment();
+        }}
+        onExit={() => {
+          setConfirmVisible(false);
+        }}
+        iconImg={require('@/assets/icons/common/error_red.png')}
+        title={'이 댓글을 삭제할까요?'}
+        leftBtnColor={colors.GRAY_50}
+        rightBtnColor={colors.WHITE}
+        leftBtnTextColor={colors.GRAY_500}
+        rightBtnTextColor={colors.ERROR_RED}
+        leftBtnText={'취소'}
+        rightBtnText={'삭제'}
+        rightBtnBorderColor={colors.ERROR_RED}
+      />
       {/* 대댓글 렌더링: onReply 전달 */}
       {comment.recomments && comment.recomments.length > 0 && (
         <View>
@@ -159,7 +200,7 @@ const CommentItem = ({
               isReply={true}
               postId={postId}
               userId={reply.userID}
-              onReply={onReply} // pass down (same shape)
+              onReply={onReply}
             />
           ))}
         </View>

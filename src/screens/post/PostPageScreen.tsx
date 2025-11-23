@@ -26,9 +26,11 @@ import CommentBar from '@/components/post/postpage/CommentBar';
 import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
 import CustomButton from '@/components/common/CustomButton';
+import {showToast} from '@/components/common/ToastService';
 //Queries
 import {usePostDetail} from '@/hooks/queries/post/usePostQueries';
 import {usePostComments} from '@/hooks/queries/post/usePostQueries';
+import {useFollowUser} from '@/hooks/queries/User/useUserMutations';
 
 type PostPageScreenProp = StackScreenProps<
   PostStackParamList,
@@ -53,22 +55,39 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     error: commentsError,
   } = usePostComments(postId);
 
-  const deleteCommentMutation = useDeleteComment();
+  // isFollow을 로컬 state로 선언 (초기값 false)
+  // const [isFollow, setIsFollow] = useState<boolean>(
+  //   () => !!postData?.user?.isFollow,
+  // );
+  const [isFollow, setIsFollow] = useState<boolean>(false); //임시
 
-  const handleDeleteComment = (commentId: string) => {
-    deleteCommentMutation.mutate(
-      {postId: route.params.postId, commentId},
-      {
-        onSuccess: () => {
-          console.log('[PostPageScreen] comment deleted', commentId);
-          // optional toast
-        },
-        onError: () => {
-          // optional toast
-        },
-      },
-    );
-  };
+  // follow mutation 훅 (항상 호출되어야 함)
+  const followMutation = useFollowUser();
+
+  // replyTarget 상태 (항상 선언)
+  const [replyTarget, setReplyTarget] = useState<{
+    id: string;
+    nickname: string;
+  } | null>(null);
+
+  const handleReply = useCallback((target: {id: string; nickname: string}) => {
+    console.log('[PostPageScreen] handleReply', target);
+    setReplyTarget(target);
+  }, []);
+
+  const handleCancelReply = useCallback(() => {
+    console.log('[PostPageScreen] cancelReply');
+    setReplyTarget(null);
+  }, []);
+
+  // 댓글 전송 핸들러
+  const handleSendComment = useCallback(
+    (text: string, reply?: {id: string; nickname: string} | null) => {
+      console.log('[PostPageScreen] send comment', {text, reply});
+      setReplyTarget(null);
+    },
+    [route.params.postId],
+  );
 
   // 로딩 상태 처리
   if (postLoading) {
@@ -98,36 +117,6 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   console.log('[PostPageScreen] 댓글 데이터 로드 완료');
 
   const {post, user} = postData;
-
-  // isFollow을 로컬 state로 선언 (초기값 true), 버튼 클릭 시 토글
-  const [isFollow, setIsFollow] = useState<boolean>(false);
-
-  // replyTarget 상태 추가
-  const [replyTarget, setReplyTarget] = useState<{
-    id: string;
-    nickname: string;
-  } | null>(null);
-
-  const handleReply = useCallback((target: {id: string; nickname: string}) => {
-    console.log('[PostPageScreen] handleReply', target);
-    setReplyTarget(target);
-  }, []);
-
-  const handleCancelReply = useCallback(() => {
-    console.log('[PostPageScreen] cancelReply');
-    setReplyTarget(null);
-  }, []);
-
-  // 댓글 전송 핸들러 (필요시 서버 전송 로직 연결)
-  const handleSendComment = useCallback(
-    (text: string, reply?: {id: string; nickname: string} | null) => {
-      console.log('[PostPageScreen] send comment', {text, reply});
-      // ...existing createComment 호출 또는 mutate 연결...
-      // 예: createComment.mutate({ postId: route.params.postId, content: text, responseTo: reply?.id ?? null })
-      setReplyTarget(null);
-    },
-    [route.params.postId],
-  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -189,9 +178,25 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
                 label={isFollow ? '언팔로우' : '팔로우'}
                 size="small"
                 onPress={() => {
-                  setIsFollow(prev => !prev);
+                  // 서버에 팔로우/언팔로우 요청 실행
+                  followMutation.mutate(user.id, {
+                    onSuccess: () => {
+                      setIsFollow(prev => !prev);
+                    },
+                    onError: () => {
+                      showToast(
+                        isFollow
+                          ? '언팔로우에 실패했어요.'
+                          : '팔로우에 실패했어요.',
+                        'error',
+                      );
+                    },
+                  });
                 }}
                 inValid={isFollow}
+                style={{
+                  backgroundColor: isFollow ? colors.GRAY_200 : colors.BLUE_400,
+                }}
               />
             </View>
 
@@ -235,7 +240,6 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
                 totalCommentCount={post?.commentCount ?? 0}
                 postId={route.params.postId}
                 onReply={handleReply}
-                onDelete={handleDeleteComment} // 전달
               />
             ) : null}
           </View>
