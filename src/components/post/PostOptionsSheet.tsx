@@ -7,6 +7,7 @@ import type {UserDTO} from '@/types';
 import {useFollowUser} from '@/hooks/queries/User/useUserMutations';
 import CheckPopup from '@/components/common/CheckPopup';
 import {showToast} from '@/components/common/ToastService';
+import PostReportSheet from '@/components/post/PostReportSheet'; // 추가
 
 type Props = {
   user?: UserDTO;
@@ -33,6 +34,7 @@ function PostOptionsSheet({
 
   const [visible, setVisible] = useState(false);
   const [blockPopupVisible, setBlockPopupVisible] = useState(false);
+  const [reportVisible, setReportVisible] = useState(false); // 추가
   const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
   const handleClose = () => setVisible(false);
 
@@ -99,8 +101,9 @@ function PostOptionsSheet({
           <TouchableOpacity
             style={styles.row}
             onPress={() => {
-              onReport?.(postId);
+              // 옵션 시트 닫고 신고 시트 열기
               handleClose();
+              setTimeout(() => setReportVisible(true), 80);
             }}>
             <Image
               source={require('@/assets/icons/post/Abuse.png')}
@@ -138,6 +141,16 @@ function PostOptionsSheet({
         leftBtnText="취소"
         rightBtnText="차단하기"
         rightBtnBorderColor={colors.RED_300}
+      />
+
+      {/* 신고 바텀시트 */}
+      <PostReportSheet
+        visible={reportVisible}
+        onClose={() => setReportVisible(false)}
+        onReport={(reason: string) => {
+          // PostReportSheet에서 reason을 받으면 부모 콜백에 postId 전달
+          onReport?.(postId);
+        }}
       />
     </>
   );

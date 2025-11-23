@@ -32,9 +32,9 @@ export const useDeletePost = () => {
       await qc.cancelQueries({queryKey: POST_QUERY_KEYS.posts});
 
       // capture previous posts-related queries and myPage cache
-      const previousQueries = qc.getQueriesData(POST_QUERY_KEYS.posts) as Array<
-        [any, any]
-      >;
+      const previousQueries = qc.getQueriesData({
+        queryKey: POST_QUERY_KEYS.posts,
+      }) as Array<[any, any]>;
       const previousMyPage = qc.getQueryData(MY_PAGE_QK);
 
       // helper to extract id
@@ -94,8 +94,8 @@ export const useDeletePost = () => {
     onSettled: (_data, _error, postId) => {
       console.log('[useDeletePost] onSettled invalidate', postId);
       // invalidate posts-related queries and myPage so server is authoritative
-      qc.invalidateQueries(POST_QUERY_KEYS.posts);
-      qc.invalidateQueries(MY_PAGE_QK);
+      qc.invalidateQueries({queryKey: POST_QUERY_KEYS.posts});
+      qc.invalidateQueries({queryKey: MY_PAGE_QK});
       if (postId) qc.invalidateQueries({queryKey: ['post', postId]});
     },
   });

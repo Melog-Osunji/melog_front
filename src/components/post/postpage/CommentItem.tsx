@@ -2,8 +2,10 @@ import React, {useState} from 'react';
 import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
 import type {CommentDTO} from '@/types';
+import {useAuthContext} from '@/contexts/AuthContext';
 import {useToggleCommentLike} from '@/hooks/queries/post/usePostMutations';
 import PostOptionsSheet from '@/components/post/PostOptionsSheet';
+import PostOptionsBtn from '../PostOptionsBtn';
 
 interface CommentItemProps {
   comment: CommentDTO;
@@ -18,6 +20,8 @@ const CommentItem = ({
   postId,
   userId,
 }: CommentItemProps) => {
+  const {user: authUser} = useAuthContext();
+
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [currentLikeCount, setCurrentLikeCount] = useState<number>(
     comment.likes,
@@ -118,7 +122,12 @@ const CommentItem = ({
         </View>
 
         {/* 더보기 버튼 */}
-        <PostOptionsSheet userId={userId} postId={postId} />
+        {/* {authUser?.id === userId ? (
+          <PostOptionsBtn />
+        ) : (
+          <PostOptionsSheet postId={postId} />
+        )} */}
+        <PostOptionsSheet postId={postId} />
       </View>
 
       {/* 대댓글 렌더링 */}

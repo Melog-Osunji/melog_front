@@ -31,8 +31,8 @@ import {useSearching} from '@/hooks/queries/search/useSearching';
 import {showToast} from '@/components/common/ToastService';
 import CustomButton from '@/components/common/CustomButton';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
-import PostActionButtons from '@/components/post/postcreate/PostActionButtons';
-import MusicSearchBottomSheet from '@/components/post/postcreate/MusicSearchBottomSheet';
+import PostActionButtons from '@/components/post/postcreate/PostActionBar';
+import MusicSearchBottomSheet from '@/components/post/postcreate/MusicSearchSheet';
 
 type PostCreateScreenProps = StackScreenProps<
   PostStackParamList,

@@ -15,6 +15,7 @@ const CommentList = ({
   postId,
 }: CommentListProps) => {
   const comments = commentsData?.comments || [];
+  console.log('[CommentList] Rendering CommentList with comments:', comments);
 
   return (
     <View style={styles.container}>

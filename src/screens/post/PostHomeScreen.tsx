@@ -88,7 +88,7 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
     <View style={s_styles.container}>
       <ActivityIndicator size="large" color={colors.BLUE_400} />
       <Text style={s_styles.loadingText}>
-        {selectedFeed.label} 피드를 불러오는 중...
+        {selectedFeed.label}를 불러오는 중...
       </Text>
     </View>
   );

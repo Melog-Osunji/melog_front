@@ -15,7 +15,11 @@ import {colors} from '@/constants';
 //types
 import {YouTubeVideo, NewPostDTO} from '@/types';
 //navigation
-import {useNavigation, useFocusEffect, useRoute} from '@react-navigation/native';
+import {
+  useNavigation,
+  useFocusEffect,
+  useRoute,
+} from '@react-navigation/native';
 //utils
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import {getAccessToken} from '@/utils/storage/UserStorage';
@@ -23,7 +27,7 @@ import {getAccessToken} from '@/utils/storage/UserStorage';
 import {useUserInfo} from '@/hooks/common/useUserInfo';
 import {useCreateHarmonyRoomPost} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 //components
-import PostActionButtons from '@/components/post/postcreate/PostActionButtons';
+import PostActionButtons from '@/components/post/postcreate/PostActionBar';
 import CustomButton from '@/components/common/CustomButton';
 import Toast from '@/components/common/Toast';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
@@ -31,7 +35,7 @@ import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 export default function HarmonyPostScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { harmonyId } = route.params;
+  const {harmonyId} = route.params;
   console.log(harmonyId);
   const {userInfo, isLoading: userLoading, error: userError} = useUserInfo();
   const createPostMutation = useCreateHarmonyRoomPost(harmonyId);

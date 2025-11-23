@@ -7,10 +7,10 @@ const colors = {
   GRAY_50: '#F4F5F5', //delete modal
   GRAY_100: '#EEF1F7',
   GRAY_200: '#BDCAD8', //G_1
-  GRAY_300: '#8C9CAA',
+  GRAY_300: '#8C9CAA', //G_3
   GRAY_350: '#989B9E', //Grey 07
   GRAY_400: '#636C73',
-  GRAY_500: '#40474C',
+  GRAY_500: '#40474C', //G_5
   GRAY_600: '#1C1E1F',
 
   BLUE_200: '#EAF7FC',
