@@ -162,8 +162,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 9,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.LINE_GREY,
   },
   headerTitle: {
     flexDirection: 'row',
