@@ -7,8 +7,7 @@ interface CommentListProps {
   commentsData: CommentsDTO;
   totalCommentCount: number;
   postId: string;
-  onReply?: (target: {id: string; nickname: string}) => void;
-  onDelete?: (commentId: string) => void; // added
+  onReply?: (target: {commentId: string; nickname: string}) => void;
 }
 
 const CommentList = ({
@@ -16,7 +15,6 @@ const CommentList = ({
   totalCommentCount,
   postId,
   onReply,
-  onDelete,
 }: CommentListProps) => {
   const comments = commentsData?.comments || [];
 
@@ -26,7 +24,6 @@ const CommentList = ({
       postId={postId}
       userId={item.userID}
       onReply={onReply}
-      onDelete={onDelete} // pass down
     />
   );
 

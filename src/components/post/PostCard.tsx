@@ -144,12 +144,10 @@ function PostCard({post, user}: PostCardProps) {
       <CheckPopup
         visible={confirmVisible}
         onClose={() => {
-          // 오른쪽 버튼(삭제) 누르면 onClose 호출 -> 실행 후 닫기
           setConfirmVisible(false);
           handlePostDelete(post.id);
         }}
         onExit={() => {
-          // 왼쪽 버튼(취소)
           setConfirmVisible(false);
         }}
         iconImg={require('@/assets/icons/common/error_red.png')}

@@ -55,22 +55,39 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     error: commentsError,
   } = usePostComments(postId);
 
-  const deleteCommentMutation = useDeleteComment();
+  // isFollow을 로컬 state로 선언 (초기값 false)
+  // const [isFollow, setIsFollow] = useState<boolean>(
+  //   () => !!postData?.user?.isFollow,
+  // );
+  const [isFollow, setIsFollow] = useState<boolean>(false); //임시
 
-  const handleDeleteComment = (commentId: string) => {
-    deleteCommentMutation.mutate(
-      {postId: route.params.postId, commentId},
-      {
-        onSuccess: () => {
-          console.log('[PostPageScreen] comment deleted', commentId);
-          // optional toast
-        },
-        onError: () => {
-          // optional toast
-        },
-      },
-    );
-  };
+  // follow mutation 훅 (항상 호출되어야 함)
+  const followMutation = useFollowUser();
+
+  // replyTarget 상태 (항상 선언)
+  const [replyTarget, setReplyTarget] = useState<{
+    id: string;
+    nickname: string;
+  } | null>(null);
+
+  const handleReply = useCallback((target: {id: string; nickname: string}) => {
+    console.log('[PostPageScreen] handleReply', target);
+    setReplyTarget(target);
+  }, []);
+
+  const handleCancelReply = useCallback(() => {
+    console.log('[PostPageScreen] cancelReply');
+    setReplyTarget(null);
+  }, []);
+
+  // 댓글 전송 핸들러
+  const handleSendComment = useCallback(
+    (text: string, reply?: {id: string; nickname: string} | null) => {
+      console.log('[PostPageScreen] send comment', {text, reply});
+      setReplyTarget(null);
+    },
+    [route.params.postId],
+  );
 
   // 로딩 상태 처리
   if (postLoading) {
@@ -100,39 +117,6 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   console.log('[PostPageScreen] 댓글 데이터 로드 완료');
 
   const {post, user} = postData;
-
-  // isFollow을 로컬 state로 선언 (초기값 false), 버튼 클릭 시 토글
-  const [isFollow, setIsFollow] = useState<boolean>(false);
-
-  // follow mutation 훅
-  const followMutation = useFollowUser();
-
-  // replyTarget 상태 추가
-  const [replyTarget, setReplyTarget] = useState<{
-    id: string;
-    nickname: string;
-  } | null>(null);
-
-  const handleReply = useCallback((target: {id: string; nickname: string}) => {
-    console.log('[PostPageScreen] handleReply', target);
-    setReplyTarget(target);
-  }, []);
-
-  const handleCancelReply = useCallback(() => {
-    console.log('[PostPageScreen] cancelReply');
-    setReplyTarget(null);
-  }, []);
-
-  // 댓글 전송 핸들러 (필요시 서버 전송 로직 연결)
-  const handleSendComment = useCallback(
-    (text: string, reply?: {id: string; nickname: string} | null) => {
-      console.log('[PostPageScreen] send comment', {text, reply});
-      // ...existing createComment 호출 또는 mutate 연결...
-      // 예: createComment.mutate({ postId: route.params.postId, content: text, responseTo: reply?.id ?? null })
-      setReplyTarget(null);
-    },
-    [route.params.postId],
-  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -256,7 +240,6 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
                 totalCommentCount={post?.commentCount ?? 0}
                 postId={route.params.postId}
                 onReply={handleReply}
-                onDelete={handleDeleteComment} // 전달
               />
             ) : null}
           </View>
