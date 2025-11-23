@@ -12,7 +12,8 @@ interface CommentItemProps {
   isReply?: boolean;
   postId: string;
   userId?: string;
-  onReply?: (target: {commentId: string; nickname: string}) => void; // changed
+  onReply?: (target: {commentId: string; nickname: string}) => void;
+  onDelete?: (commentId: string) => void; // added
 }
 
 const CommentItem = ({
@@ -21,6 +22,7 @@ const CommentItem = ({
   postId,
   userId,
   onReply,
+  onDelete,
 }: CommentItemProps) => {
   const {user: authUser} = useAuthContext();
 
@@ -133,7 +135,11 @@ const CommentItem = ({
           </TouchableOpacity>
         </View>
 
-        <PostOptionsSheet postId={postId} />
+        {authUser?.id === userId ? (
+          <PostOptionsBtn onPress={() => onDelete?.(comment.id)} />
+        ) : (
+          <PostOptionsSheet postId={postId} />
+        )}
       </View>
 
       {/* 대댓글 렌더링: onReply 전달 */}

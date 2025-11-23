@@ -20,6 +20,7 @@ import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 //components
 import PostStats from '@/components/post/PostStats';
 import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
+import {useDeleteComment} from '@/hooks/queries/post/usePostMutations';
 import CommentList from '@/components/post/postpage/CommentList';
 import CommentItem from '@/components/post/postpage/CommentItem';
 import CommentBar from '@/components/post/postpage/CommentBar';
@@ -51,6 +52,23 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     isLoading: commentsLoading,
     error: commentsError,
   } = usePostComments(postId);
+
+  const deleteCommentMutation = useDeleteComment();
+
+  const handleDeleteComment = (commentId: string) => {
+    deleteCommentMutation.mutate(
+      {postId: route.params.postId, commentId},
+      {
+        onSuccess: () => {
+          console.log('[PostPageScreen] comment deleted', commentId);
+          // optional toast
+        },
+        onError: () => {
+          // optional toast
+        },
+      },
+    );
+  };
 
   // 로딩 상태 처리
   if (postLoading) {
@@ -106,17 +124,6 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
       setReplyTarget(null);
     },
     [route.params.postId],
-  );
-
-  const renderComment = useCallback(
-    ({item}) => (
-      <CommentItem
-        comment={item}
-        postId={route.params.postId}
-        onReply={handleReply} // 부모로 전달
-      />
-    ),
-    [handleReply, route.params.postId],
   );
 
   return (
@@ -215,11 +222,10 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
             ) : commentsData ? (
               <CommentList
                 commentsData={commentsData}
-                totalCommentCount={
-                  post.commentCount ?? commentsData.comments?.length ?? 0
-                }
-                postId={postId}
-                onReply={handleReply} // 전달
+                totalCommentCount={post?.commentCount ?? 0}
+                postId={route.params.postId}
+                onReply={handleReply}
+                onDelete={handleDeleteComment} // 전달
               />
             ) : null}
           </View>

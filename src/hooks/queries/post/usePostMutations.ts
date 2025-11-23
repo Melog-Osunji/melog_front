@@ -5,6 +5,7 @@ import {
   createComment,
   toggleCommentLike,
   deletePost,
+  deleteComment,
 } from '@/api/post/postPostApi';
 import {addPostBookmark} from '@/api/post/postPostApi';
 import {POST_QUERY_KEYS} from './usePostQueries';
@@ -158,5 +159,83 @@ export const useToggleCommentLike = () => {
     },
     onError: err =>
       console.warn('[useToggleCommentLike] 댓글 좋아요 토글 실패:', err),
+  });
+};
+
+// useDeleteComment: 댓글 삭제 뮤테이션 훅
+export const useDeleteComment = () => {
+  const qc = useQueryClient();
+  return useMutation<
+    any,
+    Error,
+    {postId: string; commentId: string},
+    {previousComments: any}
+  >({
+    mutationFn: ({postId, commentId}) => deleteComment(postId, commentId),
+    onMutate: async ({postId, commentId}) => {
+      await qc.cancelQueries({queryKey: ['post', 'comments', postId]});
+
+      const previousComments = qc.getQueryData(['post', 'comments', postId]);
+
+      // optimistic: remove comment from cached comments list (assumes { comments: [...] } shape or array)
+      qc.setQueryData(['post', 'comments', postId], (old: any) => {
+        if (!old) return old;
+        if (Array.isArray(old)) {
+          return old.filter((c: any) => c.id !== commentId);
+        }
+        // object shape: { comments: [...] }
+        const copy = {...old};
+        if (Array.isArray(copy.comments)) {
+          copy.comments = copy.comments.filter((c: any) => c.id !== commentId);
+        }
+        return copy;
+      });
+
+      // also try removing from posts list caches (reduce commentCount)
+      qc.setQueriesData(POST_QUERY_KEYS.posts, (old: any) => {
+        if (!old) return old;
+        try {
+          if (Array.isArray(old)) {
+            return old.map((p: any) =>
+              p.id === postId
+                ? {...p, commentCount: Math.max(0, (p.commentCount ?? 0) - 1)}
+                : p,
+            );
+          }
+          if (old.pages) {
+            return {
+              ...old,
+              pages: old.pages.map((page: any) =>
+                (page || []).map((p: any) =>
+                  p.id === postId
+                    ? {
+                        ...p,
+                        commentCount: Math.max(0, (p.commentCount ?? 0) - 1),
+                      }
+                    : p,
+                ),
+              ),
+            };
+          }
+        } catch (e) {
+          // ignore
+        }
+        return old;
+      });
+
+      return {previousComments};
+    },
+    onError: (_err, variables, context: any) => {
+      if (context?.previousComments) {
+        qc.setQueryData(
+          ['post', 'comments', variables.postId],
+          context.previousComments,
+        );
+      }
+    },
+    onSettled: (_data, _error, variables) => {
+      qc.invalidateQueries({queryKey: ['post', 'comments', variables.postId]});
+      qc.invalidateQueries({queryKey: POST_QUERY_KEYS.posts});
+    },
   });
 };
