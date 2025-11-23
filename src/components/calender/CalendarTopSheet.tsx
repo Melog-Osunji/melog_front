@@ -384,7 +384,7 @@ function WeekStrip({
             showDot={dot}
             onPress={() => onSelect(d)}
             cellW={cellW}
-            dimmed={dimmed}    
+            dimmed={dimmed}
           />
         );
       })}
