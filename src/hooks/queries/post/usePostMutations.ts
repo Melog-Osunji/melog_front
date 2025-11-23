@@ -6,7 +6,7 @@ import {
   toggleCommentLike,
   deletePost,
 } from '@/api/post/postPostApi';
-import {fetchPostBookmarks} from '@/api/post/postGetApi';
+import {addPostBookmark} from '@/api/post/postPostApi';
 import {POST_QUERY_KEYS} from './usePostQueries';
 import type {NewPostDTO} from '@/types';
 import {MY_PAGE_QK} from '@/hooks/queries/myPage/useMyPage';
@@ -113,7 +113,7 @@ export const useTogglePostLike = () =>
 export const useTogglePostBookmark = () =>
   useMutation({
     // 북마크 엔드포인트는 GET 기반이므로 get 함수를 호출
-    mutationFn: (postId: string) => fetchPostBookmarks(postId),
+    mutationFn: (postId: string) => addPostBookmark(postId),
     onError: err =>
       console.warn('[useTogglePostBookmark] 북마크 토글 실패:', err),
   });

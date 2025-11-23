@@ -5,43 +5,41 @@ import type {NewPostDTO} from '@/types';
 // #3) CRUD operations for post (POST/PATCH/DELETE requests)
 // POST /api/posts (게시글 작성)
 export const createPost = async (postData: NewPostDTO): Promise<void> => {
-  try {
-    const res = await instance.post('/api/posts', postData);
-
-    if (!res.data.success) {
-      throw new Error('게시글 작성에 실패했습니다.');
-    }
-  } catch (error) {
-    throw error;
-  }
+  const res = await instance.post('/api/posts', postData);
+  return res.data.data;
 };
 
-// del post
-// DELETE /api/posts/{postId}
+// DELETE /api/posts/{postId} (게시글 삭제)
 export const deletePost = async (postId: string) => {
-  try {
-    const res = await instance.delete<BaseResponse<any>>(
-      `/api/posts/${postId}`,
-    );
-
-    if (!res.data.success) {
-      throw new Error('게시글 삭제에 실패했습니다.');
-    }
-
-    return res.data.data;
-  } catch (error) {
-    throw error;
-  }
+  const res = await instance.delete<BaseResponse<null>>(`/api/posts/${postId}`);
+  return res.data.data;
 };
 
 // #4) post stats (mutations)
 // 1) like
 // POST /api/posts/{postId}/like (게시글 좋아요 토글)
 export const togglePostLike = async (postId: string) => {
-  const res = await instance.post<BaseResponse<any>>(
+  const res = await instance.post<BaseResponse<null>>(
     `/api/posts/${postId}/like`,
   );
   return res.data.data; // { action, liked, likeCount }
+};
+
+// 2) bookmark
+// GET /api/posts/{postId}/bookmark (게시글 북마크)
+export const addPostBookmark = async (postId: string) => {
+  const res = await instance.post<BaseResponse<null>>(
+    `/api/posts/${postId}/bookmark`,
+  );
+  return res.data.data;
+};
+
+// DELETE /api/posts/{postId}/bookmark (게시글 북마크)
+export const deletePostBookmarks = async (postId: string) => {
+  const res = await instance.post<BaseResponse<null>>(
+    `/api/posts/${postId}/bookmark`,
+  );
+  return res.data.data;
 };
 
 // 3) comment (mutations)
@@ -50,17 +48,24 @@ export const createComment = async (
   postId: string,
   body: {content: string; responseTo: string | null},
 ) => {
-  const res = await instance.post<BaseResponse<any>>(
+  const res = await instance.post<BaseResponse<null>>(
     `/api/posts/${postId}/comment`,
     body,
   );
   return res.data.data;
 };
 
-// comment like
+// DELETE /api/posts/{postId}/comments/{commentId} (댓글 삭제)
+export const deleteComment = async (postId: string, commentId: string) => {
+  const res = await instance.delete<BaseResponse<null>>(
+    `/api/posts/${postId}/comments/${commentId}`,
+  );
+  return res.data.data;
+};
+
 // PATCH /api/posts/{postId}/comments/{commentId} (댓글 좋아요 토글)
 export const toggleCommentLike = async (postId: string, commentId: string) => {
-  const res = await instance.patch<BaseResponse<any>>(
+  const res = await instance.patch<BaseResponse<null>>(
     `/api/posts/${postId}/comments/${commentId}`,
   );
   return res.data.data;
