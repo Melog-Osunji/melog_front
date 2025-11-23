@@ -15,7 +15,7 @@ dayjs.extend(isBetween);
 
 const SCREEN_W = Dimensions.get('window').width;
 
-const CATEGORIES = ['전체', '연극', '뮤지컬', '오페라', '음악', '콘서트', '국악', '무용', '전시', '기타'];
+const CATEGORIES = Object.keys(KOR_TO_SERVER);
 
 function CalenderHomeScreen() {
   const today = dayjs();
@@ -24,15 +24,15 @@ function CalenderHomeScreen() {
   const [selectedDate, setSelectedDate] = useState<string | null>(today.format('YYYY-MM-DD'));
 
   const { data, isLoading, isError, refetch, isFetching } = useCalendarMain({});
-  const categoryKey = selectedCategory === '전체' ? null : KOR_TO_SERVER[selectedCategory];
+  const categoryKey = KOR_TO_SERVER[selectedCategory];
   const { data: categoryItems, isFetching: isCategoryFetching } = useCalendarItems(categoryKey ?? '');
 
-
   const weeks = data?.calendar?.weeks ?? [];
-  const items = data?.items ?? [];
+  const items = categoryItems ?? [];
   const markedDates = useMemo(() => buildMarkedDates(weeks), [weeks]);
 
   console.log(markedDates);
+
   const stats = useMemo(() => {
     const total = items.length;
     const bookmarked = items.filter(it => it.bookmarked).length;
@@ -41,8 +41,7 @@ function CalenderHomeScreen() {
   }, [items, markedDates, data?.meta?.alarm]);
 
   const listData = useMemo(() => {
-    const baseItems =
-      selectedCategory === '전체' ? data?.items ?? [] : categoryItems ?? [];
+    const baseItems = categoryItems ?? [];
 
     if (!selectedDate) return baseItems;
 
@@ -117,7 +116,7 @@ function CalenderHomeScreen() {
           <FlatList
             data={listData}
             keyExtractor={(item) => String(item.id)}
-            renderItem={({ item }) => <PerformanceCard data={item} onUpdated={refetch}/>}
+            renderItem={({ item }) => <PerformanceCard data={item} onUpdated={refetch} selectedDate={selectedDate}/>}
             ListHeaderComponent={Header}
             contentContainerStyle={{ paddingBottom: 60 }}
             scrollEnabled={listScrollEnabled}

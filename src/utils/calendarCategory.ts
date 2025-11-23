@@ -1,4 +1,5 @@
 export const KOR_TO_SERVER: Record<string, string> = {
+  전체: 'ALL',
   연극: 'THEATER',
   뮤지컬: 'MUSICAL',
   오페라: 'OPERA',

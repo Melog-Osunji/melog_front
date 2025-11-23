@@ -35,6 +35,7 @@ export type CalendarItem = {
   endDateTime: string;
   dday: number;
   bookmarked: boolean;
+  eventId?: string;
 };
 
 export type CalendarMainDTO = {
@@ -49,14 +50,6 @@ export type SaveScheduleRequest = {
   eventDate: string;      // "YYYY-MM-DD"
   schedule: boolean;      // 일정 북마크 on/off
   alarm: boolean;         // 알림 on/off
-  alarmTime?: string;     // "HH:mm" (alarm=true일 때 권장)
-  detailUrl: string;
-  title: string;
-  classification: string;
-  region: string;
-  startDate: string;
-  endDate: string;
-  imageUrl: string;
 };
 
 export type DeleteScheduleRequest = {
