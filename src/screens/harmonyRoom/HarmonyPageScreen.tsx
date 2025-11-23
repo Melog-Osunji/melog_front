@@ -237,7 +237,15 @@ export default function HarmonyPageScreen() {
                     <Pressable onPress={handlePress}>
                         <View style={styles.nameAndTag}>
                             <View style={styles.wrap}>
-                                <Image source={{uri: headerImg}} style={styles.roomImg}/>
+                                <LinearGradient
+                                    colors={['#64C0E6', '#68E5E5']}
+                                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                                    style={styles.circleGradient}
+                                >
+                                  <View style={styles.circleInner}>
+                                    <Image source={{uri: headerImg}} style={styles.roomImg}/>
+                                  </View>
+                                </LinearGradient>
                                 <View style={styles.roomInfo}>
                                     <View style={styles.nameWrap}>
                                         <Text style={styles.name}>{headerName}</Text>
@@ -402,6 +410,24 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+    },
+    circleGradient: {
+        width: 84,
+        height: 84,
+        borderRadius: 84 / 2,
+        padding: 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+    },
+    circleInner: {
+        width: 80,      // ← 내부 원 실제 크기
+        height: 80,
+        borderRadius: 80 / 2, // ← 정확한 반지름
+        overflow: 'hidden',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
     },
     roomImg: {
         width: 84,

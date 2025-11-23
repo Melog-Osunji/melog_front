@@ -259,11 +259,11 @@ const styles = StyleSheet.create({
   myInfoWrap2:{
     width: '100%',
     paddingVertical:16,
-//     paddingHorizontal: 20,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 24,
+    gap: 32,
   },
   followWrap: {
     flexDirection: 'row',
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignSelf: 'stretch',
     alignItems: 'stretch',
-    gap: 8,
+    gap: 12,
   },
   button: {
     alignSelf: 'stretch',
