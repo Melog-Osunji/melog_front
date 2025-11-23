@@ -58,6 +58,11 @@ const SearchResultHarmonyTab: React.FC<Props> = ({keyword}) => {
 };
 
 const styles = StyleSheet.create({
+  center:{
+    marginTop: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   content: {
     paddingHorizontal: 20,
   },
