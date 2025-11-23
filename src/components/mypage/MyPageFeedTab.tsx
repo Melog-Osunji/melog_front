@@ -61,6 +61,11 @@ const MyPageFeedTab = () => {
 };
 
 const styles = StyleSheet.create({
+  center: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 32,
+  },
   content: {
    flex: 1,
    width: SCREEN_W,
