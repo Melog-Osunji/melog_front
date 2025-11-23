@@ -153,7 +153,7 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
           }
         />
         <View style={styles.writeButton}>
-          <IconButton<PostStackParamList>
+          <IconButton
             imageSource={require('@/assets/icons/post/Write.png')}
             target={[postNavigations.POST_CREATE]}
             size={72}

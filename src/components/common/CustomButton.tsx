@@ -98,7 +98,6 @@ const styles = StyleSheet.create({
   small: {
     paddingVertical: 6,
     paddingHorizontal: 16,
-    width: 72,
     height: 36,
     justifyContent: 'center',
     flexDirection: 'row',

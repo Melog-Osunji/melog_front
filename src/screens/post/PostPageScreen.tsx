@@ -22,11 +22,11 @@ import PostStats from '@/components/post/PostStats';
 import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
 import {useDeleteComment} from '@/hooks/queries/post/usePostMutations';
 import CommentList from '@/components/post/postpage/CommentList';
-import CommentItem from '@/components/post/postpage/CommentItem';
 import CommentBar from '@/components/post/postpage/CommentBar';
 import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
-import PostOptionsSheet from '@/components/post/PostOptionsSheet';
+import CustomButton from '@/components/common/CustomButton';
+//Queries
 import {usePostDetail} from '@/hooks/queries/post/usePostQueries';
 import {usePostComments} from '@/hooks/queries/post/usePostQueries';
 
@@ -98,6 +98,9 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   console.log('[PostPageScreen] 댓글 데이터 로드 완료');
 
   const {post, user} = postData;
+
+  // isFollow을 로컬 state로 선언 (초기값 true), 버튼 클릭 시 토글
+  const [isFollow, setIsFollow] = useState<boolean>(false);
 
   // replyTarget 상태 추가
   const [replyTarget, setReplyTarget] = useState<{
@@ -182,7 +185,14 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
                   <Text style={styles.timeText}>{post.createdAgo}</Text>
                 </View>
               </View>
-              <PostOptionsSheet user={user} postId={post.id} />
+              <CustomButton
+                label={isFollow ? '언팔로우' : '팔로우'}
+                size="small"
+                onPress={() => {
+                  setIsFollow(prev => !prev);
+                }}
+                inValid={isFollow}
+              />
             </View>
 
             {/* 본문 */}
