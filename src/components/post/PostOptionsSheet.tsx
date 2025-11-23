@@ -27,7 +27,7 @@ function PostOptionsSheet({
   onFollow,
   onHide,
   onBlock,
-  onReport,
+  onReport, // <- ensure this prop exists
 }: Props) {
   const targetUserId = user?.id ?? userId;
   const targetNick = user?.nickName ?? '';
@@ -129,7 +129,7 @@ function PostOptionsSheet({
           onBlock?.(targetUserId);
           setBlockPopupVisible(false);
           handleClose();
-          showToast(`${targetNick}님을 차단했어요`, 'success');
+          showToast(`${targetNick}님을 차단했습니다`, 'success');
         }}
         iconImg={require('@/assets/icons/common/error_red.png')}
         title={`${targetNick}님을 차단할까요?`}
@@ -148,8 +148,9 @@ function PostOptionsSheet({
         visible={reportVisible}
         onClose={() => setReportVisible(false)}
         onReport={(reason: string) => {
-          // PostReportSheet에서 reason을 받으면 부모 콜백에 postId 전달
+          setReportVisible(false);
           onReport?.(postId);
+          showToast('신고가 접수되었습니다.', 'success');
         }}
       />
     </>

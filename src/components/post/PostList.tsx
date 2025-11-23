@@ -5,16 +5,27 @@ import {PostWithUserDTO} from '@/types';
 
 interface PostListProps {
   data: PostWithUserDTO[];
-  ListHeaderComponent?:
-    | React.ComponentType<any>
-    | React.ReactElement
-    | null
-    | undefined;
+  ListHeaderComponent?: React.ReactNode;
+  onHide?: (postId: string) => void;
+  onBlock?: (userId: string) => void;
+  onReport?: (postId: string) => void;
 }
 
-function PostList({data, ListHeaderComponent}: PostListProps) {
+function PostList({
+  data,
+  ListHeaderComponent,
+  onHide,
+  onBlock,
+  onReport,
+}: PostListProps) {
   const renderItem: ListRenderItem<PostWithUserDTO> = ({item}) => (
-    <PostCard post={item.post} user={item.user} />
+    <PostCard
+      post={item.post}
+      user={item.user}
+      onHide={onHide}
+      onBlock={onBlock}
+      onReport={onReport}
+    />
   );
 
   return (

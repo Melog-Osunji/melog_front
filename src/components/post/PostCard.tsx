@@ -26,9 +26,12 @@ type PostCardNavigationProp = StackNavigationProp<PostStackParamList>;
 type PostCardProps = {
   post: PostDTO;
   user: UserDTO;
+  onHide?: (postId: string) => void;
+  onBlock?: (userId: string) => void;
+  onReport?: (postId: string) => void;
 };
 
-function PostCard({post, user}: PostCardProps) {
+function PostCard({post, user, onHide, onBlock, onReport}: PostCardProps) {
   const {user: authUser} = useAuthContext();
   //navigation
   const navigation = useNavigation<PostCardNavigationProp>();
@@ -93,7 +96,13 @@ function PostCard({post, user}: PostCardProps) {
             // onPress opens confirm popup; actual deletion runs when popup "삭제" pressed
             <PostOptionsBtn onPress={() => setConfirmVisible(true)} />
           ) : (
-            <PostOptionsSheet user={user} postId={post.id} />
+            <PostOptionsSheet
+              user={user}
+              postId={post.id}
+              onHide={pid => onHide?.(pid)}
+              onBlock={uid => onBlock?.(uid)}
+              onReport={pid => onReport?.(pid)}
+            />
           )}
         </View>
 
