@@ -6,7 +6,7 @@ import {PostWithUserDTO} from '@/types';
 interface PostListProps {
   data: PostWithUserDTO[];
   ListHeaderComponent?: React.ReactNode;
-  onHide?: (postId: string) => void;
+  onHide?: (userId: string) => void;
   onBlock?: (userId: string) => void;
   onReport?: (postId: string) => void;
 }
@@ -22,7 +22,7 @@ function PostList({
     <PostCard
       post={item.post}
       user={item.user}
-      onHide={onHide}
+      onHide={onHide} // 전달: PostCard에서 user.id로 호출
       onBlock={onBlock}
       onReport={onReport}
     />

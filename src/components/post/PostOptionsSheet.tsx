@@ -5,6 +5,7 @@ import IconButton from '@/components/common/IconButton';
 import {colors} from '@/constants';
 import type {UserDTO} from '@/types';
 import {useFollowUser} from '@/hooks/queries/User/useUserMutations';
+import {useHidePost} from '@/hooks/queries/post/usePostMutations'; // added
 import CheckPopup from '@/components/common/CheckPopup';
 import {showToast} from '@/components/common/ToastService';
 import PostReportSheet from '@/components/post/PostReportSheet'; // 추가
@@ -34,8 +35,12 @@ function PostOptionsSheet({
 
   const [visible, setVisible] = useState(false);
   const [blockPopupVisible, setBlockPopupVisible] = useState(false);
-  const [reportVisible, setReportVisible] = useState(false); // 추가
+  const [reportVisible, setReportVisible] = useState(false);
   const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
+
+  // hide mutation
+  const {mutate: hidePostMutate, isLoading: isHiding} = useHidePost();
+
   const handleClose = () => setVisible(false);
 
   return (
@@ -48,6 +53,7 @@ function PostOptionsSheet({
 
       <BottomSheet visible={visible} onClose={handleClose} height="40%">
         <View style={styles.sheet}>
+          {/* follow button (unchanged) */}
           <TouchableOpacity
             style={styles.row}
             onPress={() => {
@@ -73,12 +79,23 @@ function PostOptionsSheet({
             <Text style={styles.label}>{targetNick}님 팔로우하기</Text>
           </TouchableOpacity>
 
+          {/* hide post -> call hide API then parent callback on success */}
           <TouchableOpacity
             style={styles.row}
             onPress={() => {
-              onHide?.(postId);
-              handleClose();
-            }}>
+              hidePostMutate(postId, {
+                onSuccess: () => {
+                  onHide?.(postId);
+                  handleClose();
+                  showToast('해당 피드를 숨겼습니다.', 'success');
+                },
+                onError: err => {
+                  console.error('[PostOptionsSheet] hide post error:', err);
+                  showToast('피드 숨기기에 실패했습니다.', 'error');
+                },
+              });
+            }}
+            disabled={isHiding}>
             <Image
               source={require('@/assets/icons/post/Hide.png')}
               style={styles.icon}
@@ -86,6 +103,7 @@ function PostOptionsSheet({
             <Text style={styles.label}>이 피드 숨기기</Text>
           </TouchableOpacity>
 
+          {/* block and report rows unchanged */}
           <TouchableOpacity
             style={styles.row}
             onPress={() => {
@@ -101,7 +119,6 @@ function PostOptionsSheet({
           <TouchableOpacity
             style={styles.row}
             onPress={() => {
-              // 옵션 시트 닫고 신고 시트 열기
               handleClose();
               setTimeout(() => setReportVisible(true), 80);
             }}>
@@ -114,7 +131,7 @@ function PostOptionsSheet({
         </View>
       </BottomSheet>
 
-      {/* popup */}
+      {/* existing popups/sheets unchanged */}
       <CheckPopup
         visible={blockPopupVisible}
         onExit={() => setBlockPopupVisible(false)}
@@ -143,7 +160,6 @@ function PostOptionsSheet({
         rightBtnBorderColor={colors.RED_300}
       />
 
-      {/* 신고 바텀시트 */}
       <PostReportSheet
         visible={reportVisible}
         onClose={() => setReportVisible(false)}

@@ -6,6 +6,7 @@ import {
   toggleCommentLike,
   deletePost,
   deleteComment,
+  hidePost,
 } from '@/api/post/postPostApi';
 import {addPostBookmark} from '@/api/post/postPostApi';
 import {POST_QUERY_KEYS} from './usePostQueries';
@@ -192,7 +193,7 @@ export const useDeleteComment = () => {
       });
 
       // also try removing from posts list caches (reduce commentCount)
-      qc.setQueriesData({ queryKey: POST_QUERY_KEYS.posts }, (old: any) => {
+      qc.setQueriesData({queryKey: POST_QUERY_KEYS.posts}, (old: any) => {
         if (!old) return old;
         try {
           if (Array.isArray(old)) {
@@ -236,6 +237,62 @@ export const useDeleteComment = () => {
     onSettled: (_data, _error, variables) => {
       qc.invalidateQueries({queryKey: ['post', 'comments', variables.postId]});
       qc.invalidateQueries({queryKey: POST_QUERY_KEYS.posts});
+    },
+  });
+};
+
+// useHidePost: 피드(게시글) 숨기기
+export const useHidePost = () => {
+  const qc = useQueryClient();
+  return useMutation<null, Error, string>({
+    mutationFn: (postId: string) => hidePost(postId),
+    onMutate: async postId => {
+      await qc.cancelQueries({queryKey: POST_QUERY_KEYS.posts});
+      const previous = qc.getQueriesData({queryKey: POST_QUERY_KEYS.posts});
+
+      // optimistic: remove the post from cached lists
+      qc.setQueriesData({queryKey: POST_QUERY_KEYS.posts}, (old: any) => {
+        if (!old) return old;
+        try {
+          if (Array.isArray(old)) {
+            return old.filter((item: any) => {
+              const id = item?.post?.id ?? item?.id ?? null;
+              return id !== postId;
+            });
+          }
+          if (old.pages) {
+            return {
+              ...old,
+              pages: old.pages.map((page: any) =>
+                (page || []).filter((p: any) => {
+                  const id = p?.post?.id ?? p?.id ?? null;
+                  return id !== postId;
+                }),
+              ),
+            };
+          }
+        } catch (e) {
+          // noop
+        }
+        return old;
+      });
+
+      return {previous};
+    },
+    onError: (_err, _variables, context: any) => {
+      // rollback
+      if (context?.previous) {
+        context.previous.forEach(([key, data]: any) => {
+          qc.setQueryData(key, data);
+        });
+      }
+    },
+    onSettled: (_data, _error, _variables) => {
+      qc.invalidateQueries({queryKey: POST_QUERY_KEYS.posts});
+      qc.invalidateQueries({queryKey: MY_PAGE_QK});
+    },
+    onSuccess: () => {
+      // no-op; parent components may handle UI/toast
     },
   });
 };
