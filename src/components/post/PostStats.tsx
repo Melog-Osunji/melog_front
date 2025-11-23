@@ -73,6 +73,7 @@ const PostStats = ({
   const handleBookmarkPress = () => {
     const prev = isBookmarked;
     setIsBookmarked(!prev);
+    showToast('피드를 저장에 실패했어요 (임시)', 'error');
 
     toggleBookmarkMutation.mutate(postId, {
       onSuccess: data => {
@@ -82,9 +83,9 @@ const PostStats = ({
         }
       },
       onError: err => {
+        showToast('피드를 저장에 실패했어요.', 'error');
         console.error('[PostStats] 북마크 실패:', err);
         setIsBookmarked(prev);
-        showToast('피드를 저장에 실패했어요.', 'error');
       },
     });
   };

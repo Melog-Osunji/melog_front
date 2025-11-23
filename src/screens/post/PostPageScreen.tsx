@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 import PostStats from '@/components/post/PostStats';
 import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
 import CommentList from '@/components/post/postpage/CommentList';
+import CommentItem from '@/components/post/postpage/CommentItem';
 import CommentBar from '@/components/post/postpage/CommentBar';
 import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
@@ -79,6 +80,45 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   console.log('[PostPageScreen] 댓글 데이터 로드 완료');
 
   const {post, user} = postData;
+
+  // replyTarget 상태 추가
+  const [replyTarget, setReplyTarget] = useState<{
+    id: string;
+    nickname: string;
+  } | null>(null);
+
+  const handleReply = useCallback((target: {id: string; nickname: string}) => {
+    console.log('[PostPageScreen] handleReply', target);
+    setReplyTarget(target);
+  }, []);
+
+  const handleCancelReply = useCallback(() => {
+    console.log('[PostPageScreen] cancelReply');
+    setReplyTarget(null);
+  }, []);
+
+  // 댓글 전송 핸들러 (필요시 서버 전송 로직 연결)
+  const handleSendComment = useCallback(
+    (text: string, reply?: {id: string; nickname: string} | null) => {
+      console.log('[PostPageScreen] send comment', {text, reply});
+      // ...existing createComment 호출 또는 mutate 연결...
+      // 예: createComment.mutate({ postId: route.params.postId, content: text, responseTo: reply?.id ?? null })
+      setReplyTarget(null);
+    },
+    [route.params.postId],
+  );
+
+  const renderComment = useCallback(
+    ({item}) => (
+      <CommentItem
+        comment={item}
+        postId={route.params.postId}
+        onReply={handleReply} // 부모로 전달
+      />
+    ),
+    [handleReply, route.params.postId],
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <GradientBg>
@@ -175,8 +215,11 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
             ) : commentsData ? (
               <CommentList
                 commentsData={commentsData}
-                totalCommentCount={post.commentCount || 0}
+                totalCommentCount={
+                  post.commentCount ?? commentsData.comments?.length ?? 0
+                }
                 postId={postId}
+                onReply={handleReply} // 전달
               />
             ) : null}
           </View>
@@ -196,9 +239,9 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
         {/* 댓글 입력 바 */}
         <CommentBar
           postId={postId}
-          onSend={(text: string) => {
-            console.log('[PostPageScreen] onSend comment:', text);
-          }}
+          replyTarget={replyTarget} // 전달
+          onCancelReply={handleCancelReply} // 전달
+          onSend={handleSendComment} // 전달
         />
       </GradientBg>
     </SafeAreaView>
