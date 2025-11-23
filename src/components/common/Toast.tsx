@@ -33,9 +33,10 @@ function Toast({
   onHide,
   position = 'top',
   offset = 82,
-}) => {
+}: ToastProps) {
   // 애니메이션 방향
-  const initialTranslate = position === 'top' ? -100 : 'onTop'? -100 : 100;
+  const initialTranslate =
+    position === 'top' || position === 'onTop' ? -100 : 100;
   const translateY = useRef(new Animated.Value(initialTranslate)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
