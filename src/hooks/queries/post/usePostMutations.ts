@@ -192,7 +192,7 @@ export const useDeleteComment = () => {
       });
 
       // also try removing from posts list caches (reduce commentCount)
-      qc.setQueriesData(POST_QUERY_KEYS.posts, (old: any) => {
+      qc.setQueriesData({ queryKey: POST_QUERY_KEYS.posts }, (old: any) => {
         if (!old) return old;
         try {
           if (Array.isArray(old)) {

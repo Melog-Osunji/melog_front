@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Image, Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
 import {PostDTO, UserDTO} from '@/types';
@@ -9,6 +9,7 @@ import PostStats from '@/components/post/PostStats';
 import PostOptionsSheet from '@/components/post/PostOptionsSheet';
 import PostOptionsBtn from '@/components/post/PostOptionsBtn';
 import {useDeletePost} from '@/hooks/queries/post/usePostMutations';
+import CheckPopup from '@/components/common/CheckPopup';
 //navigation
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -32,6 +33,9 @@ function PostCard({post, user}: PostCardProps) {
   //navigation
   const navigation = useNavigation<PostCardNavigationProp>();
   const deletePostMutation = useDeletePost();
+
+  // confirm modal visible state
+  const [confirmVisible, setConfirmVisible] = useState(false);
 
   const handlePostDelete = (postId: string) => {
     deletePostMutation.mutate(postId, {
@@ -61,78 +65,104 @@ function PostCard({post, user}: PostCardProps) {
   };
 
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={handlePress}
-      activeOpacity={0.9}
-      delayPressIn={0}>
-      {/* 사용자 정보 */}
-      <View style={styles.header}>
-        <View style={styles.userWrapper}>
-          <Image
-            source={
-              user?.profileImg
-                ? {uri: user.profileImg}
-                : require('@/assets/icons/common/EmptyProfile.png')
-            }
-            style={styles.profileImage}
-          />
-          <View style={styles.userInfo}>
-            <Text style={styles.nickName}>{user.nickName}</Text>
-            {post.createdAgo && (
-              <Text style={styles.timeText}>{post.createdAgo}</Text>
-            )}
+    <>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={handlePress}
+        activeOpacity={0.9}
+        delayPressIn={0}>
+        {/* 사용자 정보 */}
+        <View style={styles.header}>
+          <View style={styles.userWrapper}>
+            <Image
+              source={
+                user?.profileImg
+                  ? {uri: user.profileImg}
+                  : require('@/assets/icons/common/EmptyProfile.png')
+              }
+              style={styles.profileImage}
+            />
+            <View style={styles.userInfo}>
+              <Text style={styles.nickName}>{user.nickName}</Text>
+              {post.createdAgo && (
+                <Text style={styles.timeText}>{post.createdAgo}</Text>
+              )}
+            </View>
           </View>
+          {authUser?.nickName === user.nickName ? (
+            // onPress opens confirm popup; actual deletion runs when popup "삭제" pressed
+            <PostOptionsBtn onPress={() => setConfirmVisible(true)} />
+          ) : (
+            <PostOptionsSheet user={user} postId={post.id} />
+          )}
         </View>
-        {authUser?.nickName === user.nickName ? (
-          <PostOptionsBtn onPress={() => handlePostDelete(post.id)} />
-        ) : (
-          <PostOptionsSheet user={user} postId={post.id} />
+
+        {/* 본문 */}
+        <Text style={styles.content}>{post.content}</Text>
+
+        {/* 태그 */}
+        <View style={styles.tags}>
+          {post.tags.map((tag, index) => (
+            <Text key={index} style={styles.tag}>
+              #{tag}
+            </Text>
+          ))}
+        </View>
+
+        {/* 유튜브 영상 */}
+        {post.mediaUrl &&
+          (post.mediaUrl.includes('youtube.com') ||
+            post.mediaUrl.includes('youtu.be')) && (
+            <YouTubeEmbed url={post.mediaUrl} />
+          )}
+
+        {/* 상태바 */}
+        <PostStats
+          id={post.id}
+          likeCount={post.likeCount}
+          commentCount={post.commentCount}
+        />
+
+        {/* 베스트 댓글 */}
+        {post.bestComment && (
+          <View style={styles.bestCommentContainer}>
+            <Image
+              source={{uri: post.bestComment.profileImg}}
+              style={styles.bestCommentProfileImage}
+            />
+            <Text
+              style={styles.bestCommentContent}
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              {post.bestComment.content}
+            </Text>
+          </View>
         )}
-      </View>
+      </TouchableOpacity>
 
-      {/* 본문 */}
-      <Text style={styles.content}>{post.content}</Text>
-
-      {/* 태그 */}
-      <View style={styles.tags}>
-        {post.tags.map((tag, index) => (
-          <Text key={index} style={styles.tag}>
-            #{tag}
-          </Text>
-        ))}
-      </View>
-
-      {/* 유튜브 영상 */}
-      {post.mediaUrl &&
-        (post.mediaUrl.includes('youtube.com') ||
-          post.mediaUrl.includes('youtu.be')) && (
-          <YouTubeEmbed url={post.mediaUrl} />
-        )}
-
-      {/* 상태바 */}
-      <PostStats
-        id={post.id}
-        likeCount={post.likeCount}
-        commentCount={post.commentCount}
+      {/* 삭제 확인 팝업 */}
+      <CheckPopup
+        visible={confirmVisible}
+        onClose={() => {
+          // 오른쪽 버튼(삭제) 누르면 onClose 호출 -> 실행 후 닫기
+          setConfirmVisible(false);
+          handlePostDelete(post.id);
+        }}
+        onExit={() => {
+          // 왼쪽 버튼(취소)
+          setConfirmVisible(false);
+        }}
+        iconImg={require('@/assets/icons/common/error_red.png')}
+        title={'이 피드를 삭제할까요?'}
+        leftBtnColor={colors.GRAY_50}
+        rightBtnColor={colors.WHITE}
+        leftBtnTextColor={colors.GRAY_500}
+        rightBtnTextColor={colors.ERROR_RED}
+        leftBtnText={'취소'}
+        rightBtnText={'삭제'}
+        rightBtnBorderColor={colors.ERROR_RED}
       />
-
-      {/* 베스트 댓글 */}
-      {post.bestComment && (
-        <View style={styles.bestCommentContainer}>
-          <Image
-            source={{uri: post.bestComment.profileImg}}
-            style={styles.bestCommentProfileImage}
-          />
-          <Text
-            style={styles.bestCommentContent}
-            numberOfLines={1}
-            ellipsizeMode="tail">
-            {post.bestComment.content}
-          </Text>
-        </View>
-      )}
-    </TouchableOpacity>
+    </>
   );
 }
 

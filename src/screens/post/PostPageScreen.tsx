@@ -26,9 +26,11 @@ import CommentBar from '@/components/post/postpage/CommentBar';
 import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
 import CustomButton from '@/components/common/CustomButton';
+import {showToast} from '@/components/common/ToastService';
 //Queries
 import {usePostDetail} from '@/hooks/queries/post/usePostQueries';
 import {usePostComments} from '@/hooks/queries/post/usePostQueries';
+import {useFollowUser} from '@/hooks/queries/User/useUserMutations';
 
 type PostPageScreenProp = StackScreenProps<
   PostStackParamList,
@@ -99,8 +101,11 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
 
   const {post, user} = postData;
 
-  // isFollow을 로컬 state로 선언 (초기값 true), 버튼 클릭 시 토글
+  // isFollow을 로컬 state로 선언 (초기값 false), 버튼 클릭 시 토글
   const [isFollow, setIsFollow] = useState<boolean>(false);
+
+  // follow mutation 훅
+  const followMutation = useFollowUser();
 
   // replyTarget 상태 추가
   const [replyTarget, setReplyTarget] = useState<{
@@ -189,9 +194,25 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
                 label={isFollow ? '언팔로우' : '팔로우'}
                 size="small"
                 onPress={() => {
-                  setIsFollow(prev => !prev);
+                  // 서버에 팔로우/언팔로우 요청 실행
+                  followMutation.mutate(user.id, {
+                    onSuccess: () => {
+                      setIsFollow(prev => !prev);
+                    },
+                    onError: () => {
+                      showToast(
+                        isFollow
+                          ? '언팔로우에 실패했어요.'
+                          : '팔로우에 실패했어요.',
+                        'error',
+                      );
+                    },
+                  });
                 }}
                 inValid={isFollow}
+                style={{
+                  backgroundColor: isFollow ? colors.GRAY_200 : colors.BLUE_400,
+                }}
               />
             </View>
 
