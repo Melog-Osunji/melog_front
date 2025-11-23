@@ -13,7 +13,7 @@ import {introNavigations} from '@/constants';
 import CustomButton from '@/components/common/CustomButton';
 import {colors} from '@/constants';
 import IndicatorProgressBar from '@/components/common/IndicatorProgressBar';
-import Toast from '@/components/common/Toast';
+import Toast, {ToastType} from '@/components/common/Toast';
 import {useAuthContext} from '@/contexts/AuthContext';
 
 type IntroScreenProps = StackScreenProps<
@@ -45,19 +45,27 @@ function Onboarding3Screen({navigation, route}: IntroScreenProps) {
   // 토스트 상태
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<ToastType>('none');
+  const [toastOffSet, setToastOffSet] = useState(0);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setToastVisible(true);
+  const showToast = (message: string, type: ToastType = 'error', offset: number) => {
+      setToastMessage(message);
+      setToastType(type);
+      setToastOffSet(offset)
+      setToastVisible(true);
+  };
+
+  const hideToast = () => {
+      setToastVisible(false);
   };
 
   const toggle = (name: string) => {
-    const has = selected.includes(name);
-    if (!has && selected.length >= MAX) {
-      showToast(`최대 ${MAX}개까지 선택할 수 있어요`);
-      return;
-    }
-    setSelected(prev => (has ? prev.filter(v => v !== name) : [...prev, name]));
+      const has = selected.includes(name);
+      if (!has && selected.length >= MAX) {
+          showToast(`최대 ${MAX}개까지 선택할 수 있어요`, 'middleError', 24);
+          return;
+      }
+      setSelected(prev => has ? prev.filter(v => v !== name) : [...prev, name]);
   };
 
   const renderItem = ({item}: {item: string}) => {
@@ -106,6 +114,7 @@ function Onboarding3Screen({navigation, route}: IntroScreenProps) {
           onPress={() => {
             completeRegistration();
           }}
+          style={{backgroundColor: colors.BLUE_500}}
         />
         <Text
           style={styles.skip}
@@ -116,10 +125,12 @@ function Onboarding3Screen({navigation, route}: IntroScreenProps) {
         </Text>
       </View>
       <Toast
-        message={toastMessage}
-        visible={toastVisible}
-        onHide={() => setToastVisible(false)}
-        duration={2000}
+          message={toastMessage}
+          visible={toastVisible}
+          type={toastType}
+          position="onTop"
+          onHide={hideToast}
+          offset={toastOffSet}
       />
     </View>
   );
@@ -164,7 +175,7 @@ const styles = StyleSheet.create({
   },
   circle: {
     width: (SCREEN_W - 80) / 3,
-    height: (SCREEN_W - 80) / 3,
+    aspectRatio: 1,
     backgroundColor: colors.WHITE,
     borderRadius: 100,
     borderWidth: 1,

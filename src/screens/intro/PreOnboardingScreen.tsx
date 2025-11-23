@@ -125,12 +125,11 @@ function PreOnboardingScreen({navigation, route}: IntroScreenProps) {
       <View style={styles.bottom}>
         {pagination}
 
-        <TouchableOpacity
-          style={styles.primaryBtn}
-          onPress={goNext}
-          activeOpacity={0.9}>
-          <Text style={styles.primaryTxt}>{primaryLabel}</Text>
-        </TouchableOpacity>
+        <CustomButton
+            label="다음"
+            onPress={goNext}
+            style={{backgroundColor: colors.BLUE_500}}
+          />
 
         <TouchableOpacity
           onPress={onSkip}

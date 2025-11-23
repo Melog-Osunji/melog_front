@@ -2,8 +2,8 @@ import React, {useEffect, useRef} from 'react';
 import {View, Text, StyleSheet, Animated, Image} from 'react-native';
 import {colors} from '@/constants';
 
-export type ToastType = 'none' | 'success' | 'error';
-export type ToastPosition = 'top' | 'bottom';
+export type ToastType = 'none' | 'success' | 'error' | 'middleError';
+export type ToastPosition = 'onTop' | 'top' | 'bottom';
 
 interface ToastProps {
   message: string;
@@ -17,11 +17,13 @@ interface ToastProps {
 const iconMap = {
   success: require('@/assets/icons/common/check_circle.png'),
   error: require('@/assets/icons/common/error.png'),
+  middleError: require('@/assets/icons/common/error.png'),
 };
 
 const iconColorMap = {
   success: colors.BLUE_400,
   error: colors.ERROR_RED,
+  middleError: colors.BLUE_400,
 };
 
 const Toast: React.FC<ToastProps> = ({
@@ -33,7 +35,7 @@ const Toast: React.FC<ToastProps> = ({
   offset = 82,
 }) => {
   // 애니메이션 방향
-  const initialTranslate = position === 'top' ? -100 : 100;
+  const initialTranslate = position === 'top' ? -100 : 'onTop'? -100 : 100;
   const translateY = useRef(new Animated.Value(initialTranslate)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -82,7 +84,7 @@ const Toast: React.FC<ToastProps> = ({
 
   // 위치 스타일 동적으로 생성
   const positionStyle =
-    position === 'top'
+    position === 'top' || position === 'onTop'
       ? {
           position: 'absolute' as 'absolute',
           top: offset,
