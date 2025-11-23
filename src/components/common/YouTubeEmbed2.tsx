@@ -2,15 +2,9 @@
 import React from 'react';
 import {View, StyleSheet, Dimensions} from 'react-native';
 import {WebView} from 'react-native-webview';
+import {extractVideoId} from '@/utils';
 
 const {width: screenWidth} = Dimensions.get('window');
-
-const extractYouTubeVideoId = (url: string): string | null => {
-  const regex =
-    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/;
-  const match = url.match(regex);
-  return match ? match[1] : null;
-};
 
 const YouTubeEmbed2 = ({
   url,
@@ -21,14 +15,14 @@ const YouTubeEmbed2 = ({
   borderRadius?: number;
   height?: number;
 }) => {
-  const videoId = extractYouTubeVideoId(url);
+  const videoId = extractVideoId(url);
 
   if (!videoId) return null;
 
-  // 빠른 로딩을 위한 최적화된 YouTube 임베드 URL
   const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&iv_load_policy=3&fs=1&cc_load_policy=0&controls=1&disablekb=0`;
 
-  // 16:9 비율로 높이 계산 (height prop이 있으면 우선 사용)
+  // 16:9 비율로 높이 계산
+  // height prop이 있으면 우선 사용
   const videoHeight = height || (screenWidth / 16) * 9;
 
   return (

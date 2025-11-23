@@ -59,12 +59,14 @@ const LoginScreen = ({navigation}: IntroScreenProps) => {
     <View style={styles.container}>
       <Image
         source={require('@/assets/common/bg_nonedetail.png')}
-        style={StyleSheet.absoluteFillObject}
+        style={[StyleSheet.absoluteFill, {width: '100%', height: '100%'}]}
+        resizeMode="cover"
       />
 
       <Image
-        source={require('@/assets/common/app_name.png')}
+        source={require('@/assets/icons/common/appname.png')}
         style={styles.appLogo}
+        resizeMode="contain"
       />
 
       {/* 글로벌 로딩 오버레이 */}
@@ -100,7 +102,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'transparent',
   },
   appLogo: {
     width: 170,

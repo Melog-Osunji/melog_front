@@ -12,28 +12,24 @@ interface RecommendTagsProps {
   visible: boolean;
   selectedTags: string[];
   onTagSelect: (tag: string) => void;
+  suggestions?: string[]; // 추가: 자동완성 제안
 }
 
 export default function RecommendTags({
   visible,
   selectedTags,
   onTagSelect,
+  suggestions = [],
 }: RecommendTagsProps) {
-  // 사용 가능한 태그들
-  const availableTags = [
-    '드뷔시',
-    '바흐',
-    '쇼팽',
-    '모차르트',
-    '베토벤',
-    '클래식',
-    '피아노',
-    '바이올린',
-    '첼로',
-    '오케스트라',
-  ];
+  // 사용 가능한 태그들 (기본)
+  const baseTags = ['-'];
 
   if (!visible) return null;
+
+  // suggestions를 우선으로, 중복 제거하여 표시
+  const merged = [
+    ...Array.from(new Set([...(suggestions || []), ...baseTags])),
+  ];
 
   return (
     <View style={styles.container}>
@@ -41,10 +37,11 @@ export default function RecommendTags({
         horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.scrollView}
-        contentContainerStyle={styles.content}>
-        {availableTags.map((tag, index) => (
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="always">
+        {merged.map((tag, index) => (
           <TouchableOpacity
-            key={index}
+            key={`${tag}-${index}`}
             style={[
               styles.tagItem,
               selectedTags.includes(tag) && styles.selectedTagItem,

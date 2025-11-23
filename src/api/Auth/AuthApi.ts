@@ -24,7 +24,8 @@ export async function socialLogin(
 ): Promise<SocialLoginResult> {
   const endpoint = PLATFORM_ENDPOINTS[body.platform];
 
-  console.log(`[AuthApi] ${body.platform} 로그인 요청:`, endpoint);
+  console.log(`[AuthApi] ${body.platform} 로그인 요청 endpoint:`, endpoint);
+  console.log(`[AuthApi] ${body.platform} 로그인 요청 body:`, body);
 
   const response = await rawapi.post<SocialLoginResponse>(endpoint, body);
 

@@ -67,3 +67,5 @@ yarn-error.log
 
 #keys
 */config.ts
+.env
+src/config/index.ts

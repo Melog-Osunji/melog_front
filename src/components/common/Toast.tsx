@@ -7,7 +7,7 @@ export type ToastPosition = 'onTop' | 'top' | 'bottom';
 
 interface ToastProps {
   message: string;
-  type?: ToastType;
+  type?: ToastType; //'none' | 'success' | 'error';
   visible: boolean;
   position?: ToastPosition; // 'top' | 'bottom'
   offset?: number; // px 단위
@@ -26,7 +26,7 @@ const iconColorMap = {
   middleError: colors.BLUE_400,
 };
 
-const Toast: React.FC<ToastProps> = ({
+function Toast({
   message,
   type = 'none',
   visible,
@@ -82,7 +82,6 @@ const Toast: React.FC<ToastProps> = ({
     });
   };
 
-  // 위치 스타일 동적으로 생성
   const positionStyle =
     position === 'top' || position === 'onTop'
       ? {
@@ -124,7 +123,7 @@ const Toast: React.FC<ToastProps> = ({
       </Animated.View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   toastContainer: {

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -20,11 +20,13 @@ import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 //components
 import PostStats from '@/components/post/PostStats';
 import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
+import {useDeleteComment} from '@/hooks/queries/post/usePostMutations';
 import CommentList from '@/components/post/postpage/CommentList';
 import CommentBar from '@/components/post/postpage/CommentBar';
 import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
-import PostOptionsSheet from '@/components/post/PostOptionsSheet';
+import CustomButton from '@/components/common/CustomButton';
+//Queries
 import {usePostDetail} from '@/hooks/queries/post/usePostQueries';
 import {usePostComments} from '@/hooks/queries/post/usePostQueries';
 
@@ -50,6 +52,23 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     isLoading: commentsLoading,
     error: commentsError,
   } = usePostComments(postId);
+
+  const deleteCommentMutation = useDeleteComment();
+
+  const handleDeleteComment = (commentId: string) => {
+    deleteCommentMutation.mutate(
+      {postId: route.params.postId, commentId},
+      {
+        onSuccess: () => {
+          console.log('[PostPageScreen] comment deleted', commentId);
+          // optional toast
+        },
+        onError: () => {
+          // optional toast
+        },
+      },
+    );
+  };
 
   // 로딩 상태 처리
   if (postLoading) {
@@ -79,6 +98,37 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   console.log('[PostPageScreen] 댓글 데이터 로드 완료');
 
   const {post, user} = postData;
+
+  // isFollow을 로컬 state로 선언 (초기값 true), 버튼 클릭 시 토글
+  const [isFollow, setIsFollow] = useState<boolean>(false);
+
+  // replyTarget 상태 추가
+  const [replyTarget, setReplyTarget] = useState<{
+    id: string;
+    nickname: string;
+  } | null>(null);
+
+  const handleReply = useCallback((target: {id: string; nickname: string}) => {
+    console.log('[PostPageScreen] handleReply', target);
+    setReplyTarget(target);
+  }, []);
+
+  const handleCancelReply = useCallback(() => {
+    console.log('[PostPageScreen] cancelReply');
+    setReplyTarget(null);
+  }, []);
+
+  // 댓글 전송 핸들러 (필요시 서버 전송 로직 연결)
+  const handleSendComment = useCallback(
+    (text: string, reply?: {id: string; nickname: string} | null) => {
+      console.log('[PostPageScreen] send comment', {text, reply});
+      // ...existing createComment 호출 또는 mutate 연결...
+      // 예: createComment.mutate({ postId: route.params.postId, content: text, responseTo: reply?.id ?? null })
+      setReplyTarget(null);
+    },
+    [route.params.postId],
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <GradientBg>
@@ -132,10 +182,17 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
                 />
                 <View style={styles.userInfo}>
                   <Text style={styles.nickName}>{user.nickName}</Text>
-                  <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
+                  <Text style={styles.timeText}>{post.createdAgo}</Text>
                 </View>
               </View>
-              <PostOptionsSheet user={user} postId={post.id} />
+              <CustomButton
+                label={isFollow ? '언팔로우' : '팔로우'}
+                size="small"
+                onPress={() => {
+                  setIsFollow(prev => !prev);
+                }}
+                inValid={isFollow}
+              />
             </View>
 
             {/* 본문 */}
@@ -156,6 +213,8 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
               likeCount={post.likeCount}
               commentCount={post.commentCount}
               visibleStats={['like', 'share', 'bookmark']}
+              initialIsLiked={post.isLike}
+              initialIsBookmarked={post.isBookmark}
             />
           </View>
 
@@ -173,8 +232,10 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
             ) : commentsData ? (
               <CommentList
                 commentsData={commentsData}
-                totalCommentCount={post.commentCount || 0}
-                postId={postId}
+                totalCommentCount={post?.commentCount ?? 0}
+                postId={route.params.postId}
+                onReply={handleReply}
+                onDelete={handleDeleteComment} // 전달
               />
             ) : null}
           </View>
@@ -194,9 +255,9 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
         {/* 댓글 입력 바 */}
         <CommentBar
           postId={postId}
-          onSend={(text: string) => {
-            console.log('[PostPageScreen] onSend comment:', text);
-          }}
+          replyTarget={replyTarget} // 전달
+          onCancelReply={handleCancelReply} // 전달
+          onSend={handleSendComment} // 전달
         />
       </GradientBg>
     </SafeAreaView>
@@ -230,7 +291,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   nickname: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   postContainer: {

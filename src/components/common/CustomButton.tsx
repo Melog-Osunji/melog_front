@@ -16,6 +16,7 @@ interface CustomButtonProps extends PressableProps {
   variant?: 'filled' | 'outlined';
   size?: 'large' | 'medium' | 'small';
   inValid?: boolean;
+  inValidStyle?: StyleProp<ViewStyle>; // 추가: 비활성 상태 전체 스타일 지정
   style?:
     | StyleProp<ViewStyle>
     | ((state: {pressed: boolean}) => StyleProp<ViewStyle>); // 명시적으로 View 스타일만, 함수 타입도 허용
@@ -28,6 +29,7 @@ export default function CustomButton({
   variant = 'filled',
   size = 'large',
   inValid = false,
+  inValidStyle,
   style: externalStyle,
   ...props
 }: CustomButtonProps) {
@@ -40,7 +42,8 @@ export default function CustomButton({
           styles.container,
           styles[size],
           state.pressed ? styles[`${variant}Pressed`] : styles[variant],
-          inValid && styles.inValid,
+          // inValid일 때 inValidStyle이 있으면 그걸 우선, 없으면 기본 styles.inValid 사용
+          inValid && (inValidStyle ? inValidStyle : styles.inValid),
         ];
         // 부모가 style을 함수로 준 경우 pressed 상태를 전달해서 결과를 병합
         const ext =
@@ -95,7 +98,6 @@ const styles = StyleSheet.create({
   small: {
     paddingVertical: 6,
     paddingHorizontal: 16,
-    width: 72,
     height: 36,
     justifyContent: 'center',
     flexDirection: 'row',

@@ -2,14 +2,23 @@ import React from 'react';
 import {Image, Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
 import {PostDTO, UserDTO} from '@/types';
+import {useAuthContext} from '@/contexts/AuthContext';
+//components
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
 import PostStats from '@/components/post/PostStats';
 import PostOptionsSheet from '@/components/post/PostOptionsSheet';
-
+import PostOptionsBtn from '@/components/post/PostOptionsBtn';
+import {useDeletePost} from '@/hooks/queries/post/usePostMutations';
+//navigation
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
-import {postNavigations, myPageNavigations, harmonyNavigations} from '@/constants';
+import {
+  postNavigations,
+  myPageNavigations,
+  harmonyNavigations,
+} from '@/constants';
+import {showToast} from '../common/ToastService';
 
 type PostCardNavigationProp = StackNavigationProp<PostStackParamList>;
 
@@ -19,7 +28,22 @@ type PostCardProps = {
 };
 
 function PostCard({post, user}: PostCardProps) {
+  const {user: authUser} = useAuthContext();
+  //navigation
   const navigation = useNavigation<PostCardNavigationProp>();
+  const deletePostMutation = useDeletePost();
+
+  const handlePostDelete = (postId: string) => {
+    deletePostMutation.mutate(postId, {
+      onSuccess: () => {
+        console.log('[PostCard] post deleted:', postId);
+        showToast('포스트가 삭제되었습니다.', 'success');
+      },
+      onError: () => {
+        showToast('포스트 삭제에 실패했습니다.', 'error');
+      },
+    });
+  };
 
   const handlePress = () => {
     const routes = navigation.getState()?.routeNames ?? [];
@@ -29,7 +53,7 @@ function PostCard({post, user}: PostCardProps) {
       navigation.navigate('MYPAGE_POST_PAGE', { postId: post.id });
     } else {
       // ✅ 그 외엔 기본 포스트 페이지로 이동
-      navigation.navigate(postNavigations.POST_PAGE, { postId: post.id });
+      navigation.navigate(postNavigations.POST_PAGE, {postId: post.id});
     }
   };
 
@@ -45,17 +69,23 @@ function PostCard({post, user}: PostCardProps) {
           <Image
             source={
               user?.profileImg
-                ? { uri: user.profileImg }
+                ? {uri: user.profileImg}
                 : require('@/assets/icons/common/EmptyProfile.png')
             }
             style={styles.profileImage}
           />
           <View style={styles.userInfo}>
             <Text style={styles.nickName}>{user.nickName}</Text>
-            <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
+            {post.createdAgo && (
+              <Text style={styles.timeText}>{post.createdAgo}</Text>
+            )}
           </View>
         </View>
-        <PostOptionsSheet user={user} postId={post.id} />
+        {authUser?.nickName === user.nickName ? (
+          <PostOptionsBtn onPress={() => handlePostDelete(post.id)} />
+        ) : (
+          <PostOptionsSheet user={user} postId={post.id} />
+        )}
       </View>
 
       {/* 본문 */}
@@ -87,10 +117,10 @@ function PostCard({post, user}: PostCardProps) {
       {/* 베스트 댓글 */}
       {post.bestComment && (
         <View style={styles.bestCommentContainer}>
-          {/* <Image
+          <Image
             source={{uri: post.bestComment.profileImg}}
             style={styles.bestCommentProfileImage}
-          /> */}
+          />
           <Text
             style={styles.bestCommentContent}
             numberOfLines={1}
@@ -132,6 +162,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   nickName: {
+    fontSize: 14,
     fontWeight: 'bold',
     color: colors.BLACK,
   },

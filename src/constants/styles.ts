@@ -8,7 +8,7 @@ export const socialLoginButtons: SocialLoginButtonType[] = [
     backgroundColor: '#fff',
     textColor: '#444',
     borderColor: '#eee',
-    enabled: false, // 나중에 true로 변경
+    enabled: true,
   },
   {
     key: 'KAKAO',
@@ -24,6 +24,6 @@ export const socialLoginButtons: SocialLoginButtonType[] = [
     text: '네이버로 로그인하기',
     backgroundColor: '#03C75A',
     textColor: '#fff',
-    enabled: false, // 나중에 true로 변경
+    enabled: true,
   },
 ];

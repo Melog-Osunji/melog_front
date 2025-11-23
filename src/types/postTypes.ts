@@ -7,11 +7,13 @@ export type PostDTO = {
   mediaType: string;
   mediaUrl: string;
   tags: string[];
-  createdAgo: number;
+  createdAgo?: number;
   likeCount: number;
   hiddenUser?: string[];
   commentCount: number;
   bestComment?: BestCommentDTO;
+  isLike?: boolean;
+  isBookmark?: boolean;
 };
 
 export type PostWithUserDTO = {
@@ -39,6 +41,7 @@ export type UserDTO = {
 export interface CommentDTO {
   id: string;
   userID: string;
+  nickname?: string;
   profileUrl: string;
   content: string;
   likes: number;
@@ -49,7 +52,11 @@ export type CommentsDTO = {
   comments: CommentDTO[];
 };
 
-export type BestCommentDTO = Pick<CommentDTO, 'userID' | 'content'>;
+export type BestCommentDTO = {
+  userID: string;
+  content: string;
+  profileImg: string;
+};
 
 // feed
 export type FeedId = 'popular' | 'follow' | 'recommend';

@@ -3,7 +3,7 @@ import {
   fetchPostsByFeedId,
   fetchPostDetail,
   fetchPostComments,
-} from '@/api/post/postApiGet';
+} from '@/api/post/postGetApi';
 import type {PostsDTO, PostWithUserDTO, CommentsDTO} from '@/types';
 import type {FeedId} from '@/types';
 
