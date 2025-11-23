@@ -15,6 +15,7 @@ import {IntroStackParamList} from '@/navigations/stack/IntroStackNavigator';
 import {introNavigations} from '@/constants';
 import {useUpdateUserProfile} from '@/hooks/queries/User/useUserMutations';
 import {showToast} from '@/components/common/ToastService';
+import {useCheckNickname} from '@/hooks/queries/User/useUserQueries';
 
 type InitProfileScreenProps = StackScreenProps<
   IntroStackParamList,
@@ -26,6 +27,7 @@ function InitProfileNicknameScreen({
   route,
 }: InitProfileScreenProps) {
   const [nickname, setNickname] = useState('');
+  // checked === true means "닉네임 사용 가능(중복 아님)"
   const [checked, setChecked] = useState(false);
   // 서버에 업로드되어 API 호출 시 사용할 값 (uploadedImageUrl)
   const uploadedImageUrl = (route as any)?.params?.uploadedImageUrl ?? null;
@@ -33,6 +35,9 @@ function InitProfileNicknameScreen({
   const selectedImage = (route as any)?.params?.selectedImage ?? null;
 
   const updateProfile = useUpdateUserProfile();
+
+  // 닉네임 중복 조회 훅 (disabled 상태, 버튼 클릭 시 refetch)
+  const nicknameQuery = useCheckNickname(nickname);
 
   // 조건 변수화
   const isInvalidChar =
@@ -42,7 +47,7 @@ function InitProfileNicknameScreen({
   const hasError = isInvalidChar || isTooLong;
 
   const handleNext = () => {
-    if (!nickname || hasError || isTooShort) {
+    if (!nickname || hasError || isTooShort || !checked) {
       console.log(
         '[InitProfileNicknameScreen.tsx] invalid nickname, cannot submit',
       );
@@ -71,6 +76,29 @@ function InitProfileNicknameScreen({
         );
       },
     });
+  };
+
+  // 중복확인 버튼 핸들러
+  const handleCheckDuplicate = async () => {
+    if (!nickname || hasError || isTooShort) {
+      showToast('닉네임 형식을 확인해 주세요.', 'error', 'top', 30);
+      setChecked(false);
+      return;
+    }
+    try {
+      const {data} = await nicknameQuery.refetch();
+      const exists = data?.exists ?? false;
+      if (exists) {
+        setChecked(false);
+        showToast('이미 사용 중인 닉네임입니다.', 'error', 'top', 30);
+      } else {
+        setChecked(true);
+        showToast('사용 가능한 닉네임입니다.', 'success', 'top', 30);
+      }
+    } catch (err) {
+      showToast('중복 확인에 실패했습니다.', 'error', 'top', 30);
+      setChecked(false);
+    }
   };
 
   return (
@@ -135,17 +163,11 @@ function InitProfileNicknameScreen({
                 {opacity: nickname ? 1 : 0, top: hasError ? 8 : 6},
               ]}
               activeOpacity={0.7}
-              disabled={!nickname}
-              onPress={() => {
-                if (!hasError && nickname) {
-                  setChecked(true);
-                  showToast('중복확인 되었습니다!', 'success', 'top', 30);
-                } else {
-                  setChecked(false);
-                }
-              }}>
-              <Text style={styles.duplicate_btn_text}>중복확인</Text>
-              {/* ++ 나중에  중복확인요청 로직 작성 */}
+              disabled={!nickname || nicknameQuery.isFetching}
+              onPress={handleCheckDuplicate}>
+              <Text style={styles.duplicate_btn_text}>
+                {nicknameQuery.isFetching ? '확인중...' : '중복확인'}
+              </Text>
             </TouchableOpacity>
           </View>
           {isInvalidChar && (
@@ -161,7 +183,8 @@ function InitProfileNicknameScreen({
       <CustomButton
         label="시작하기"
         onPress={handleNext}
-        inValid={!nickname || hasError || isTooShort}
+        // 활성화 조건: 닉네임 존재, 형식 에러 없음, 길이 조건 만족, 그리고 checked === true (사용 가능)
+        inValid={!nickname || hasError || isTooShort || !checked}
       />
     </View>
   );

@@ -66,11 +66,11 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
 
   // replyTarget 상태 (항상 선언)
   const [replyTarget, setReplyTarget] = useState<{
-    id: string;
+    commentId: string;
     nickname: string;
   } | null>(null);
 
-  const handleReply = useCallback((target: {id: string; nickname: string}) => {
+  const handleReply = useCallback((target: {commentId: string; nickname: string}) => {
     console.log('[PostPageScreen] handleReply', target);
     setReplyTarget(target);
   }, []);
@@ -82,7 +82,7 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
 
   // 댓글 전송 핸들러
   const handleSendComment = useCallback(
-    (text: string, reply?: {id: string; nickname: string} | null) => {
+    (text: string, reply?: {commentId: string; nickname: string} | null) => {
       console.log('[PostPageScreen] send comment', {text, reply});
       setReplyTarget(null);
     },

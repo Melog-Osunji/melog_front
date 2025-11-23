@@ -57,7 +57,7 @@ function PostCard({post, user, onHide, onBlock, onReport}: PostCardProps) {
 
     if (routes.includes(myPageNavigations.MYPAGE_HOME)) {
       // ✅ 마이페이지 스택 내에 있으면
-      navigation.navigate('MYPAGE_POST_PAGE', { postId: post.id });
+      navigation.navigate('MYPAGE_POST_PAGE', {postId: post.id});
     } else {
       // ✅ 그 외엔 기본 포스트 페이지로 이동
       navigation.navigate(postNavigations.POST_PAGE, {postId: post.id});

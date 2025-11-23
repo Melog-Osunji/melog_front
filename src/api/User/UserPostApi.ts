@@ -71,6 +71,15 @@ export const updateUserProfile = async (
   }
 };
 
+// 닉네임 중복 조회
+export const checkNicknameExists = async (nickname: string) => {
+  const res = await instance.get<BaseResponse<{exists: boolean}>>(
+    `/api/users/nickname/exist`,
+    {params: {nickname}},
+  );
+  return res.data.data;
+};
+
 // #3) 팔로우 / 언팔로우
 // POST /api/users/following (유저 팔로우/언팔로우)
 export const postUserFollowing = async (
