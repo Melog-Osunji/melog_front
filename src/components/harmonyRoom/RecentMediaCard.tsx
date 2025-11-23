@@ -14,6 +14,7 @@ import YouTubeEmbed from '@/components/YouTubeEmbed';
 import {RecentHarmonyRoom} from '@/constants/types';
 import {harmonyRoomNavigation} from '@/constants';
 import {colors} from '@/constants';
+import LinearGradient from 'react-native-linear-gradient';
 import {harmonyRoomMediaDTO} from '@/api/harmonyRoom/harmonyRoomApi';
 import {harmonyNavigations} from '@/constants';
 
@@ -66,7 +67,18 @@ export default function RecentMediaCard({data}: Props) {
 
       {/* 사용자 정보 */}
       <View style={styles.userRow}>
-        <Image source={{uri: userProfileImgLink}} style={styles.avatar} />
+        <LinearGradient
+              colors={['#64C0E6', '#68E5E5']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={styles.circleGradient}
+          >
+        <View style={styles.circleInner}>
+            {userProfileImgLink ?
+            <Image source={{uri: userProfileImgLink}} style={styles.avatar} />
+            : <Image source={require('@/assets/icons/common/EmptyProfile.png')} style={styles.avatar}/>
+            }
+        </View>
+        </LinearGradient>
         <View style={styles.userText}>
           <Text style={styles.nickname} numberOfLines={1}>
             {userNickname}
@@ -81,6 +93,9 @@ export default function RecentMediaCard({data}: Props) {
     </TouchableOpacity>
   );
 }
+
+const CIRCLE = 36;
+const BORDER = 1.3;
 
 const styles = StyleSheet.create({
   card: {
@@ -113,18 +128,37 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   userRow: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 9,
   },
+  circleGradient: {
+    width: CIRCLE,
+    height: CIRCLE,
+    borderRadius: CIRCLE / 2,
+    padding: BORDER,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  circleInner: {
+    width: CIRCLE - BORDER * 2,      // ← 내부 원 실제 크기
+    height: CIRCLE - BORDER * 2,
+    borderRadius: (CIRCLE - BORDER * 2) / 2, // ← 정확한 반지름
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
   avatar: {
-    width: 36,
-    height: 36,
+    width: CIRCLE - BORDER * 2,
+    height: CIRCLE - BORDER * 2,
     borderRadius: 50,
-    marginRight: 8,
   },
   userText: {
     flexShrink: 1,
+    marginLeft: 8,
   },
   nickname: {
     fontSize: 14,

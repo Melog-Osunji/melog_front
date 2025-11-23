@@ -72,11 +72,3 @@ export const fetchPostComments = async (
   return res.data.data;
 };
 
-// 2) bookmark (NOTE: this endpoint uses GET)
-// GET /api/posts/{postId}/bookmarks (게시글 북마크)
-export const fetchPostBookmarks = async (postId: string) => {
-  const res = await instance.get<BaseResponse<any>>(
-    `/api/posts/${postId}/bookmarks`,
-  );
-  return res.data.data;
-};

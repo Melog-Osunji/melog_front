@@ -33,9 +33,9 @@ const formatRange = (startISO: string, endISO?: string | null) => {
 
 const SCREEN_W = Dimensions.get('window').width;
 
-export default function PerformanceCard({ data, onUpdated }: Props & { onUpdated?: () => void }) {
+export default function PerformanceCard({ data, onUpdated, selectedDate }: Props & { onUpdated?: () => void, selectedDate?: string }) {
 
-    const { id, title, venue, startDateTime, endDateTime, dday, bookmarked, thumbnailUrl, category,} = data;
+    const { id, title, venue, startDateTime, endDateTime, dday, bookmarked, thumbnailUrl, category, eventId} = data;
 
     const [isBook, setIsBook] = useState(bookmarked);
     const [popupMsg, setPopupMsg] = useState('');
@@ -52,6 +52,10 @@ export default function PerformanceCard({ data, onUpdated }: Props & { onUpdated
         const prev = isBook;
         const next = !prev;
 
+        const targetDate = selectedDate
+          ? dayjs(selectedDate).format('YYYY-MM-DD')
+          : dayjs(startDateTime).format('YYYY-MM-DD');
+
         setIsBook(next);
         setPopupMsg(next ? '캘린더에 저장했어요.' : '캘린더에서 삭제했어요.');
         setShowExitPopup(true);
@@ -62,17 +66,9 @@ export default function PerformanceCard({ data, onUpdated }: Props & { onUpdated
           saveSchedule(
             {
               eventId: id,
-              eventDate: dayjs(startDateTime).format('YYYY-MM-DD'),
+              eventDate: targetDate,
               schedule: true,
               alarm: false,
-              alarmTime: '09:00',
-              detailUrl: thumbnailUrl ?? '',
-              title,
-              classification: category, // 서버가 영문 상수 기대 시 그대로 전달
-              region: venue,            // 별도 region 필드가 있으면 교체
-              startDate: dayjs(startDateTime).format('YYYY-MM-DD'),
-              endDate: endDateTime ? dayjs(endDateTime).format('YYYY-MM-DD') : null,
-              imageUrl: thumbnailUrl ?? '',
             },
             {onSuccess: () => {
               onUpdated?.();
@@ -88,7 +84,7 @@ export default function PerformanceCard({ data, onUpdated }: Props & { onUpdated
         } else {
           // 취소 (주의: scheduleId가 eventId와 동일한지 서버 규약 확인 필요)
           deleteSchedule(
-            { scheduleId: id },
+            { scheduleId: eventId },
             { onSuccess: () => {
                 onUpdated?.();
               },

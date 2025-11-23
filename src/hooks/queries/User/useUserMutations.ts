@@ -69,7 +69,7 @@ export const useUpdateUserProfile = () => {
 export const useFollowUser = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: (targetUserId: string) => postUserFollowing(targetUserId),
     onSuccess: (_data, _targetUserId) => {
       // 사용자 및 팔로잉 관련 캐시 무효화
@@ -81,4 +81,9 @@ export const useFollowUser = () => {
       console.warn('[useUser] useFollowUser 에러:', err);
     },
   });
+
+  return {
+    ...mutation,
+    isLoading: mutation.isPending,
+  };
 };

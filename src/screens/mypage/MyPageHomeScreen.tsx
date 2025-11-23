@@ -261,9 +261,9 @@ const styles = StyleSheet.create({
     paddingVertical:16,
     paddingHorizontal: 20,
     flexDirection: 'row',
-    alignItems: 'stretch',
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: 24,
+    gap: 32,
   },
   followWrap: {
     flexDirection: 'row',
@@ -289,12 +289,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
     lineHeight: 16,
     color: colors.GRAY_500,
+    textAlign: 'center',
   },
   buttonWrap: {
     flexDirection: 'row',
     alignSelf: 'stretch',
     alignItems: 'stretch',
-    gap: 8,
+    gap: 12,
   },
   button: {
     alignSelf: 'stretch',

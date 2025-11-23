@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {StackScreenProps} from '@react-navigation/stack';
 import {
   ScrollView,
@@ -12,6 +12,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 import {colors, postNavigations} from '@/constants';
 import IconButton from '@/components/common/IconButton';
@@ -33,14 +34,17 @@ type IntroScreenProps = StackScreenProps<
   typeof postNavigations.POST_SEARCH
 >;
 
-function PostSearchScreen({navigation}: IntroScreenProps) {
+function PostSearchScreen({navigation, route}: IntroScreenProps) {
   useHideTabBarOnFocus();
   const [selectedTab, setSelectedTab] = useState<
     'all' | 'composer' | 'performer' | 'genre' | 'period' | 'instrument'
   >('all');
-  const [searchText, setSearchText] = useState('');
+  const initial = route.params?.initialKeyword ?? '';
+  const [searchText, setSearchText] = useState(initial);
   const debounced = useDebounce(searchText, 200);
   const [showOverlay, setShowOverlay] = useState(false);
+  const inputRef = useRef<TextInput>(null);
+
 
   const [recentKeywords, setRecentKeywords] = useState<string[]>([
     '카페에서 듣기 좋은 클래식',
@@ -53,14 +57,30 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
   const {data, isFetching, isError} = useSearching(debounced);
   const suggestions = data?.suggestions ?? [];
 
-  console.log(data);
+  useFocusEffect(
+    React.useCallback(() => {
+      // 화면 들어오면 자동 포커스 → 키보드 자동으로 올라옴
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+
+      return () => {};
+    }, [])
+  );
+
+
+  useEffect(() => {
+    if (route.params?.initialKeyword !== undefined) {
+      setSearchText(route.params.initialKeyword);
+    }
+  }, [route.params?.initialKeyword]);
 
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', () =>
       setShowOverlay(true),
     );
     const hideSub = Keyboard.addListener('keyboardDidHide', () =>
-      setShowOverlay(false),
+        setShowOverlay(false),
     );
     return () => {
       showSub.remove();
@@ -106,6 +126,7 @@ function PostSearchScreen({navigation}: IntroScreenProps) {
             />
             <SearchInputField
               value={searchText}
+              ref={inputRef}
               onChangeText={setSearchText}
               placeholder="작곡가, 연주가, 장르, 시대 등"
               onFocus={() => setShowOverlay(true)}

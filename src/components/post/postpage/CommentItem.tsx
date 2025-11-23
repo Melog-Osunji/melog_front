@@ -2,14 +2,19 @@ import React, {useState} from 'react';
 import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
 import type {CommentDTO} from '@/types';
+import {useAuthContext} from '@/contexts/AuthContext';
 import {useToggleCommentLike} from '@/hooks/queries/post/usePostMutations';
 import PostOptionsSheet from '@/components/post/PostOptionsSheet';
+import PostOptionsBtn from '../PostOptionsBtn';
+import {showToast} from '@/components/common/ToastService';
 
 interface CommentItemProps {
   comment: CommentDTO;
   isReply?: boolean;
   postId: string;
   userId?: string;
+  onReply?: (target: {commentId: string; nickname: string}) => void;
+  onDelete?: (commentId: string) => void;
 }
 
 const CommentItem = ({
@@ -17,7 +22,11 @@ const CommentItem = ({
   isReply = false,
   postId,
   userId,
+  onReply,
+  onDelete,
 }: CommentItemProps) => {
+  const {user: authUser} = useAuthContext();
+
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [currentLikeCount, setCurrentLikeCount] = useState<number>(
     comment.likes,
@@ -68,58 +77,79 @@ const CommentItem = ({
     );
   };
 
+  // commentContent 클릭 시 호출
+  const handleContentPress = () => {
+    onReply?.({commentId: comment.id, nickname: comment.nickname ?? 'user'}); // changed
+  };
+
   return (
     <>
       <View style={[styles.commentContainer, isReply && styles.replyContainer]}>
-        <View style={styles.commentContent}>
-          {/* 프로필 섹션 */}
-          <View style={styles.profileSection}>
-            <Image
-              source={{uri: comment.profileUrl}}
-              style={styles.profileImage}
-            />
-            <View style={styles.userInfo}>
-              <View style={styles.nameTimeRow}>
-                <Text style={styles.userName}>사용자</Text>
-                <View style={styles.dot} />
-                <Text style={styles.timeText}>방금 전</Text>
-              </View>
-              <Text style={styles.commentText}>{comment.content}</Text>
-            </View>
-          </View>
+        <View style={styles.commentWrapper}>
+          <Image
+            source={{uri: comment.profileUrl}}
+            style={styles.profileImage}
+          />
 
-          {/* 액션 버튼들 */}
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={styles.IconButton}
-              onPress={handleLikePress}>
-              <Image
-                source={
-                  isLiked
-                    ? require('@/assets/icons/post/Like_activate.png')
-                    : require('@/assets/icons/post/Like.png')
-                }
-                style={styles.actionIcon}
-              />
-              <Text style={styles.actionText}>{currentLikeCount}</Text>
-            </TouchableOpacity>
-            <View style={styles.IconButton}>
-              <Image
-                source={require('@/assets/icons/post/Comment.png')}
-                style={styles.actionIcon}
-              />
-              <Text style={styles.actionText}>
-                {comment.recomments ? comment.recomments.length : 0}
+          {/* 변경: commentContent을 TouchableOpacity로 감싸서 전체 영역 클릭 처리 */}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handleContentPress}
+            style={styles.commentContent}>
+            {/* commentInfo */}
+            <View style={styles.commentInfo}>
+              <Text style={styles.userName}>
+                {comment.nickname ? comment.nickname : 'user'}
               </Text>
+              <View style={styles.dot} />
+              <Text style={styles.timeText}>방금 전</Text>
             </View>
-          </View>
+
+            {/* comment.content */}
+            <Text style={styles.commentText}>{comment.content}</Text>
+
+            {/* actionButtons */}
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={styles.IconButton}
+                onPress={handleLikePress}>
+                <Image
+                  source={
+                    isLiked
+                      ? require('@/assets/icons/post/Like_activate.png')
+                      : require('@/assets/icons/post/Like-2.png')
+                  }
+                  style={styles.actionIcon}
+                />
+                <Text style={styles.actionText}>{currentLikeCount}</Text>
+              </TouchableOpacity>
+              <View style={styles.IconButton}>
+                <Image
+                  source={require('@/assets/icons/post/Comment.png')}
+                  style={styles.actionIcon}
+                />
+                <Text style={styles.actionText}>
+                  {comment.recomments ? comment.recomments.length : 0}
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
         </View>
 
-        {/* 더보기 버튼 */}
-        <PostOptionsSheet userId={userId} postId={postId} />
+        {authUser?.id === userId ? (
+          <PostOptionsBtn onPress={() => onDelete?.(comment.id)} />
+        ) : (
+          <PostOptionsBtn
+            onPress={() => {
+              showToast('신고 되었습니다(임시)', 'success');
+            }}
+            btnIcon={require('@/assets/icons/common/trash.png')}
+            btnText={'신고하기'}
+          />
+        )}
       </View>
 
-      {/* 대댓글 렌더링 */}
+      {/* 대댓글 렌더링: onReply 전달 */}
       {comment.recomments && comment.recomments.length > 0 && (
         <View>
           {comment.recomments.map((reply, index) => (
@@ -129,6 +159,7 @@ const CommentItem = ({
               isReply={true}
               postId={postId}
               userId={reply.userID}
+              onReply={onReply} // pass down (same shape)
             />
           ))}
         </View>
@@ -147,17 +178,11 @@ const styles = StyleSheet.create({
   replyContainer: {
     paddingLeft: 40, // 대댓글일 경우 왼쪽 여백 추가
   },
-  commentContent: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    gap: 8,
-    flex: 1,
-  },
-  profileSection: {
+  commentWrapper: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 8,
-    width: '100%',
+    flex: 1,
   },
   profileImage: {
     width: 36,
@@ -165,14 +190,14 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: colors.GRAY_200,
   },
-  userInfo: {
+  commentContent: {
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'flex-start',
     gap: 4,
     flex: 1,
   },
-  nameTimeRow: {
+  commentInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -204,7 +229,7 @@ const styles = StyleSheet.create({
   actionButtons: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingLeft: 44,
+    marginTop: 8,
     gap: 6,
   },
   IconButton: {

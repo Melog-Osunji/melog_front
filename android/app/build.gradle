@@ -72,7 +72,7 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        applicationId "com.melogapp"  // 이 값이 AndroidManifest.xml의 package와 일치해야 함
+        applicationId "com.melogapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

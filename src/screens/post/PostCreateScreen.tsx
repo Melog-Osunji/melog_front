@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   StyleSheet,
   View,
@@ -11,6 +11,8 @@ import {
   Platform,
   Image,
 } from 'react-native';
+//context
+import {useAuthContext} from '@/contexts/AuthContext';
 //constants
 import {colors, postNavigations} from '@/constants';
 //types
@@ -18,69 +20,65 @@ import {YouTubeVideo, NewPostDTO} from '@/types';
 //navigation
 import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
-//utils
-import {extractVideoId} from '@/utils/providers';
 //hooks
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
-import {useUserInfo} from '@/hooks/common/useUserInfo';
 import {useImagePicker} from '@/hooks/common/useImagePicker';
 import {useUploadImage} from '@/hooks/queries/common/useCommonMutations';
 import {useCreatePost} from '@/hooks/queries/post/usePostMutations';
+import {useDebounce} from '@/hooks/useDebounce';
+import {useSearching} from '@/hooks/queries/search/useSearching';
 //components
-import Toast, {ToastType} from '@/components/common/Toast';
+import {showToast} from '@/components/common/ToastService';
 import CustomButton from '@/components/common/CustomButton';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
-import PostActionButtons from '@/components/post/postcreate/PostActionButtons';
+import PostActionButtons from '@/components/post/postcreate/PostActionBar';
+import MusicSearchBottomSheet from '@/components/post/postcreate/MusicSearchSheet';
 
 type PostCreateScreenProps = StackScreenProps<
   PostStackParamList,
   typeof postNavigations.POST_CREATE
 >;
 
+// 최대 글자수 상수
+const MAX_CONTENT_LENGTH = 500;
+
 export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
   useHideTabBarOnFocus();
-  //state
-  const {userInfo, isLoading: userLoading, error: userError} = useUserInfo();
 
-  const createPostMutation = useCreatePost();
-  const [content, setContent] = useState('');
+  // prev content length ref to show toast only once when reaching max
+  const prevContentLengthRef = useRef(0);
+  const handleContentChange = (text: string) => {
+    if (
+      text.length === MAX_CONTENT_LENGTH &&
+      prevContentLengthRef.current < MAX_CONTENT_LENGTH
+    ) {
+      showToast('최대 글자수에 도달했습니다.', 'error', 'top', 10);
+    }
+    prevContentLengthRef.current = text.length;
+    setContent(text);
+  };
+
+  //user info state
+  const {user} = useAuthContext();
+
+  // view state
+  const [musicSheetVisible, setMusicSheetVisible] = useState(false);
   const [inputHeight, setInputHeight] = useState(50);
+
+  //post create state
+  const [content, setContent] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const {selectedImage, seletedImageURI, selectImage, resetImage} =
     useImagePicker();
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null); //backend req
 
-  //toast
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<ToastType>('none');
-
-  const showToast = (message: string, type: ToastType = 'none') => {
-    setToastMessage(message);
-    setToastType(type);
-    setToastVisible(true);
-  };
-
-  const hideToast = () => {
-    setToastVisible(false);
-  };
-
-  // 취소 handler (goback)
+  // 취소btn handler
   const handleCancel = () => {
     navigation.goBack();
   };
 
-  //tag handler
-  const handleTagSelect = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(prev => prev.filter(t => t !== tag));
-    } else {
-      setSelectedTags(prev => [...prev, tag]);
-    }
-  };
-
-  // img upload mutation
+  // ---------img---------
   const uploadImageMutation = useUploadImage('post');
 
   React.useEffect(() => {
@@ -90,10 +88,10 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
         onSuccess: data => {
           console.log('[PostCreateScreen] 이미지 업로드 성공:', data);
           setUploadedImageUrl(data);
-          showToast('이미지가 업로드되었습니다.', 'success');
         },
         onError: error => {
           console.log('[PostCreateScreen] 이미지 업로드 실패:', error);
+          handleRemoveImage();
           showToast('이미지 업로드에 실패했습니다.', 'error');
         },
       });
@@ -109,27 +107,42 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
     setUploadedImageUrl(null);
   };
 
-  //video handler
+  //---------video---------
   const handleVideoSelect = (video: YouTubeVideo) => {
     setSelectedVideo(video);
-    if (selectedImage || uploadedImageUrl) {
-      // 비디오 선택 시 이미지 제거
-      handleRemoveImage();
-    }
+    setMusicSheetVisible(false);
   };
 
   const handleRemoveVideo = () => {
     setSelectedVideo(null);
   };
 
-  //게시 handler
+  const handleMusicSheetVideoSelect = (video: YouTubeVideo) => {
+    handleVideoSelect(video);
+  };
+
+  //---------tag---------
+  const handleTagSelect = (tag: string) => {
+    // toggle selected tag
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag],
+    );
+
+    // remove currently-typed #token at end of content (if any)
+    setContent(prev => prev.replace(/#([^\s#]*)$/, ''));
+    // clear typing state so tag bar closes (forceShowTagBar depends on tagTyping)
+    setTagTyping('');
+  };
+
+  //---------create post handler---------
+  const createPostMutation = useCreatePost();
+
   const handlePost = async () => {
     if (!content.trim()) {
       showToast('내용을 입력해주세요.', 'error');
       return;
     }
 
-    // 이미지가 업로드 중인 경우 대기
     if (selectedImage && uploadImageMutation.isPending) {
       showToast('이미지 업로드 중입니다. 잠시만 기다려주세요.');
       return;
@@ -144,9 +157,7 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
         ? 'image'
         : 'text',
       mediaUrl: selectedVideo
-        ? `https://www.youtube.com/watch?v=${extractVideoId(
-            selectedVideo.thumbnail,
-          )}`
+        ? `https://www.youtube.com/watch?v=${selectedVideo.id}`
         : uploadedImageUrl || '',
       tags: selectedTags,
     };
@@ -165,27 +176,38 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
     }
   };
 
-  // 제출 또는 업로드 중인지 여부
   const isSubmitting =
     createPostMutation.isPending || uploadImageMutation.isPending;
 
-  if (userLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text>사용자 정보를 불러오는 중...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  // 추가: 현재 입력에서 마지막으로 타이핑중인 '#...' 토큰 추출
+  const [tagTyping, setTagTyping] = useState('');
+  useEffect(() => {
+    const match = content.match(/#([^\s#]*)$/);
+    setTagTyping(match ? match[1] : '');
+  }, [content]);
+
+  const debouncedTagTyping = useDebounce(tagTyping, 100); // 추가: 아래에서 tagTyping 계산
+  const {data: tagSearchData} = useSearching(debouncedTagTyping);
+  const tagSuggestions: string[] = tagSearchData?.suggestions ?? [];
+
+  // 자동 태그 선택: 사용자가 스페이스 입력해서 '#tag ' 형태가 된 경우
+  useEffect(() => {
+    const m = content.match(/#([^\s#]+)\s$/);
+    if (m) {
+      const tag = m[1];
+      handleTagSelect(tag);
+      // 입력에서 마지막 '#tag ' 토큰 제거
+      setContent(prev => prev.replace(/#([^\s#]+)\s$/, ''));
+      // 초기화
+      setTagTyping('');
+    }
+  }, [content]);
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.WHITE} />
 
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView style={{flex: 1}} behavior={'padding'}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
@@ -206,8 +228,15 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
 
         {/* User Profile Section */}
         <View style={styles.profileSection}>
-          <View style={styles.profileImage} />
-          <Text style={styles.userId}>{userInfo?.nickName || '사용자'}</Text>
+          {user?.profileImg ? (
+            <Image
+              source={{uri: user.profileImg}}
+              style={styles.profileImage}
+            />
+          ) : (
+            <View style={styles.profileImage} />
+          )}
+          <Text style={styles.userId}>{user?.nickName || '사용자'}</Text>
         </View>
 
         {/* Content Input */}
@@ -215,16 +244,16 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
           <TextInput
             style={[
               styles.contentInput,
-              {height: content.trim() ? Math.max(100, inputHeight + 50) : 100},
+              {
+                height: content.trim() ? Math.max(100, inputHeight + 50) : 100,
+              },
             ]}
             placeholder="오늘은 어떤 클래식을 감상했나요?"
             placeholderTextColor={colors.GRAY_300}
             multiline
             textAlignVertical="top"
             value={content}
-            onChangeText={text => {
-              setContent(text);
-            }}
+            onChangeText={handleContentChange}
             onContentSizeChange={event => {
               const newHeight = event.nativeEvent.contentSize.height;
               // 텍스트가 있을 때만 높이 업데이트
@@ -233,6 +262,7 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
               }
             }}
             editable={!isSubmitting}
+            maxLength={MAX_CONTENT_LENGTH}
           />
 
           {selectedTags.length > 0 && (
@@ -276,31 +306,34 @@ export default function PostCreateScreen({navigation}: PostCreateScreenProps) {
               </TouchableOpacity>
               <View style={styles.videoEmbedWrapper}>
                 <YouTubeEmbed
-                  url={`https://www.youtube.com/watch?v=${extractVideoId(
-                    selectedVideo.thumbnail,
-                  )}`}
+                  // 우선 YouTubeVideo.url 사용, 없으면 id로 watch URL 구성하여 전달
+                  url={
+                    selectedVideo.url ||
+                    `https://www.youtube.com/watch?v=${selectedVideo.id}`
+                  }
                 />
               </View>
             </View>
           )}
         </View>
 
-        {/* Action Buttons */}
         <PostActionButtons
-          onVideoSelect={handleVideoSelect}
+          onOpenMusicSheet={() => setMusicSheetVisible(true)}
+          onVideoSelect={handleMusicSheetVideoSelect}
           onTagSelect={handleTagSelect}
           onImageSelect={handleImageSelect}
           selectedTags={selectedTags}
+          hasMediaSelected={!!seletedImageURI || !!selectedVideo}
+          forceShowTagBar={!!tagTyping}
+          suggestedTags={tagSuggestions}
         />
       </KeyboardAvoidingView>
 
-      {/* Toast */}
-      <Toast
-        message={toastMessage}
-        visible={toastVisible}
-        type={toastType}
-        position="top"
-        onHide={hideToast}
+      {/* Music Search Bottom Sheet */}
+      <MusicSearchBottomSheet
+        visible={musicSheetVisible}
+        onClose={() => setMusicSheetVisible(false)}
+        onVideoSelect={handleMusicSheetVideoSelect}
       />
     </SafeAreaView>
   );
@@ -366,7 +399,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   contentInput: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '400',
     lineHeight: 20,
     letterSpacing: 0.2,

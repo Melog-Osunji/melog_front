@@ -6,6 +6,8 @@ import {colors} from '@/constants';
 import type {UserDTO} from '@/types';
 import {useFollowUser} from '@/hooks/queries/User/useUserMutations';
 import CheckPopup from '@/components/common/CheckPopup';
+import {showToast} from '@/components/common/ToastService';
+import PostReportSheet from '@/components/post/PostReportSheet'; // 추가
 
 type Props = {
   user?: UserDTO;
@@ -13,29 +15,28 @@ type Props = {
   postId: string;
   // optional callbacks
   onFollow?: (userId: string) => void;
-  onHideFeed?: (postId: string) => void;
+  onHide?: (postId: string) => void;
   onBlock?: (userId: string) => void;
   onReport?: (postId: string) => void;
 };
 
-const PostOptionsSheet: React.FC<Props> = ({
+function PostOptionsSheet({
   user,
   userId,
   postId,
   onFollow,
-  onHideFeed,
+  onHide,
   onBlock,
   onReport,
-}) => {
-  const [visible, setVisible] = useState(false);
-  const [blockPopupVisible, setBlockPopupVisible] = useState(false);
-  const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
-
-  const handleClose = () => setVisible(false);
-
-  // user가 있으면 그 id를 우선 사용, 없으면 props로 들어온 userId 사용
+}: Props) {
   const targetUserId = user?.id ?? userId;
   const targetNick = user?.nickName ?? '';
+
+  const [visible, setVisible] = useState(false);
+  const [blockPopupVisible, setBlockPopupVisible] = useState(false);
+  const [reportVisible, setReportVisible] = useState(false); // 추가
+  const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
+  const handleClose = () => setVisible(false);
 
   return (
     <>
@@ -54,8 +55,6 @@ const PostOptionsSheet: React.FC<Props> = ({
                 console.warn('[PostOptionsSheet] no userId to follow');
                 return;
               }
-              console.log('[PostOptionsSheet] follow user', targetUserId);
-              // 서버 API 스펙에 맞춰 follower 필드에 대상 유저 id 전송
               followUser(targetUserId, {
                 onSuccess: _data => {
                   onFollow?.(targetUserId);
@@ -77,8 +76,7 @@ const PostOptionsSheet: React.FC<Props> = ({
           <TouchableOpacity
             style={styles.row}
             onPress={() => {
-              console.log('[PostOptionsSheet] hide feed', postId);
-              onHideFeed?.(postId);
+              onHide?.(postId);
               handleClose();
             }}>
             <Image
@@ -91,7 +89,6 @@ const PostOptionsSheet: React.FC<Props> = ({
           <TouchableOpacity
             style={styles.row}
             onPress={() => {
-              // show confirmation popup before blocking
               setBlockPopupVisible(true);
             }}>
             <Image
@@ -102,16 +99,11 @@ const PostOptionsSheet: React.FC<Props> = ({
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.row, styles.reportRow]}
+            style={styles.row}
             onPress={() => {
-              console.log(
-                '[PostOptionsSheet] report post',
-                postId,
-                'user:',
-                targetUserId,
-              );
-              onReport?.(postId);
+              // 옵션 시트 닫고 신고 시트 열기
               handleClose();
+              setTimeout(() => setReportVisible(true), 80);
             }}>
             <Image
               source={require('@/assets/icons/post/Abuse.png')}
@@ -125,21 +117,22 @@ const PostOptionsSheet: React.FC<Props> = ({
       {/* popup */}
       <CheckPopup
         visible={blockPopupVisible}
-        onClose={() => setBlockPopupVisible(false)}
-        onExit={() => {
-          // confirm block
+        onExit={() => setBlockPopupVisible(false)}
+        onClose={() => {
           if (!targetUserId) {
             console.warn('[PostOptionsSheet] no userId to block');
             setBlockPopupVisible(false);
             handleClose();
+            showToast(`오류가 발생했어요`, 'error');
             return;
           }
           onBlock?.(targetUserId);
           setBlockPopupVisible(false);
-          handleClose(); // close bottom sheet as well
+          handleClose();
+          showToast(`${targetNick}님을 차단했어요`, 'success');
         }}
-        iconImg={require('@/assets/icons/common/Error_red.png')}
-        title={`${targetNick}님을 차단하시겠어요?`}
+        iconImg={require('@/assets/icons/common/error_red.png')}
+        title={`${targetNick}님을 차단할까요?`}
         content="차단한 상대방의 피드를 볼 수 없게 돼요."
         leftBtnColor={colors.GRAY_100}
         rightBtnColor={colors.WHITE}
@@ -149,9 +142,19 @@ const PostOptionsSheet: React.FC<Props> = ({
         rightBtnText="차단하기"
         rightBtnBorderColor={colors.RED_300}
       />
+
+      {/* 신고 바텀시트 */}
+      <PostReportSheet
+        visible={reportVisible}
+        onClose={() => setReportVisible(false)}
+        onReport={(reason: string) => {
+          // PostReportSheet에서 reason을 받으면 부모 콜백에 postId 전달
+          onReport?.(postId);
+        }}
+      />
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   sheet: {
@@ -172,9 +175,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: colors.BLACK,
-  },
-  reportRow: {
-    marginTop: 8,
   },
   reportIcon: {
     tintColor: colors.RED_300,

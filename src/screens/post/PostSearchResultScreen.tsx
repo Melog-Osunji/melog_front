@@ -65,6 +65,11 @@ function PostSearchResultScreen({navigation, route}: IntroScreenProps) {
         <SearchInputField
           value={keyword}
           onChangeText={setKeyword}
+          onFocus={() => {
+              navigation.navigate(postNavigations.POST_SEARCH, {
+                initialKeyword: keyword,
+              });
+            }}
           placeholder="작곡가, 연주가, 장르, 시대 등"
           onSubmitEditing={handleSearchSubmit}
         />

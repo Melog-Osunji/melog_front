@@ -211,8 +211,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 9,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.LINE_GREY,
   },
   headerTitle: {
     flexDirection: 'row',
@@ -239,6 +237,8 @@ const styles = StyleSheet.create({
     gap: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.LINE_GREY,
+    borderTopWidth: 1,
+    borderTopColor: colors.LINE_GREY,
   },
   title: {
     fontFamily: 'Noto Sans KR',

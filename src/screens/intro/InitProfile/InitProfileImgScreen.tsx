@@ -17,7 +17,7 @@ import {InitProfileNavigations} from '@/constants';
 
 import type {PickedImage} from '@/types';
 import {useUploadImage} from '@/hooks/queries/common/useCommonMutations';
-import Toast, {ToastType} from '@/components/common/Toast';
+import {showToast} from '@/components/common/ToastService';
 
 type InitProfileScreenProps = StackScreenProps<
   InitProfileNavigatorParamList,
@@ -30,18 +30,6 @@ function InitProfileImgScreen({navigation}: InitProfileScreenProps) {
 
   // img upload mutation
   const uploadImageMutation = useUploadImage('profile');
-
-  // toast state
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<ToastType>('none');
-
-  const showToast = (message: string, type: ToastType = 'none') => {
-    setToastMessage(message);
-    setToastType(type);
-    setToastVisible(true);
-  };
-  const hideToast = () => setToastVisible(false);
 
   useEffect(() => {
     if (selectedImage) {
@@ -75,13 +63,6 @@ function InitProfileImgScreen({navigation}: InitProfileScreenProps) {
 
   return (
     <View style={styles.container}>
-      <Toast
-        message={toastMessage}
-        visible={toastVisible}
-        type={toastType}
-        position="top"
-        onHide={hideToast}
-      />
       <Text style={styles.Titletext}>프로필을 등록해주세요</Text>
       <TouchableOpacity onPress={handleSelectImage} activeOpacity={0.7}>
         {selectedImage ? (
@@ -117,6 +98,8 @@ function InitProfileImgScreen({navigation}: InitProfileScreenProps) {
             });
           }}
           inValid={!selectedImage}
+          inValidStyle={{backgroundColor: colors.BLUE_400, opacity: 0.2}}
+          style={{backgroundColor: colors.BLUE_500}}
         />
         <TouchableOpacity
           onPress={() =>

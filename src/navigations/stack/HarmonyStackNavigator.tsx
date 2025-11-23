@@ -11,6 +11,7 @@ import HarmonyApplyManageScreen from '@/screens/harmonyRoom/HarmonyApplyManageSc
 import HarmonyPostScreen from '@/screens/harmonyRoom/HarmonyPostScreen';
 import HarmonySearchScreen from '@/screens/harmonyRoom/HarmonySearchScreen';
 import HarmonySearchResultScreen from '@/screens/harmonyRoom/HarmonySearchResultScreen';
+import HarmonyFeedScreen from '@/screens/harmonyRoom/HarmonyFeedScreen';
 import {harmonyNavigations} from '@/constants';
 import {MAIN_TAB_SCREEN_OPTIONS} from '@/navigations/tab/MainTabNavigator';
 import {HarmonyRoomInfo} from '@/constants/types';
@@ -33,7 +34,7 @@ export type HarmonyStackParamList = {
   [harmonyNavigations.HARMONY_POST]: {roomID: string};
   [harmonyNavigations.HARMONY_SEARCH]: undefined;
   [harmonyNavigations.HARMONY_SEARCH_RESULT]: {searchKeyword: string};
-  HARMONY_POST_PAGE: { postId: string };
+  [harmonyNavigations.HARMONY_FEED]: {postId: string};
 };
 
 const Stack = createStackNavigator<HarmonyStackParamList>();
@@ -98,8 +99,8 @@ function HarmonyStackNavigator() {
           options={{headerShown: false}}
         />
         <Stack.Screen
-          name="HARMONY_POST_PAGE"
-          component={PostPageScreen}
+          name={harmonyNavigations.HARMONY_FEED}
+          component={HarmonyFeedScreen}
           options={{ headerShown: false }}
          />
       </Stack.Navigator>

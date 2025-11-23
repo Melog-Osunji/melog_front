@@ -13,7 +13,7 @@ import {introNavigations} from '@/constants';
 import CustomButton from '@/components/common/CustomButton';
 import {colors} from '@/constants';
 import IndicatorProgressBar from '@/components/common/IndicatorProgressBar';
-import Toast from '@/components/common/Toast';
+import Toast, {ToastType} from '@/components/common/Toast';
 
 type IntroScreenProps = StackScreenProps<
   IntroStackParamList,
@@ -37,19 +37,29 @@ function Onboarding2Screen({navigation}: IntroScreenProps) {
   // 토스트 상태
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<ToastType>('none');
+  const [toastOffSet, setToastOffSet] = useState(0);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setToastVisible(true);
+  const showToast = (message: string, type: ToastType = 'error', offset: number) => {
+      setToastMessage(message);
+      setToastType(type);
+      setToastOffSet(offset)
+      setToastVisible(true);
   };
+
+  const hideToast = () => {
+      setToastVisible(false);
+  };
+
   const toggle = (name: string) => {
-    const has = selected.includes(name);
-    if (!has && selected.length >= MAX) {
-      showToast(`최대 ${MAX}개까지 선택할 수 있어요`);
-      return;
-    }
-    setSelected(prev => (has ? prev.filter(v => v !== name) : [...prev, name]));
+      const has = selected.includes(name);
+      if (!has && selected.length >= MAX) {
+          showToast(`최대 ${MAX}개까지 선택할 수 있어요`, 'middleError', 24);
+          return;
+      }
+      setSelected(prev => has ? prev.filter(v => v !== name) : [...prev, name]);
   };
+
 
   const renderItem = ({item}: {item: GenreItem}) => {
     const on = selected.includes(item.title);
@@ -96,6 +106,7 @@ function Onboarding2Screen({navigation}: IntroScreenProps) {
             onPress={() => {
                 navigation.navigate(introNavigations.INTRO_ONBOARDING_3);
             }}
+            style={{backgroundColor: colors.BLUE_500}}
         />
         <Text
           style={styles.skip}
@@ -105,12 +116,14 @@ function Onboarding2Screen({navigation}: IntroScreenProps) {
           건너뛰기
         </Text>
       </View>
-      <Toast
-        message={toastMessage}
-        visible={toastVisible}
-        onHide={() => setToastVisible(false)}
-        duration={2000}
-      />
+       <Toast
+            message={toastMessage}
+            visible={toastVisible}
+            type={toastType}
+            position="onTop"
+            onHide={hideToast}
+            offset={toastOffSet}
+       />
     </View>
   );
 }

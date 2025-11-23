@@ -1,18 +1,21 @@
 import {useState} from 'react';
 import {useMutation} from '@tanstack/react-query';
-import {
-  kakaoLoginApi,
-  // googleLoginApi,
-  // naverLoginApi,
-  type PlatformTokens,
-} from '@/api/Auth/ProviderApi';
-import {socialLogin} from '@/api/Auth/AuthApi';
+import {SocialProvider, SocialLoginResponse} from '@/types';
+//user
+import {useAuthContext} from '@/contexts/AuthContext';
 import {
   setTokens,
   setUserInfo as setUserInfoStorage,
 } from '@/utils/storage/UserStorage';
-import {SocialProvider, SocialLoginResponse} from '@/types';
-import {useAuthContext} from '@/contexts/AuthContext'; // AuthContext 추가
+//api
+import {
+  kakaoLoginApi,
+  googleLoginApi,
+  naverLoginApi,
+  type PlatformTokens,
+} from '@/api/Auth/ProviderApi';
+import {socialLogin} from '@/api/Auth/AuthApi';
+
 
 export const useSocialLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -35,22 +38,8 @@ export const useSocialLogin = () => {
     () => Promise<PlatformTokens>
   > = {
     KAKAO: kakaoLoginApi,
-    GOOGLE: async () => {
-      // TODO: 실제 googleLoginApi 구현 필요
-      return {
-        idToken: 'mock-google-id-token',
-        accessToken: 'mock-google-access-token',
-        platform: 'GOOGLE',
-      };
-    },
-    NAVER: async () => {
-      // TODO: 실제 naverLoginApi 구현 필요
-      return {
-        idToken: 'mock-naver-id-token',
-        accessToken: 'mock-naver-access-token',
-        platform: 'NAVER',
-      };
-    },
+    GOOGLE: googleLoginApi,
+    NAVER: naverLoginApi,
   };
 
   // 통합 소셜 로그인 함수
@@ -70,7 +59,10 @@ export const useSocialLogin = () => {
 
       const platformTokens: PlatformTokens = await platformLoginFunction();
 
-      console.log(`[useSocialLogin] ${platform} 플랫폼 토큰 획득 완료`);
+      console.log(
+        `[useSocialLogin] ${platform} 플랫폼 토큰 획득 완료`,
+        platformTokens,
+      );
 
       // 2단계: 백엔드에 토큰 전송하고 응답 받기
       console.log(`[useSocialLogin] ${platform} 2단계: 백엔드 로그인 요청`);
@@ -99,7 +91,21 @@ export const useSocialLogin = () => {
 
       return result.data;
     } catch (error) {
-      console.error(`[useSocialLogin] ${platform} 로그인 플로우 실패:`, error);
+      if (error instanceof Error) {
+        console.error(
+          `[useSocialLogin] ${platform} 로그인 플로우 실패: ${error.message}`,
+          {
+            name: error.name,
+            stack: error.stack,
+            error,
+          },
+        );
+      } else {
+        console.error(
+          `[useSocialLogin] ${platform} 로그인 플로우 실패:`,
+          error,
+        );
+      }
       throw error;
     } finally {
       setIsLoading(false);

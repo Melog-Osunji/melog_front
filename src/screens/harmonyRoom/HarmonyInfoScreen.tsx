@@ -206,13 +206,21 @@ export default function HarmonyInfoScreen() {
         {/* 하모니룸 */}
         <View style={styles.infoWrap}>
           <View style={styles.nameAndTag}>
-            {headerImg ? (
-              <Image source={{uri: headerImg}} style={styles.roomImg} />
-            ) : (
-              <View
-                style={[styles.roomImg, {backgroundColor: colors.GRAY_300}]}
-              />
-            )}
+            <LinearGradient
+                colors={['#64C0E6', '#68E5E5']}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                style={styles.circleGradient}
+            >
+              <View style={styles.circleInner}>
+                {headerImg ? (
+                  <Image source={{uri: headerImg}} style={styles.roomImg} />
+                ) : (
+                  <View
+                    style={[styles.roomImg, {backgroundColor: colors.GRAY_300}]}
+                  />
+                )}
+              </View>
+            </LinearGradient>
             <View style={styles.roomInfo}>
               <View style={styles.nameWrap}>
                 <Text style={styles.name}>{headerName}</Text>
@@ -363,9 +371,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
   },
+  circleGradient: {
+      width: 84,
+      height: 84,
+      borderRadius: 84 / 2,
+      padding: 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+  },
+  circleInner: {
+      width: 80,      // ← 내부 원 실제 크기
+      height: 80,
+      borderRadius: 80 / 2, // ← 정확한 반지름
+      overflow: 'hidden',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+  },
   roomImg: {
-    width: 84,
-    height: 84,
+    width: 80,
+    height: 80,
     borderRadius: 999,
     backgroundColor: colors.GRAY_500,
   },

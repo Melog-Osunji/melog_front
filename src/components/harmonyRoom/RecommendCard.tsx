@@ -44,7 +44,20 @@
                  style={styles.container}
           >
             <View style={styles.roomInfoWrap}>
-              <Image source={{uri: profileImgLink}} style={styles.thumbnail}/>
+              <LinearGradient
+                  colors={['#64C0E6', '#68E5E5']}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                  style={styles.circleGradient}
+              >
+              <View style={styles.circleInner}>
+                <Image source={
+                    profileImgLink
+                    ? {uri: profileImgLink}
+                    : require('@/assets/icons/common/EmptyProfile.png')
+                    }
+                    style={styles.thumbnail}/>
+              </View>
+              </LinearGradient>
               <View style={styles.roomInfo}>
                 <Text style={styles.title}>{name}</Text>
                 <View style={styles.infoTagRow}>
@@ -63,14 +76,14 @@
                 <View style={styles.imgWrap}>
                     <Image
                         source={
-                            userProfileImgsUrl
+                            userProfileImgsUrl[0]
                             ? {uri: userProfileImgsUrl[0]}
                             : require('@/assets/icons/common/EmptyProfile.png')
                         }
                         style={styles.profileFirst}/>
                     <Image
                         source={
-                            userProfileImgsUrl
+                            userProfileImgsUrl[1]
                             ? {uri: userProfileImgsUrl[1]}
                             : require('@/assets/icons/common/EmptyProfile.png')
                         }
@@ -102,9 +115,27 @@
             gap: 10,
             alignItems: 'center',
         },
-        thumbnail: {
+        circleGradient: {
             width: 56,
             height: 56,
+            borderRadius: 56 / 2,
+            padding: 2,
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+        },
+        circleInner: {
+            width: 52,      // ← 내부 원 실제 크기
+            height: 52,
+            borderRadius: 52 / 2, // ← 정확한 반지름
+            overflow: 'hidden',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+        },
+        thumbnail: {
+            width: 52,
+            height: 52,
             borderRadius: 999,
             backgroundColor: colors.GRAY_200,
         },
@@ -148,10 +179,7 @@
         numWrap: {
             flexDirection: 'row',
             alignItems: 'center',
-        },
-        seeIcon: {
-            width: 18,
-            height: 18,
+            justifyContent: 'center',
         },
         seeNum: {
             fontSize: 11,

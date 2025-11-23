@@ -12,6 +12,9 @@ import {
 } from 'react-native';
 import {colors} from '@/constants';
 import { useWindowDimensions } from 'react-native';
+import NextBtn from '@/assets/icons/calender/clNextBtn.svg';
+import PrevBtn from '@/assets/icons/calender/clPrevBtn.svg';
+
 
 // (옵션) 이미 프로젝트에 있다면 사용. 없으면 useGradient=false로 사용하세요.
 let LG: any = View;
@@ -183,8 +186,16 @@ export default function CalendarTopSheet({
   }
 
   function handleSelect(d: Date) {
+    const iso = toISO(d);
+
+    // 선택 월이 현재 월과 다르면 자동 이동
+    if (d.getMonth() !== currentMonth.getMonth()) {
+      const newMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+      setCurrentMonth(newMonth);
+    }
+
     setSelected(d);
-    onDateChange?.(toISO(d));
+    onDateChange?.(iso);
   }
 
   const title = `${currentMonth.getFullYear()}.${String(currentMonth.getMonth() + 1).padStart(2, '0')}`;
@@ -212,6 +223,7 @@ export default function CalendarTopSheet({
               markedDates={markedDates}
               cellW={CELL}
               gridW={gridWidth}
+              currentMonth={currentMonth}
             />
           )}
           <View style={styles.handleWrap} {...pan.panHandlers} hitSlop={{top:10,bottom:10,left:20,right:20}}>
@@ -249,10 +261,10 @@ function Header({ title, onPrev, onNext }: { title: string; onPrev: () => void; 
       <Text style={styles.title}>{title}</Text>
       <View style={styles.nav}>
         <TouchableOpacity onPress={onPrev} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <Image source={require('@/assets/icons/calender/calenderPrev.png')} style={styles.chev}/>
+            <PrevBtn width={24} height={24} />
         </TouchableOpacity>
         <TouchableOpacity onPress={onNext} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <Image source={require('@/assets/icons/calender/calenderNext.png')} style={styles.chev}/>
+            <NextBtn width={24} height={24} />
         </TouchableOpacity>
       </View>
     </View>
@@ -346,6 +358,7 @@ function WeekStrip({
   markedDates,
   cellW,
   gridW,
+  currentMonth
 }: {
   days: Date[];
   selectedISO: string;
@@ -353,6 +366,7 @@ function WeekStrip({
   markedDates: Marked;
   cellW: number;
   gridW: number;
+  currentMonth: number;
 }) {
   return (
     <View style={[styles.strip, { width: gridW, alignSelf: 'center', justifyContent: 'flex-start' }]}>
@@ -360,6 +374,8 @@ function WeekStrip({
         const iso = toISO(d);
         const isSel = iso === selectedISO;
         const dot = !!markedDates[iso];
+        const dimmed = d.getMonth() !== currentMonth.getMonth();
+
         return (
           <DayBubble
             key={iso}
@@ -368,6 +384,7 @@ function WeekStrip({
             showDot={dot}
             onPress={() => onSelect(d)}
             cellW={cellW}
+            dimmed={dimmed}
           />
         );
       })}
@@ -376,6 +393,14 @@ function WeekStrip({
 }
 
 const styles = StyleSheet.create({
+    shadowWrapper: {
+      backgroundColor: 'transparent',
+      shadowColor: '#000',
+      shadowOpacity: 0.08,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 6 }, // 아래로만 그림자
+      elevation: 6, // Android
+    },
   container: {
     overflow: 'hidden',
     borderBottomLeftRadius: 20,
