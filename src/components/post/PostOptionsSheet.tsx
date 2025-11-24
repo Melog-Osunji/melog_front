@@ -85,6 +85,7 @@ function PostOptionsSheet({
             onPress={() => {
               hidePostMutate(postId, {
                 onSuccess: () => {
+                  console.log('[PostOptionsSheet] post hidden:', postId);
                   onHide?.(postId);
                   handleClose();
                   showToast('해당 피드를 숨겼습니다.', 'success');

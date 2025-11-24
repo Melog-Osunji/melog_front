@@ -197,13 +197,6 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
               tintColor={colors.BLUE_400}
             />
           }>
-          {/* 작게 상단에 20px 높이로 표시 */}
-          {/* {refreshing && (
-            <View style={styles.refreshOverlay}>
-              <Loading size={20} />
-            </View>
-          )} */}
-
           {/* 미디어 */}
           {post.mediaUrl && (
             <View style={styles.media}>

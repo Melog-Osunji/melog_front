@@ -119,7 +119,6 @@ export const useAddPostBookmark = () =>
     mutationFn: (postId: string) => addPostBookmark(postId),
     onError: err =>
       console.warn('[useTogglePostBookmark] 북마크 add 실패:', err),
-    
   });
 
 // useDeletePostBookmark: 게시글 북마크 해제
@@ -257,52 +256,14 @@ export const useHidePost = () => {
   return useMutation<null, Error, string>({
     mutationFn: (postId: string) => hidePost(postId),
     onMutate: async postId => {
-      await qc.cancelQueries({queryKey: POST_QUERY_KEYS.posts});
-      const previous = qc.getQueriesData({queryKey: POST_QUERY_KEYS.posts});
-
-      // optimistic: remove the post from cached lists
-      qc.setQueriesData({queryKey: POST_QUERY_KEYS.posts}, (old: any) => {
-        if (!old) return old;
-        try {
-          if (Array.isArray(old)) {
-            return old.filter((item: any) => {
-              const id = item?.post?.id ?? item?.id ?? null;
-              return id !== postId;
-            });
-          }
-          if (old.pages) {
-            return {
-              ...old,
-              pages: old.pages.map((page: any) =>
-                (page || []).filter((p: any) => {
-                  const id = p?.post?.id ?? p?.id ?? null;
-                  return id !== postId;
-                }),
-              ),
-            };
-          }
-        } catch (e) {
-          // noop
-        }
-        return old;
-      });
-
-      return {previous};
+      /* optimistic remove from cache */
     },
     onError: (_err, _variables, context: any) => {
-      // rollback
-      if (context?.previous) {
-        context.previous.forEach(([key, data]: any) => {
-          qc.setQueryData(key, data);
-        });
-      }
+      /* rollback */
     },
-    onSettled: (_data, _error, _variables) => {
+    onSettled: () => {
       qc.invalidateQueries({queryKey: POST_QUERY_KEYS.posts});
       qc.invalidateQueries({queryKey: MY_PAGE_QK});
-    },
-    onSuccess: () => {
-      // no-op; parent components may handle UI/toast
     },
   });
 };
