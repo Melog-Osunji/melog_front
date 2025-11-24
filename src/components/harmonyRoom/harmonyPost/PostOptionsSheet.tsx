@@ -12,6 +12,7 @@ type Props = {
   postId: string;
   // optional callbacks
   onFollow?: (userId: string) => void;
+  onFollow?: (userId: string) => void;
   onHideFeed?: (postId: string) => void;
   onBlock?: (userId: string) => void;
   onReport?: (postId: string) => void;
@@ -139,7 +140,7 @@ const PostOptionsSheet: React.FC<Props> = ({
           setBlockPopupVisible(false);
           handleClose(); // close bottom sheet as well
         }}
-        iconImg={require('@/assets/icons/common/Error_red.png')}
+        iconImg={require('@/assets/icons/common/error_red.png')}
         title={`${targetNick}님을 차단하시겠어요?`}
         content="차단한 상대방의 피드를 볼 수 없게 돼요."
         leftBtnColor={colors.GRAY_100}

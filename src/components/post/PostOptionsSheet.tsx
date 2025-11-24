@@ -148,7 +148,7 @@ function PostOptionsSheet({
           handleClose();
           showToast(`${targetNick}님을 차단했습니다`, 'success');
         }}
-        iconImg={require('@/assets/icons/common/Error_red.png')}
+        iconImg={require('@/assets/icons/common/error_red.png')}
         title={`${targetNick}님을 차단할까요?`}
         content="차단한 상대방의 피드를 볼 수 없게 돼요."
         leftBtnColor={colors.GRAY_100}
