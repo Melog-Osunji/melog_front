@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   ScrollView,
   Text,
@@ -12,6 +12,9 @@ import {colors} from '@/constants';
 import EmptyTab from '@/components/search/EmptyTab';
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import {useSearchProfile} from '@/hooks/queries/search/useSearchResult';
+import {useFollowUser} from '@/hooks/queries/User/useUserMutations';
+import {useGetUserFollowing} from '@/hooks/queries/User/useUserQueries';
+import CustomButton from '@/components/common/CustomButton';
 
 type Props = {keyword?: string};
 
@@ -19,8 +22,47 @@ const mock: any[] = []; // ← 비었을 때 EmptyState가 보이도록 가정
 
 const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
   useHideTabBarOnFocus();
+  const [isFollow, setIsFollow] = useState<boolean>(false);
+
   const {data, isLoading, isError} = useSearchProfile(keyword ?? '');
+
   console.log(data);
+
+  // follow 상태 초기화
+  const user = data?.user
+
+  console.log(user);
+
+  const {data: followingData} = useGetUserFollowing(user?.userNickname ?? '');
+
+  // 서버 응답 적용 (data: { isFollowing: boolean })
+  useEffect(() => {
+    if (followingData) {
+        const isFollowing = (followingData as any).result ?? false;
+        setIsFollow(!!isFollowing);
+    }
+  }, [followingData]);
+
+  // 팔로우/언팔로우 토글 핸들러
+  const followMutation = useFollowUser();
+  const handleToggleFollow = useCallback(() => {
+    if (!user?.id) return;
+
+    const previous = isFollow;
+    setIsFollow(!previous);
+
+    followMutation.mutate(user.id, {
+    onError: () => {
+      setIsFollow(previous);
+      showToast(
+        previous ? '언팔로우에 실패했어요.' : '팔로우에 실패했어요.',
+        'error',
+      );
+    },
+    });
+  }, [followMutation, user?.id, isFollow]);
+
+
   if (isLoading) {
     return (
       <View style={styles.center}>
@@ -59,11 +101,14 @@ const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
               </Text>
             </View>
 
-            <Pressable style={styles.followBtn}>
-              <Text style={styles.followLabel}>
-                {isFollowed ? '팔로잉' : '팔로우'}
-              </Text>
-            </Pressable>
+            <CustomButton
+                label={isFollow ? '팔로잉' : '팔로우'}
+                size="small"
+                onPress={handleToggleFollow}
+                style={{
+                  backgroundColor: isFollow ? colors.GRAY_200 : colors.BLUE_400,
+                }}
+              />
           </View>
         );
       })}
@@ -125,6 +170,8 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     backgroundColor: colors.BLUE_400,
     borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   followLabel: {
     fontSize: 14,

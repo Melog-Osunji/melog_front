@@ -13,7 +13,8 @@ import {
 //constants
 import {colors} from '@/constants';
 //types
-import {YouTubeVideo, NewPostDTO} from '@/types';
+import {YouTubeVideo} from '@/types';
+import {CreateHarmonyRoomPostRequest} from '@/api/harmonyRoom/harmonyRoomPostAPi';
 //navigation
 import {
   useNavigation,
@@ -92,8 +93,7 @@ export default function HarmonyPostScreen() {
     console.log('게시글 작성 시작');
     console.log('작성자 정보:', userInfo);
 
-    const postData: NewPostDTO = {
-      title: '',
+    const postData: CreateHarmonyRoomPostRequest = {
       content: content.trim(),
       mediaType: 'youtube',
       mediaUrl: selectedVideo
