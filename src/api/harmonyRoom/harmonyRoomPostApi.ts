@@ -184,7 +184,6 @@ export const leaveHarmonyRoom = async (
 
 // 하모니룸 내부 피드 작성
 export type CreateHarmonyRoomPostRequest = {
-    title: string;
     content: string;
     mediaType: 'youtube' | string;
     tags: string[];
