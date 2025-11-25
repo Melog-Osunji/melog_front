@@ -53,6 +53,7 @@ const myPageNavigations = {
   MYPAGE_EDIT: 'MyPageEdit',
   MYPAGE_POST_PAGE: 'MyPagePostPage',
   MYPAGE_HARMONY_STACK: 'MyPageHarmonyStack',
+  MYPAGE_PROFILE: 'MyPagePersonalProfile',
 } as const;
 
 // settings

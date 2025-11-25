@@ -61,7 +61,7 @@ const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
 
             <Pressable style={styles.followBtn}>
               <Text style={styles.followLabel}>
-                {isFollowed ? '언팔로우' : '팔로우'}
+                {isFollowed ? '팔로잉' : '팔로우'}
               </Text>
             </Pressable>
           </View>
