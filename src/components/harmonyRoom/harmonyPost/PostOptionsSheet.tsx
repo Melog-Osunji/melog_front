@@ -5,6 +5,7 @@ import IconButton from '@/components/common/IconButton';
 import {colors} from '@/constants';
 import type {UserDTO} from '@/types';
 import CheckPopup from '@/components/common/CheckPopup';
+import {useFollowUser} from '@/hooks/queries/User/useUserMutations';
 
 type Props = {
   user?: UserDTO;
@@ -29,8 +30,13 @@ const PostOptionsSheet: React.FC<Props> = ({
 }) => {
   const [visible, setVisible] = useState(false);
   const [blockPopupVisible, setBlockPopupVisible] = useState(false);
+<<<<<<< Updated upstream
   /* 수정 */
   //   const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
+=======
+
+  const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
+>>>>>>> Stashed changes
 
   const handleClose = () => setVisible(false);
 

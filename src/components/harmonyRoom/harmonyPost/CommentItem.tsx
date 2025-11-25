@@ -3,6 +3,7 @@ import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
 import type {CommentDTO} from '@/types';
 import PostOptionsSheet from '@/components/harmonyRoom/harmonyPost/PostOptionsSheet';
+import {useToggleHarmonyCommentLike} from '@/hooks/queries/harmonyRoom/useHarmonyPostMutation.ts';
 
 interface CommentItemProps {
   comment: CommentDTO;
@@ -23,7 +24,7 @@ const CommentItem = ({
   );
 
   /* 수정 */
-  const {mutate: toggleLike} = useToggleCommentLike();
+  const {mutate: toggleLike} = useToggleHarmonyCommentLike();
 
   const handleLikePress = () => {
     // 이전 상태 보관 (롤백용)

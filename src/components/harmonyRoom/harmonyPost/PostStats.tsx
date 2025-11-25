@@ -3,9 +3,9 @@ import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {colors} from '@/constants';
 import {PostDTO} from '@/types';
 import {
-  useTogglePostLike,
-  useTogglePostBookmark,
-} from '@/hooks/queries/post/usePostMutations';
+  useToggleHarmonyPostLike,
+  useAddHarmonyPostBookmark,
+} from '@/hooks/queries/harmonyRoom/useHarmonyPostMutation';
 
 type StatsType = 'like' | 'comment' | 'share' | 'bookmark';
 
@@ -21,9 +21,9 @@ const PostStats = ({
 }: PostStatsProps) => {
 
   /* 수정 */
-  const toggleLikeMutation = useTogglePostLike();
+  const toggleLikeMutation = useToggleHarmonyPostLike();
   /* 수정 */
-  const toggleBookmarkMutation = useTogglePostBookmark();
+  const toggleBookmarkMutation = useAddHarmonyPostBookmark();
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [currentLikeCount, setCurrentLikeCount] = useState(likeCount || 0);

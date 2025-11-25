@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {StyleSheet, View, TextInput} from 'react-native';
 import {colors} from '@/constants';
-import {useCreateComment} from '@/hooks/queries/post/usePostMutations';
+import {useCreateHarmonyComment} from '@/hooks/queries/harmonyRoom/useHarmonyPostMutation';
 
 interface LikeAndCommentProps {
   onLikePress?: () => void;
@@ -18,7 +18,7 @@ function LikeAndComment({
 }: LikeAndCommentProps) {
   const [comment, setComment] = useState('');
   /* 수정 */
-  const createCommentMutation = useCreateComment();
+  const createCommentMutation = useCreateHarmonyComment();
 
   const handleSend = () => {
     if (onSend && comment.trim()) {

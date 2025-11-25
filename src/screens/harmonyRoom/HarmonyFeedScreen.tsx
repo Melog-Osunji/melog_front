@@ -25,8 +25,7 @@ import CommentBar from '@/components/harmonyRoom/harmonyPost/CommentBar';
 import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
 import PostOptionsSheet from '@/components/harmonyRoom/harmonyPost/PostOptionsSheet';
-import {usePostDetail} from '@/hooks/queries/post/usePostQueries';
-import {usePostComments} from '@/hooks/queries/post/usePostQueries';
+import {useHarmonyPostDetail, useHarmonyPostComments} from '@/hooks/queries/harmonyRoom/useHarmonyPostQueries';
 
 type HarmonyPageScreenProp = StackScreenProps<
   HarmonyStackParamList,
@@ -39,17 +38,18 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
   useHideTabBarOnFocus();
 
   // API 호출
-//   const {
-//     data: postData,
-//     isLoading: postLoading,
-//     error: postError,
-//     isError: isPostError,
-//   } = usePostDetail(postId);
-//   const {
-//     data: commentsData,
-//     isLoading: commentsLoading,
-//     error: commentsError,
-//   } = usePostComments(postId);
+  const {
+    data: postData,
+    isLoading: postLoading,
+    error: postError,
+    isError: isPostError,
+  } = useHarmonyPostDetail(postId);
+
+  const {
+    data: commentsData,
+    isLoading: commentsLoading,
+    error: commentsError,
+  } = useHarmonyPostComments(postId);
 
   // 로딩 상태 처리
   if (postLoading) {
@@ -64,7 +64,7 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
 
   // 에러 상태 처리
   if (isPostError || !postData) {
-    console.error('[PostPageScreen] 게시글 로드 실패:', postError);
+    console.error('[HarmonyPostPageScreen] 게시글 로드 실패:', postError);
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
@@ -75,10 +75,9 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
     );
   }
 
-  console.log('[PostPageScreen] 게시글 데이터 로드 완료');
-  console.log('[PostPageScreen] 댓글 데이터 로드 완료');
 
   const {post, user} = postData;
+
   return (
     <SafeAreaView style={styles.container}>
       <GradientBg>
@@ -108,7 +107,7 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{paddingBottom: 100}}>
           {/* 미디어 */}
-          {post.mediaUrl && (
+          {post.mediaUrl ? (
             <View style={styles.media}>
               {post.mediaUrl.includes('youtube.com') ||
               post.mediaUrl.includes('youtu.be') ? (
@@ -120,7 +119,7 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
                 />
               )}
             </View>
-          )}
+          ) : null}
 
           <View style={styles.postContainer}>
             {/* 사용자 정보 */}
