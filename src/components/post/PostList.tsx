@@ -5,7 +5,7 @@ import {PostWithUserDTO} from '@/types';
 
 interface PostListProps {
   data: PostWithUserDTO[];
-  ListHeaderComponent?: React.ReactNode;
+  ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null;
   onHide?: (userId: string) => void;
   onBlock?: (userId: string) => void;
   onReport?: (postId: string) => void;
