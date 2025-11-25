@@ -8,6 +8,7 @@ import {useAuthContext} from '@/contexts/AuthContext';
 // components
 import IconButton from '@/components/common/IconButton';
 import SettingRow from '@/components/settings/SettingRow';
+import SettingToggleRow from '@/components/settings/SettingToggleRow';
 
 type SettingsHomeScreenProps = StackScreenProps<
   SettingNavigatorParamList,
@@ -59,7 +60,12 @@ export default function PostHomeScreen({navigation}: SettingsHomeScreenProps) {
         />
 
         <Text style={styles.sectionTitle}>알림</Text>
-        <Text>PUSH 알림 설정</Text>
+        <SettingToggleRow
+          label="PUSH 알림 설정"
+          info="본 설정은 해당 기기에서만 유효하며,
+수신 거절 시 상담/답변 등의 정보성 알림도 발송되지 않습니다."
+          onPress={() => navigation.navigate(settingsNavigations.NOTICES)}
+        />
 
         <SettingRow
           label="공지사항"

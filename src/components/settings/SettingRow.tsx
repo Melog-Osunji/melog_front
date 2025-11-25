@@ -10,7 +10,7 @@ type Props = {
 
 export default function SettingRow({label, info, onPress}: Props) {
   return (
-    <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
+    <View style={styles.row}>
       <View style={styles.left}>
         <Text style={styles.label}>{label}</Text>
       </View>
@@ -23,9 +23,10 @@ export default function SettingRow({label, info, onPress}: Props) {
         <Icon
           imageSource={require('@/assets/icons/common/arrow_forward_ios.png')}
           size={24}
+          onPress={onPress}
         />
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
 
