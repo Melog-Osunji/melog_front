@@ -7,6 +7,8 @@ import RootNavigator from '@/navigations/root/RootNavigator';
 import {getAccessToken, getRefreshToken} from '@/utils/storage/UserStorage';
 import GlobalToast from '@/components/common/GlobalToast';
 import {OverlayProvider} from '@/components/overlay/OverlayProvider';
+//dev
+import SettingStackNavigator from '@/navigations/stack/SettingStackNavigator';
 
 function App() {
   useEffect(() => {
@@ -31,6 +33,7 @@ function App() {
         <NavigationContainer>
           <OverlayProvider>
             <RootNavigator />
+            {/* <SettingStackNavigator /> */}
             <GlobalToast />
           </OverlayProvider>
         </NavigationContainer>
