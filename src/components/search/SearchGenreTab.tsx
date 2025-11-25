@@ -29,7 +29,7 @@ const SearchGenreTab: React.FC<Props> = ({ onSelect }) => {
   }
   return (
     <ScrollView style={{ flex: 1 }}
-                  contentContainerStyle={{ paddingHorizontal: 20 }}>
+                  contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16 }}>
       {data.map((section, sectionIdx) => (
           <View key={sectionIdx} style={styles.genreSection}>
             <Text style={styles.sectionTitle}>{section.genre}</Text>

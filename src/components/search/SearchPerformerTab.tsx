@@ -32,7 +32,7 @@ const SearchPerformerTab: React.FC<Props> = ({ onSelect }) => {
   }
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16 }}>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16 }}>
       <Text style={styles.sectionTitle}>인기 검색어</Text>
       <View style={styles.container}>
         {data.map((performer, i) => (

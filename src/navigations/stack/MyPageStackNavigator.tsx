@@ -18,7 +18,7 @@ export type MyPageStackParamList = {
   [myPageNavigations.MYPAGE_EDIT]: undefined;
   [myPageNavigations.MYPAGE_POST_PAGE]: { postId: string };
   [myPageNavigations.MYPAGE_HARMONY_STACK]: { screen?: string; params?: any };
-  [myPageNavigations.MYPAGE_MYPAGE_PROFILE]: {userId: string};
+  [myPageNavigations.MYPAGE_PROFILE]: {userId: string};
   [myPageNavigations.MYPAGE_POST_PAGE]: {postId: string};
   [myPageNavigations.MYPAGE_HARMONY_STACK]: {screen?: string; params?: any};
 };
@@ -54,7 +54,7 @@ function MyPageStackNavigator() {
         options={{headerShown: false}}
       />
       <Stack.Screen
-        name={myPageNavigations.MYPAGE_MYPAGE_PROFILE}
+        name={myPageNavigations.MYPAGE_PROFILE}
         component={PersonalProfileScreen}
         options={{headerShown:false}}
       />

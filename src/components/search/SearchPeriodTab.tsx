@@ -31,7 +31,7 @@ const SearchPeriodTab: React.FC<Props> = ({ onSelect }) => {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16 }}>
+    <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16 }}>
       <View style={styles.container}>
         <Text style={styles.sectionTitle}>인기 검색어</Text>
         <View style={styles.keywordWrap}>
