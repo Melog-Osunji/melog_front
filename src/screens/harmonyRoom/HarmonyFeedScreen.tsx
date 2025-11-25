@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Button,
+  Pressable
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StackScreenProps} from '@react-navigation/stack';
@@ -26,9 +27,7 @@ import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
 import PostOptionsSheet from '@/components/harmonyRoom/harmonyPost/PostOptionsSheet';
 import {useHarmonyPostDetail, useHarmonyPostComments} from '@/hooks/queries/harmonyRoom/useHarmonyPostQueries';
-import {useUserInfo} from '@/hooks/common/useUserInfo';
 import {PostDTO, UserDTO} from '@/types';
-import {useMyPage} from '@/hooks/queries/myPage/useMyPage';
 
 type HarmonyPageScreenProp = StackScreenProps<
   HarmonyStackParamList,
@@ -36,7 +35,7 @@ type HarmonyPageScreenProp = StackScreenProps<
 >;
 
 const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
-  const {postId, harmonyId} = route.params;
+  const {postId} = route.params;
 
   useHideTabBarOnFocus();
 
@@ -53,11 +52,6 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
     isLoading: commentsLoading,
     error: commentsError,
   } = useHarmonyPostComments(postId);
-
-  const {
-    data: userInfo,
-    isLoading
-    } = useMyPage();
 
   // 로딩 상태 처리
   if (postLoading) {
@@ -131,7 +125,7 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
           <View style={styles.postContainer}>
             {/* 사용자 정보 */}
             <View style={styles.userSection}>
-              <View style={styles.userWrapper}>
+              <Pressable style={styles.userWrapper} onPress={()=> navigation.navigate(harmonyNavigations.HARMONY_PERSONAL,{userId: user.id})}>
                 <Image
                   source={{uri: user.profileImg}}
                   style={styles.profileImage}
@@ -140,7 +134,7 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
                   <Text style={styles.nickName}>{user.nickName}</Text>
                   <Text style={styles.timeText}>{postData.createdAgo}</Text>
                 </View>
-              </View>
+              </Pressable>
               <PostOptionsSheet user={user} postId={postId} />
             </View>
 
@@ -162,9 +156,6 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
               likeCount={postData.likeCount}
               commentCount={postData.commentCount}
               visibleStats={['like', 'share', 'bookmark']}
-              initialIsLiked={postData.isLike}
-              initialIsBookmarked={postData.isBookmark}
-              harmonyId={harmonyId}
             />
           </View>
 
@@ -195,7 +186,7 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
           onSend={(text: string) => {
             console.log('[PostPageScreen] onSend comment:', text);
           }}
-          profileUrl={userInfo?.profileImg}
+          profileUrl={postData.profileImage}
         />
       </GradientBg>
     </SafeAreaView>

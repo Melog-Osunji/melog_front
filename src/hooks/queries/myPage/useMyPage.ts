@@ -11,10 +11,10 @@ import type {PostWithUserDTO} from '@/types/postTypes';
 
 export const MY_PAGE_QK = ['myPage'] as const;
 
-export const useMyPage = () =>
+export const useMyPage = (profileUser?:string) =>
   useQuery({
-    queryKey: MY_PAGE_QK,
-    queryFn: fetchMyPage,
+    queryKey: [MY_PAGE_QK, profileUser],
+    queryFn: () => fetchMyPage(profileUser),
     staleTime: 60 * 1000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,

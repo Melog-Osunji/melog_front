@@ -3,6 +3,7 @@ import {StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Dimensions,
 import {SafeAreaView} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import {MyPageStackParamList} from '@/navigations/stack/MyPageStackNavigator';
+import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {colors, myPageNavigations} from '@/constants';
 import IconButton from '@/components/common/IconButton';
@@ -12,28 +13,59 @@ import MyPageBookmarkTab from '@/components/mypage/MyPageBookmarkTab';
 import HarmonyRoomStrip, { type Community } from '@/components/harmonyRoom/HarmonyRoomStrip';
 import { useMyPage } from '@/hooks/queries/myPage/useMyPage'
 import {useUserInfo} from '@/hooks/common/useUserInfo';
+import { StackScreenProps } from '@react-navigation/stack';
+import { useGetUserFollowing } from '@/hooks/queries/User/useUserQueries';
+import { useFollowUser } from '@/hooks/queries/User/useUserMutations';
+
+type HarmonyPersonalProps = StackScreenProps<
+  HarmonyStackParamList,
+  'HARMONY_PERSONAL'
+>;
+
+type MyPagePersonalProps = StackScreenProps<
+  MyPageStackParamList,
+  'MYPAGE_PROFILE'
+>;
+
+type PersonalProfileScreenProps = HarmonyPersonalProps | MyPagePersonalProps;
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
-function PersonalProfileScreen() {
+function PersonalProfileScreen({ route }: PersonalProfileScreenProps) {
   const navigation = useNavigation<StackNavigationProp<MyPageStackParamList>>();
+
+  const { userId } = route.params;
+
   const [selectedTab, setSelectedTab] = useState<
       'feed' | 'media' | 'bookmarkFeed'
     >('feed');
 
   // api 변경
-  const { data, isLoading, isError, refetch, isRefetching } = useMyPage();
-  const userInfo = useUserInfo();
+  const { data, isLoading, isError, refetch, isRefetching } = useMyPage(userId);
 
   // 팔로잉 확인
+  const {
+    data: followingData,
+    isLoading: isFollowingLoading,
+    refetch: refetchFollowing,
+  } = useGetUserFollowing(data?.nickname ?? '');
+
+  const followMutation = useFollowUser(userId);
+
+  const isFollowing = followingData?.result === true;
+
+  const onPressFollow = () => {
+    if (!data?.nickname) return;
+
+    followMutation.mutate(userId, {
+      onSuccess: () => {
+        refetchFollowing();  // 버튼 상태 업데이트
+        refetch();           // 마이페이지 숫자(팔로워/팔로잉) 갱신
+      },
+    });
+  };
 
 
-  console.log(data);
-  useFocusEffect(
-      useCallback(() => {
-        refetch();
-      }, [refetch])
-  );
 
   const communities = useMemo<Community[]>(() => {
       if (!data?.harmonyRooms) return [];
@@ -70,14 +102,22 @@ function PersonalProfileScreen() {
              }>
             {/* 헤더 */}
             <View style={styles.header}>
-                <IconButton<MyPageStackParamList>
-                    imageSource={require('@/assets/icons/post/Notice.png')}
-//                     target={[myPageNavigations.MYPAGE_EDIT]}
+                <IconButton
+                    imageSource={require('@/assets/icons/post/BackArrow.png')}
+                    target={'goBack'}
+                    size={24}
+                    imageStyle={{ tintColor: colors.GRAY_300 }}
                 />
-                <IconButton<MyPageStackParamList>
-                    imageSource={require('@/assets/icons/mypage/Hamburger.png')}
-//                     target={[myPageNavigations.MYPAGE_EDIT]}
-                />
+                <View style={styles.rightButtons}>
+                    <IconButton<MyPageStackParamList>
+                        imageSource={require('@/assets/icons/post/Notice.png')}
+    //                     target={[myPageNavigations.MYPAGE_EDIT]}
+                    />
+                    <IconButton<MyPageStackParamList>
+                        imageSource={require('@/assets/icons/mypage/Hamburger.png')}
+    //                     target={[myPageNavigations.MYPAGE_EDIT]}
+                    />
+                </View>
             </View>
             <ScrollView>
             {/* 기본 정보 */}
@@ -114,10 +154,10 @@ function PersonalProfileScreen() {
                     </View>
                 </View>
                 <View style={styles.buttonWrap}>
-                    <TouchableOpacity style={styles.button}>
-                        <Text style={[styles.followText, { color: colors.WHITE }]}>팔로우</Text>
+                    <TouchableOpacity style={[styles.button, {width: 100}, isFollowing ? styles.buttonActive : null,]} onPress={onPressFollow}>
+                        <Text style={[styles.followText, { color: isFollowing ? colors.GRAY_500 : colors.WHITE }]}>{isFollowing ? '팔로잉' : '팔로우'}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.button}>
+                    <TouchableOpacity style={[styles.button, styles.buttonActive]}>
                         <Image source={require('@/assets/icons/mypage/Share.png')} style={styles.buttonImg}/>
                     </TouchableOpacity>
                 </View>
@@ -200,12 +240,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
     gap: 9,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.LINE_GREY,
   },
+  rightButtons: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
   myInfoWrap: {
     width: '100%',
     paddingVertical:16,

@@ -78,6 +78,7 @@ export const postUserFollowing = async (
   follower: string,
 ): Promise<FollowResponseDto> => {
   const body: FollowRequestDto = {follower};
+  
   try {
     const res = await instance.post<BaseResponse<FollowResponseDto>>(
       '/api/users/following',
