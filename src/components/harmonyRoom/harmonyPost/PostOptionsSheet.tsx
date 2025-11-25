@@ -30,13 +30,8 @@ const PostOptionsSheet: React.FC<Props> = ({
 }) => {
   const [visible, setVisible] = useState(false);
   const [blockPopupVisible, setBlockPopupVisible] = useState(false);
-<<<<<<< Updated upstream
-  /* 수정 */
-  //   const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
-=======
 
   const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
->>>>>>> Stashed changes
 
   const handleClose = () => setVisible(false);
 
