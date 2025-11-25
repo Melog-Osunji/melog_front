@@ -31,6 +31,7 @@ const PADDING_V = 8;
 const PADDING_H = 20;
 const HANDLE_H = 32; // handle 높이 4 + 상하 여백 16
 
+const todayISO = toISO(new Date());
 
 type Marked = Record<string, boolean>;
 
@@ -334,7 +335,9 @@ function MonthGrid({
       {grid.map(({ date, inMonth }) => {
         const iso = toISO(date);
         const isSel = iso === selectedISO;
-        const dot = !!markedDates[iso];
+//         const dot = !!markedDates[iso];
+        const dot = iso === todayISO;
+
         return (
           <DayBubble
             key={iso}
@@ -373,7 +376,8 @@ function WeekStrip({
       {days.map((d) => {
         const iso = toISO(d);
         const isSel = iso === selectedISO;
-        const dot = !!markedDates[iso];
+//         const dot = !!markedDates[iso];
+        const dot = iso === todayISO;
         const dimmed = d.getMonth() !== currentMonth.getMonth();
 
         return (
