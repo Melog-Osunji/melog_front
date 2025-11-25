@@ -168,6 +168,7 @@ function HarmonyApplyManageScreen() {
             onApprove={() => handleApprove(item.id)}
             onReject={() => handleReject(item.id)}
             disabled={isPending}
+            type='apply'
           />
         )}
         contentContainerStyle={{paddingVertical: 10}}

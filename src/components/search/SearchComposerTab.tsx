@@ -62,7 +62,9 @@ const styles = StyleSheet.create({
   gridWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-around',
+    justifyContent: 'flex-start',
+    columnGap: 24,
+    rowGap: 16,
   },
   gridItem: {
     alignItems: 'center',
