@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -14,6 +14,7 @@ import {
 import IconButton from '@/components/common/IconButton';
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import {colors} from '@/constants';
+import {useQueryClient} from '@tanstack/react-query';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
@@ -54,15 +55,15 @@ export default function FollowerRequestsScreen() {
 //     }
 //   }, [refetch]);
 
-  const users: ApplyUser[] = useMemo(() => {
-    const src = waitingDTO?.waitingUsers ?? [];
-    return src.map(u => ({
-      id: String(u.user.id),
-      name: u.user.nickname ?? '익명',
-      intro: u.user.intro ?? '',
-      profileImgLink: u.user.profileImgLink, // RoomApplyCard가 받는다면 그대로 전달
-    }));
-  }, [waitingDTO]);
+//   const users: ApplyUser[] = useMemo(() => {
+//     const src = waitingDTO?.waitingUsers ?? [];
+//     return src.map(u => ({
+//       id: String(u.user.id),
+//       name: u.user.nickname ?? '익명',
+//       intro: u.user.intro ?? '',
+//       profileImgLink: u.user.profileImgLink, // RoomApplyCard가 받는다면 그대로 전달
+//     }));
+//   }, [waitingDTO]);
 
 //   const listKey = useMemo(() => ['harmony', 'waiting', roomID], [roomID]);
 

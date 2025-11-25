@@ -14,7 +14,7 @@ type SettingsHomeScreenProps = StackScreenProps<
   typeof settingsNavigations.SETTINGS_HOME
 >;
 
-export default function PostHomeScreen({navigation}: SettingsHomeScreenProps) {
+export default function SettingHomeScreen({navigation}: SettingsHomeScreenProps) {
   const {user: authUser} = useAuthContext();
   const [pushEnabled, setPushEnabled] = useState(false);
 

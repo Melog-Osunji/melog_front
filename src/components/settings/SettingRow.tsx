@@ -10,7 +10,7 @@ type Props = {
 
 export default function SettingRow({label, info, onPress}: Props) {
   return (
-    <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.row} onPress={onPress}>
       <View style={styles.left}>
         <Text style={styles.label}>{label}</Text>
       </View>
