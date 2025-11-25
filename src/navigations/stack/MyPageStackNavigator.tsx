@@ -1,12 +1,17 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
-import {myPageNavigations, harmonyNavigations} from '@/constants';
+import {
+  myPageNavigations,
+  harmonyNavigations,
+  settingsNavigations,
+} from '@/constants';
 import {MAIN_TAB_SCREEN_OPTIONS} from '@/navigations/tab/MainTabNavigator';
 import MyPageHomeScreen from '@/screens/mypage/MyPageHomeScreen';
 import MyPageEditScreen from '@/screens/mypage/MyPageEditScreen';
 import PostPageScreen from '@/screens/post/PostPageScreen';
 import PersonalProfileScreen from '@/screens/mypage/PersonalProfileScreen';
 import HarmonyStackNavigator from '@/navigations/stack/HarmonyStackNavigator';
+import SettingStackNavigator from '@/navigations/stack/SettingStackNavigator';
 
 export type MyPageStackParamList = {
   [myPageNavigations.MYPAGE_HOME]: undefined;
@@ -14,6 +19,8 @@ export type MyPageStackParamList = {
   [myPageNavigations.MYPAGE_POST_PAGE]: { postId: string };
   [myPageNavigations.MYPAGE_HARMONY_STACK]: { screen?: string; params?: any };
   [myPageNavigations.MYPAGE_MYPAGE_PROFILE]: {userId: string};
+  [myPageNavigations.MYPAGE_POST_PAGE]: {postId: string};
+  [myPageNavigations.MYPAGE_HARMONY_STACK]: {screen?: string; params?: any};
 };
 
 const Stack = createStackNavigator<MyPageStackParamList>();
@@ -34,12 +41,17 @@ function MyPageStackNavigator() {
       <Stack.Screen
         name="MYPAGE_POST_PAGE"
         component={PostPageScreen}
-        options={{ headerShown: false }}
+        options={{headerShown: false}}
       />
       <Stack.Screen
         name={myPageNavigations.MYPAGE_HARMONY_STACK}
         component={HarmonyStackNavigator}
-        options={{ headerShown: false }}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name={settingsNavigations.SETTINGS_HOME}
+        component={SettingStackNavigator}
+        options={{headerShown: false}}
       />
       <Stack.Screen
         name={myPageNavigations.MYPAGE_MYPAGE_PROFILE}
