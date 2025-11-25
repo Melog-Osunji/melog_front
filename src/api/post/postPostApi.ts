@@ -26,7 +26,7 @@ export const togglePostLike = async (postId: string) => {
 };
 
 // 2) bookmark
-// GET /api/posts/{postId}/bookmark (게시글 북마크)
+// GET /api/posts/{postId}/bookmark (게시글 북마크 추가)
 export const addPostBookmark = async (postId: string) => {
   const res = await instance.post<BaseResponse<null>>(
     `/api/posts/${postId}/bookmark`,
@@ -34,10 +34,10 @@ export const addPostBookmark = async (postId: string) => {
   return res.data.data;
 };
 
-// DELETE /api/posts/{postId}/bookmark (게시글 북마크)
-export const deletePostBookmarks = async (postId: string) => {
-  const res = await instance.post<BaseResponse<null>>(
-    `/api/posts/${postId}/bookmark`,
+// DELETE /api/posts/{postId}/bookmarks (게시글 북마크 제거)
+export const deletePostBookmark = async (postId: string) => {
+  const res = await instance.delete<BaseResponse<null>>(
+    `/api/posts/${postId}/bookmarks`,
   );
   return res.data.data;
 };

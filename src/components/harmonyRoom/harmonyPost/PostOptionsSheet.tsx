@@ -30,7 +30,7 @@ const PostOptionsSheet: React.FC<Props> = ({
   const [visible, setVisible] = useState(false);
   const [blockPopupVisible, setBlockPopupVisible] = useState(false);
   /* 수정 */
-//   const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
+  //   const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
 
   const handleClose = () => setVisible(false);
 
@@ -57,18 +57,18 @@ const PostOptionsSheet: React.FC<Props> = ({
               }
               console.log('[PostOptionsSheet] follow user', targetUserId);
               // 서버 API 스펙에 맞춰 follower 필드에 대상 유저 id 전송
-//               followUser(targetUserId, {
-//                 onSuccess: _data => {
-//                   onFollow?.(targetUserId);
-//                   handleClose();
-//                 },
-//                 onError: err => {
-//                   console.error('[PostOptionsSheet] follow error:', err);
-//                 },
-//               });
+              //               followUser(targetUserId, {
+              //                 onSuccess: _data => {
+              //                   onFollow?.(targetUserId);
+              //                   handleClose();
+              //                 },
+              //                 onError: err => {
+              //                   console.error('[PostOptionsSheet] follow error:', err);
+              //                 },
+              //               });
             }}
-//             disabled={isFollowingLoading}
-            >
+            //             disabled={isFollowingLoading}
+          >
             <Image
               source={require('@/assets/icons/post/Follow.png')}
               style={styles.icon}

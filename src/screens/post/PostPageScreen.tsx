@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Button,
+  RefreshControl,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StackScreenProps} from '@react-navigation/stack';
@@ -15,22 +16,24 @@ import {postNavigations} from '@/constants';
 import {colors} from '@/constants';
 //utils
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
-//navigation
+//navigations
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 //components
 import PostStats from '@/components/post/PostStats';
 import YouTubeEmbed2 from '@/components/common/YouTubeEmbed2';
-import {useDeleteComment} from '@/hooks/queries/post/usePostMutations';
 import CommentList from '@/components/post/postpage/CommentList';
 import CommentBar from '@/components/post/postpage/CommentBar';
 import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
 import CustomButton from '@/components/common/CustomButton';
 import {showToast} from '@/components/common/ToastService';
+import Loading from '@/components/common/Loading';
 //Queries
 import {usePostDetail} from '@/hooks/queries/post/usePostQueries';
 import {usePostComments} from '@/hooks/queries/post/usePostQueries';
 import {useFollowUser} from '@/hooks/queries/User/useUserMutations';
+import {useGetUserFollowing} from '@/hooks/queries/User/useUserQueries';
+import {PostDTO, UserDTO} from '@/types';
 
 type PostPageScreenProp = StackScreenProps<
   PostStackParamList,
@@ -39,10 +42,12 @@ type PostPageScreenProp = StackScreenProps<
 
 const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   const {postId} = route.params;
+  const [isFollow, setIsFollow] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
   useHideTabBarOnFocus();
 
-  // API 호출
+  // post 및 commnet 데이터 로드
   const {
     data: postData,
     isLoading: postLoading,
@@ -55,46 +60,12 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     error: commentsError,
   } = usePostComments(postId);
 
-  // isFollow을 로컬 state로 선언 (초기값 false)
-  // const [isFollow, setIsFollow] = useState<boolean>(
-  //   () => !!postData?.user?.isFollow,
-  // );
-  const [isFollow, setIsFollow] = useState<boolean>(false); //임시
-
-  // follow mutation 훅 (항상 호출되어야 함)
-  const followMutation = useFollowUser();
-
-  // replyTarget 상태 (항상 선언)
-  const [replyTarget, setReplyTarget] = useState<{
-    id: string;
-    nickname: string;
-  } | null>(null);
-
-  const handleReply = useCallback((target: {id: string; nickname: string}) => {
-    console.log('[PostPageScreen] handleReply', target);
-    setReplyTarget(target);
-  }, []);
-
-  const handleCancelReply = useCallback(() => {
-    console.log('[PostPageScreen] cancelReply');
-    setReplyTarget(null);
-  }, []);
-
-  // 댓글 전송 핸들러
-  const handleSendComment = useCallback(
-    (text: string, reply?: {id: string; nickname: string} | null) => {
-      console.log('[PostPageScreen] send comment', {text, reply});
-      setReplyTarget(null);
-    },
-    [route.params.postId],
-  );
-
   // 로딩 상태 처리
   if (postLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text>게시글을 불러오는 중...</Text>
+          <Loading text={'게시글을 불러오는 중...'} />
         </View>
       </SafeAreaView>
     );
@@ -113,10 +84,82 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     );
   }
 
-  console.log('[PostPageScreen] 게시글 데이터 로드 완료');
-  console.log('[PostPageScreen] 댓글 데이터 로드 완료');
+  const {post, user} = postData as {post: PostDTO; user: UserDTO};
 
-  const {post, user} = postData;
+  // follow 상태 초기화
+  const {data: followingData} = useGetUserFollowing(user?.nickName ?? '');
+
+  // 서버 응답 적용 (data: { isFollowing: boolean })
+  useEffect(() => {
+    if (followingData) {
+      const isFollowing = (followingData as any).result ?? false;
+      setIsFollow(!!isFollowing);
+    }
+  }, [followingData]);
+
+  // 팔로우/언팔로우 토글 핸들러
+  const followMutation = useFollowUser();
+  const handleToggleFollow = useCallback(() => {
+    if (!user?.id) return;
+
+    const previous = isFollow;
+    setIsFollow(!previous);
+
+    followMutation.mutate(user.id, {
+      onError: () => {
+        setIsFollow(previous);
+        showToast(
+          previous ? '언팔로우에 실패했어요.' : '팔로우에 실패했어요.',
+          'error',
+        );
+      },
+    });
+  }, [followMutation, user?.id, isFollow]);
+
+  // replyTarget: CommentBar가 기대하는 형태 { id: string; nickname: string; commentId?: string }
+  type ReplyTarget = {id: string; nickname: string; commentId?: string} | null;
+  const [replyTarget, setReplyTarget] = useState<ReplyTarget>(null);
+
+  // normalize incoming target (some callers pass { commentId, nickname }, others may pass { id, nickname })
+  const handleReply = useCallback(
+    (target: {commentId?: string; id?: string; nickname: string}) => {
+      console.log('[PostPageScreen] handleReply', target);
+      const id = target.id ?? target.commentId;
+      if (!id) return;
+      setReplyTarget({
+        id,
+        nickname: target.nickname,
+        commentId: target.commentId ?? undefined,
+      });
+    },
+    [],
+  );
+
+  const handleCancelReply = useCallback(() => {
+    console.log('[PostPageScreen] cancelReply');
+    setReplyTarget(null);
+  }, []);
+
+  // 댓글 전송 핸들러
+  const handleSendComment = useCallback(
+    (
+      text: string,
+      reply?: {id: string; nickname: string; commentId?: string} | null,
+    ) => {
+      console.log('[PostPageScreen] send comment', {text, reply});
+      setReplyTarget(null);
+    },
+    [route.params.postId],
+  );
+
+  // 새로 고침 핸들러
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // 여기에 데이터 새로 고침 로직 추가 (예: 쿼리 재요청)
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -145,7 +188,15 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
         <ScrollView
           style={{flex: 1}}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{paddingBottom: 100}}>
+          contentContainerStyle={{paddingBottom: 100}}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[colors.BLUE_400]}
+              tintColor={colors.BLUE_400}
+            />
+          }>
           {/* 미디어 */}
           {post.mediaUrl && (
             <View style={styles.media}>
@@ -177,23 +228,7 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
               <CustomButton
                 label={isFollow ? '언팔로우' : '팔로우'}
                 size="small"
-                onPress={() => {
-                  // 서버에 팔로우/언팔로우 요청 실행
-                  followMutation.mutate(user.id, {
-                    onSuccess: () => {
-                      setIsFollow(prev => !prev);
-                    },
-                    onError: () => {
-                      showToast(
-                        isFollow
-                          ? '언팔로우에 실패했어요.'
-                          : '팔로우에 실패했어요.',
-                        'error',
-                      );
-                    },
-                  });
-                }}
-                inValid={isFollow}
+                onPress={handleToggleFollow}
                 style={{
                   backgroundColor: isFollow ? colors.GRAY_200 : colors.BLUE_400,
                 }}
@@ -259,9 +294,9 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
         {/* 댓글 입력 바 */}
         <CommentBar
           postId={postId}
-          replyTarget={replyTarget} // 전달
-          onCancelReply={handleCancelReply} // 전달
-          onSend={handleSendComment} // 전달
+          replyTarget={replyTarget}
+          onCancelReply={handleCancelReply}
+          onSend={handleSendComment}
         />
       </GradientBg>
     </SafeAreaView>
@@ -389,6 +424,17 @@ const styles = StyleSheet.create({
     color: 'red',
     textAlign: 'center',
     paddingVertical: 16,
+  },
+  refreshOverlay: {
+    position: 'absolute' as const,
+    top: 6, // 화면 상단에서 살짝 아래
+    left: 0,
+    right: 0,
+    height: 20, // 작게 20px
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+    backgroundColor: 'transparent',
   },
 });
 

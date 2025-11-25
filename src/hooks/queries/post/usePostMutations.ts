@@ -7,8 +7,9 @@ import {
   deletePost,
   deleteComment,
   hidePost,
+  addPostBookmark,
+  deletePostBookmark,
 } from '@/api/post/postPostApi';
-import {addPostBookmark} from '@/api/post/postPostApi';
 import {POST_QUERY_KEYS} from './usePostQueries';
 import type {NewPostDTO} from '@/types';
 import {MY_PAGE_QK} from '@/hooks/queries/myPage/useMyPage';
@@ -111,13 +112,21 @@ export const useTogglePostLike = () =>
     onError: err => console.warn('[useTogglePostLike] 좋아요 토글 실패:', err),
   });
 
-// useTogglePostBookmark: 게시글 북마크 토글
-export const useTogglePostBookmark = () =>
+// useAddPostBookmark: 게시글 북마크 추가
+export const useAddPostBookmark = () =>
   useMutation({
     // 북마크 엔드포인트는 GET 기반이므로 get 함수를 호출
     mutationFn: (postId: string) => addPostBookmark(postId),
     onError: err =>
-      console.warn('[useTogglePostBookmark] 북마크 토글 실패:', err),
+      console.warn('[useTogglePostBookmark] 북마크 add 실패:', err),
+  });
+
+// useDeletePostBookmark: 게시글 북마크 해제
+export const useDeletePostBookmark = () =>
+  useMutation({
+    mutationFn: (postId: string) => deletePostBookmark(postId),
+    onError: err =>
+      console.warn('[useTogglePostBookmark] 북마크 delete 실패:', err),
   });
 
 // ======== #3) 댓글 관련 뮤테이션 훅 ========
@@ -247,52 +256,14 @@ export const useHidePost = () => {
   return useMutation<null, Error, string>({
     mutationFn: (postId: string) => hidePost(postId),
     onMutate: async postId => {
-      await qc.cancelQueries({queryKey: POST_QUERY_KEYS.posts});
-      const previous = qc.getQueriesData({queryKey: POST_QUERY_KEYS.posts});
-
-      // optimistic: remove the post from cached lists
-      qc.setQueriesData({queryKey: POST_QUERY_KEYS.posts}, (old: any) => {
-        if (!old) return old;
-        try {
-          if (Array.isArray(old)) {
-            return old.filter((item: any) => {
-              const id = item?.post?.id ?? item?.id ?? null;
-              return id !== postId;
-            });
-          }
-          if (old.pages) {
-            return {
-              ...old,
-              pages: old.pages.map((page: any) =>
-                (page || []).filter((p: any) => {
-                  const id = p?.post?.id ?? p?.id ?? null;
-                  return id !== postId;
-                }),
-              ),
-            };
-          }
-        } catch (e) {
-          // noop
-        }
-        return old;
-      });
-
-      return {previous};
+      /* optimistic remove from cache */
     },
     onError: (_err, _variables, context: any) => {
-      // rollback
-      if (context?.previous) {
-        context.previous.forEach(([key, data]: any) => {
-          qc.setQueryData(key, data);
-        });
-      }
+      /* rollback */
     },
-    onSettled: (_data, _error, _variables) => {
+    onSettled: () => {
       qc.invalidateQueries({queryKey: POST_QUERY_KEYS.posts});
       qc.invalidateQueries({queryKey: MY_PAGE_QK});
-    },
-    onSuccess: () => {
-      // no-op; parent components may handle UI/toast
     },
   });
 };

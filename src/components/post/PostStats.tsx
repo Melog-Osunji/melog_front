@@ -4,7 +4,8 @@ import {colors} from '@/constants';
 import {PostDTO} from '@/types';
 import {
   useTogglePostLike,
-  useTogglePostBookmark,
+  useAddPostBookmark,
+  useDeletePostBookmark,
 } from '@/hooks/queries/post/usePostMutations';
 import {showToast} from '@/components/common/ToastService';
 
@@ -25,7 +26,8 @@ const PostStats = ({
   initialIsBookmarked = false,
 }: PostStatsProps) => {
   const toggleLikeMutation = useTogglePostLike();
-  const toggleBookmarkMutation = useTogglePostBookmark();
+  const addBookmarkMutation = useAddPostBookmark();
+  const deleteBookmarkMutation = useDeletePostBookmark();
 
   const [isLiked, setIsLiked] = useState<boolean>(initialIsLiked);
   const [isBookmarked, setIsBookmarked] =
@@ -72,22 +74,36 @@ const PostStats = ({
 
   const handleBookmarkPress = () => {
     const prev = isBookmarked;
+    // optimistic update
     setIsBookmarked(!prev);
-    showToast('피드를 저장에 실패했어요 (임시)', 'error');
 
-    toggleBookmarkMutation.mutate(postId, {
-      onSuccess: data => {
-        if (data && typeof data.bookmarked === 'boolean') {
-          setIsBookmarked(data.bookmarked);
+    if (prev) {
+      // was bookmarked -> delete
+      deleteBookmarkMutation.mutate(postId, {
+        onSuccess: data => {
+          setIsBookmarked(false);
+          showToast('북마크를 해제했습니다.', 'success');
+        },
+        onError: err => {
+          console.error('[PostStats] 북마크 해제 실패:', err);
+          setIsBookmarked(prev); // rollback
+          showToast('북마크 해제에 실패했어요.', 'error');
+        },
+      });
+    } else {
+      // was not bookmarked -> add
+      addBookmarkMutation.mutate(postId, {
+        onSuccess: data => {
+          setIsBookmarked(true);
           showToast('피드를 저장했어요.', 'success');
-        }
-      },
-      onError: err => {
-        showToast('피드를 저장에 실패했어요.', 'error');
-        console.error('[PostStats] 북마크 실패:', err);
-        setIsBookmarked(prev);
-      },
-    });
+        },
+        onError: err => {
+          console.error('[PostStats] 북마크 추가 실패:', err);
+          setIsBookmarked(prev); // rollback
+          showToast('피드를 저장에 실패했어요.', 'error');
+        },
+      });
+    }
   };
 
   const renderLike = () => {
@@ -143,7 +159,7 @@ const PostStats = ({
   const renderBookmark = () => {
     if (!visibleStats.includes('bookmark')) return null;
 
-    const bookmarked = toggleBookmarkMutation.data?.bookmarked ?? isBookmarked;
+    const bookmarked = isBookmarked;
 
     return (
       <TouchableOpacity style={styles.statItem} onPress={handleBookmarkPress}>
