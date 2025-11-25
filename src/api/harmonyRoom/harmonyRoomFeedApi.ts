@@ -1,14 +1,19 @@
 import instance from '../axiosInstance';
 import type {BaseResponse} from '../baseResponse';
 import type {NewPostDTO} from '@/types';
-import type {PostsDTO, CommentsDTO, PostWithUserDTO, BestCommentDTO} from '@/types';
+import type {PostsDTO, CommentsDTO, PostDTO, UserDTO, PostWithUserDTO, BestCommentDTO} from '@/types';
 import {FEED_IDS} from '@/constants';
 
 // GET (게시글 상세)
+export type HarmonyPostDTO = {
+    PostDTO,
+    user: UserDTO,
+}
+
 export const fetchHarmonyPostDetail = async (
   postId: string,
-): Promise<PostWithUserDTO> => {
-  const res = await instance.get<BaseResponse<PostWithUserDTO>>(
+): Promise<HarmonyPostDTO> => {
+  const res = await instance.get<BaseResponse<HarmonyPostDTO>>(
     `/api/harmony/posts/${postId}`,
   );
 
@@ -62,7 +67,7 @@ export const addHarmonyPostBookmark = async (postId: string) => {
 
 // DELETE (게시글 북마크)
 export const deleteHarmonyPostBookmarks = async (postId: string) => {
-  const res = await instance.post<BaseResponse<null>>(
+  const res = await instance.delete<BaseResponse<null>>(
     `/api/harmony/posts/${postId}/bookmarks`,
   );
   return res.data.data;

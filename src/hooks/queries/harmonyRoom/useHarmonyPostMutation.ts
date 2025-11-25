@@ -8,7 +8,7 @@ import {
   deleteHarmonyComment,
   toggleHarmonyCommentLike,
 } from '@/api/harmonyRoom/harmonyRoomFeedApi';
-
+import { HarmonyQueryKeys } from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 import { HARMONY_POST_QK } from './useHarmonyPostQueries';
 
 // ======================================
@@ -34,9 +34,15 @@ export const useDeleteHarmonyPost = () => {
 // ======================================
 // #2) 게시글 좋아요 토글
 // ======================================
-export const useToggleHarmonyPostLike = () => {
+export const useToggleHarmonyPostLike = (harmonyId: string) => {
+  const qc = useQueryClient();
+
   return useMutation({
     mutationFn: (postId: string) => toggleHarmonyPostLike(postId),
+    onSuccess: (_data, postId) => {
+      qc.invalidateQueries({ queryKey: HARMONY_POST_QK.detail(postId) });
+      qc.invalidateQueries({ queryKey: HarmonyQueryKeys.roomPosts(harmonyId) });
+    },
     onError: err => console.warn('[useToggleHarmonyPostLike] 실패:', err),
   });
 };
@@ -44,20 +50,44 @@ export const useToggleHarmonyPostLike = () => {
 // ======================================
 // #3) 게시글 북마크 토글
 // ======================================
-export const useAddHarmonyPostBookmark = () => {
+export const useToggleHarmonyPostBookmark = (harmonyId: string) => {
+  const qc = useQueryClient();
+
   return useMutation({
-    mutationFn: (postId: string) => addHarmonyPostBookmark(postId),
-    onError: err => console.warn('[useAddHarmonyPostBookmark] 실패:', err),
+    mutationFn: async ({ postId }: { postId: string }) => {
+      const detail: any = qc.getQueryData(HARMONY_POST_QK.detail(postId));
+      const latest = detail?.isBookmark ?? false;
+
+      if (latest) {
+        return await deleteHarmonyPostBookmarks(postId);
+      }
+      return await addHarmonyPostBookmark(postId);
+    },
+
+    onSuccess: (_data, { postId }) => {
+      qc.invalidateQueries({ queryKey: HARMONY_POST_QK.detail(postId) });
+
+      if (harmonyId) {
+        qc.invalidateQueries({
+          queryKey: HarmonyQueryKeys.roomPosts(harmonyId),
+        });
+      }
+    },
+
+    onError: err => {
+      console.warn('[useToggleHarmonyPostBookmark] 실패:', err);
+    },
   });
 };
 
+
 // 북마크 해제
-export const useDeleteHarmonyPostBookmark = () => {
-  return useMutation({
-    mutationFn: (postId: string) => deleteHarmonyPostBookmarks(postId),
-    onError: err => console.warn('[useDeleteHarmonyPostBookmark] 실패:', err),
-  });
-};
+// export const useDeleteHarmonyPostBookmark = () => {
+//   return useMutation({
+//     mutationFn: (postId: string) => deleteHarmonyPostBookmarks(postId),
+//     onError: err => console.warn('[useDeleteHarmonyPostBookmark] 실패:', err),
+//   });
+// };
 
 // ======================================
 // #4) 댓글 작성

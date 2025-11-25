@@ -113,7 +113,6 @@ export default function HarmonyPageScreen() {
     const recommendFeed = useMemo(() => pairPosts(postsDTO?.recommend), [postsDTO]);
     const popularFeed   = useMemo(() => pairPosts(postsDTO?.popular),   [postsDTO]);
 
-    console.log(postsDTO?.recommend)
     // ★ PostCard 타입으로 최종 매핑
     const toPostCardModel = (src: FeedItem): PostDTO => {
       return {
@@ -133,6 +132,8 @@ export default function HarmonyPageScreen() {
               content: src.bestComment.content ?? '',
             }
           : undefined,
+        isLike: src.isLike ?? false,
+        isBookmark: src.isBookmark ?? false,
         user: src.author,
       };
     };
@@ -154,7 +155,8 @@ export default function HarmonyPageScreen() {
       useCallback(() => {
         refetchWaiting();
         refetchMember();
-      }, [refetchWaiting, refetchMember]),
+        refetchPosts();
+      }, [refetchWaiting, refetchMember, refetchPosts]),
     );
 
     // 가입 모달 오픈
@@ -243,7 +245,14 @@ export default function HarmonyPageScreen() {
                                     style={styles.circleGradient}
                                 >
                                   <View style={styles.circleInner}>
-                                    <Image source={{uri: headerImg}} style={styles.roomImg}/>
+                                    <Image
+                                      source={
+                                        headerImg
+                                          ? { uri: headerImg }
+                                          : require('@/assets/icons/common/EmptyProfile.png')
+                                      }
+                                      style={styles.roomImg}
+                                    />
                                   </View>
                                 </LinearGradient>
                                 <View style={styles.roomInfo}>
@@ -302,6 +311,7 @@ export default function HarmonyPageScreen() {
                         key={item.id}
                         post={item}
                         user={item.user}
+                        harmonyId={roomID}
                       />
                     ))}
                     </View>

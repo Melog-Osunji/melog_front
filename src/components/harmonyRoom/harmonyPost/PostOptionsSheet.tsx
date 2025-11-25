@@ -11,6 +11,7 @@ type Props = {
   user?: UserDTO;
   userId?: string;
   postId: string;
+  userNickname?: string;
   // optional callbacks
   onFollow?: (userId: string) => void;
   onFollow?: (userId: string) => void;
@@ -22,6 +23,7 @@ type Props = {
 const PostOptionsSheet: React.FC<Props> = ({
   user,
   userId,
+  userNickname,
   postId,
   onFollow,
   onHideFeed,
@@ -37,7 +39,7 @@ const PostOptionsSheet: React.FC<Props> = ({
 
   // user가 있으면 그 id를 우선 사용, 없으면 props로 들어온 userId 사용
   const targetUserId = user?.id ?? userId;
-  const targetNick = user?.nickName ?? '';
+  const targetNick = user?.nickName ?? userNickname ?? '';
 
   return (
     <>
