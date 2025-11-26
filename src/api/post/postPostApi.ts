@@ -3,7 +3,7 @@ import type {BaseResponse} from '../baseResponse';
 import type {NewPostDTO} from '@/types';
 
 export type ReportRequest = {
-  userID?: string | null;
+  userID: string | null;
   reason: string;
   postId?: string | null;
   commentId?: string | null;

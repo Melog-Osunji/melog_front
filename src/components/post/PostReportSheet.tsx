@@ -11,6 +11,7 @@ import BottomSheet from '@/components/common/BottomSheet';
 import {colors} from '@/constants';
 import {useReportPost} from '@/hooks/queries/post/usePostMutations';
 import {showToast} from '@/components/common/ToastService';
+import {useAuthContext} from '@/contexts/AuthContext';
 
 type Props = {
   visible: boolean;
@@ -42,12 +43,14 @@ export default function PostReportSheet({
   const [step, setStep] = useState<'select' | 'done'>('select');
   const [selected, setSelected] = useState<string | null>(null);
   const {mutate: reportMutate, isLoading: isReporting} = useReportPost();
+  const {user: authUser} = useAuthContext();
 
   const handleSelect = (reasonValue: string, reasonLabel: string) => {
     setSelected(reasonValue);
     // 호출
     reportMutate(
       {
+        userID: authUser?.id ?? null,
         reason: reasonValue,
         postId: postId ?? null,
         commentId: commentId ?? null,
