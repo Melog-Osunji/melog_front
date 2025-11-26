@@ -69,7 +69,6 @@ export const useUpdateUserProfile = () => {
 // 1) 팔로우 / 언팔로우 훅
 export const useFollowUser = () => {
   const queryClient = useQueryClient();
-
   const mutation = useMutation({
     mutationFn: (targetUserId: string) => postUserFollowing(targetUserId),
     onSuccess: (_data, _targetUserId) => {

@@ -38,6 +38,7 @@ const harmonyNavigations = {
   HARMONY_SEARCH: 'HarmonySearch',
   HARMONY_SEARCH_RESULT: 'HarmonySearchResult',
   HARMONY_FEED: 'HarmonyFeed',
+  HARMONY_PERSONAL: 'HarmonyPersonal',
 } as const;
 
 //프로필설정
@@ -53,6 +54,7 @@ const myPageNavigations = {
   MYPAGE_EDIT: 'MyPageEdit',
   MYPAGE_POST_PAGE: 'MyPagePostPage',
   MYPAGE_HARMONY_STACK: 'MyPageHarmonyStack',
+  MYPAGE_PROFILE: 'MyPagePersonalProfile',
 } as const;
 
 // settings

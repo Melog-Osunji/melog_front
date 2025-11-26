@@ -3,14 +3,20 @@ import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {colors} from '@/constants';
 import {PostDTO} from '@/types';
 import {
-  useTogglePostLike,
-  useTogglePostBookmark,
-} from '@/hooks/queries/post/usePostMutations';
+  useToggleHarmonyPostLike,
+  useToggleHarmonyPostBookmark,
+} from '@/hooks/queries/harmonyRoom/useHarmonyPostMutation';
+import {useHarmonyPostDetail} from '@/hooks/queries/harmonyRoom/useHarmonyPostQueries';
+import { useQueryClient } from '@tanstack/react-query';
+import { HARMONY_POST_QK } from '@/hooks/queries/harmonyRoom/useHarmonyPostQueries';
 
 type StatsType = 'like' | 'comment' | 'share' | 'bookmark';
 
 type PostStatsProps = Pick<PostDTO, 'id' | 'likeCount' | 'commentCount'> & {
   visibleStats?: StatsType[];
+  initialIsLiked?: boolean;
+  initialIsBookmarked?: boolean;
+  harmonyId: string;
 };
 
 const PostStats = ({
@@ -18,14 +24,18 @@ const PostStats = ({
   likeCount,
   commentCount,
   visibleStats = ['like', 'comment', 'share', 'bookmark'],
+  initialIsLiked,
+  initialIsBookmarked,
+  harmonyId,
 }: PostStatsProps) => {
 
-  /* 수정 */
-  const toggleLikeMutation = useTogglePostLike();
-  /* 수정 */
-  const toggleBookmarkMutation = useTogglePostBookmark();
-  const [isLiked, setIsLiked] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const qc = useQueryClient();
+
+  const toggleLikeMutation = useToggleHarmonyPostLike(harmonyId);
+  const toggleBookmarkMutation = useToggleHarmonyPostBookmark(harmonyId);
+  const [isLiked, setIsLiked] = useState(initialIsLiked ?? false);
+  const { data: detail } = useHarmonyPostDetail(postId);
+  const isBookmarked = detail?.isBookmark ?? false;
   const [currentLikeCount, setCurrentLikeCount] = useState(likeCount || 0);
 
   const handleLikePress = () => {
@@ -55,22 +65,24 @@ const PostStats = ({
   };
 
   const handleBookmarkPress = () => {
-    const prev = isBookmarked;
-    // optimistic toggle
-    setIsBookmarked(!prev);
+    // optimistic update
+    qc.setQueryData(HARMONY_POST_QK.detail(postId), old => ({
+      ...old,
+      isBookmark: !isBookmarked,
+    }));
 
-    toggleBookmarkMutation.mutate(postId, {
-      onSuccess: data => {
-        if (data && typeof data.bookmarked === 'boolean') {
-          setIsBookmarked(data.bookmarked);
-        }
+    toggleBookmarkMutation.mutate(
+      { postId },
+      {
+        onError: () => {
+          // rollback
+          qc.setQueryData(HARMONY_POST_QK.detail(postId), old => ({
+            ...old,
+            isBookmark: isBookmarked,
+          }));
+        },
       },
-      onError: err => {
-        console.error('[PostStats.tsx] 북마크 실패:', err);
-        // rollback
-        setIsBookmarked(prev);
-      },
-    });
+    );
   };
 
   const renderLike = () => {
@@ -129,7 +141,7 @@ const PostStats = ({
       <TouchableOpacity style={styles.statItem} onPress={handleBookmarkPress}>
         <Image
           source={
-            bookmarked
+            isBookmarked
               ? require('@/assets/icons/post/Bookmark_activate.png')
               : require('@/assets/icons/post/Bookmark.png')
           }

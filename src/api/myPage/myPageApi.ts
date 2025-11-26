@@ -39,9 +39,11 @@ export type MyPageBookmarkDTO = {
   createdAt: string;
 };
 
-export const fetchMyPage = async (): Promise<MyPageDTO> => {
-  const res = await instance.get<BaseResponse<MyPageDTO>>('/api/users/myPage');
-
+export const fetchMyPage = async (profileUser?: string): Promise<MyPageDTO> => {
+    const url = profileUser
+      ? `/api/users/myPage?profileUser=${profileUser}`
+      : `/api/users/myPage`;
+  const res = await instance.get<BaseResponse<MyPageDTO>>(url);
   return res.data.data;
 };
 

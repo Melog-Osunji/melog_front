@@ -5,12 +5,15 @@ import IconButton from '@/components/common/IconButton';
 import {colors} from '@/constants';
 import type {UserDTO} from '@/types';
 import CheckPopup from '@/components/common/CheckPopup';
+import {useFollowUser} from '@/hooks/queries/User/useUserMutations';
 
 type Props = {
   user?: UserDTO;
   userId?: string;
   postId: string;
+  userNickname?: string;
   // optional callbacks
+  onFollow?: (userId: string) => void;
   onFollow?: (userId: string) => void;
   onHideFeed?: (postId: string) => void;
   onBlock?: (userId: string) => void;
@@ -20,6 +23,7 @@ type Props = {
 const PostOptionsSheet: React.FC<Props> = ({
   user,
   userId,
+  userNickname,
   postId,
   onFollow,
   onHideFeed,
@@ -28,14 +32,14 @@ const PostOptionsSheet: React.FC<Props> = ({
 }) => {
   const [visible, setVisible] = useState(false);
   const [blockPopupVisible, setBlockPopupVisible] = useState(false);
-  /* 수정 */
-  //   const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
+
+  const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
 
   const handleClose = () => setVisible(false);
 
   // user가 있으면 그 id를 우선 사용, 없으면 props로 들어온 userId 사용
   const targetUserId = user?.id ?? userId;
-  const targetNick = user?.nickName ?? '';
+  const targetNick = user?.nickName ?? userNickname ?? '';
 
   return (
     <>

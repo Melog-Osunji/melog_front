@@ -16,6 +16,7 @@ const CommentList = ({
 }: CommentListProps) => {
   const comments = commentsData?.comments || [];
 
+  console.log(comments);
   return (
     <View style={styles.container}>
       <Text style={styles.header}>댓글 {totalCommentCount}</Text>

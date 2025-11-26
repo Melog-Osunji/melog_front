@@ -58,8 +58,8 @@ const MyPageFeedTab = () => {
 
   return (
     <View style={styles.content}>
-      {posts.map(item => (
-        <PostCard post={item.post} user={item.user} />
+      {posts.map((item, index) => (
+        <PostCard post={item.post} user={item.user} key={index} />
       ))}
     </View>
   );

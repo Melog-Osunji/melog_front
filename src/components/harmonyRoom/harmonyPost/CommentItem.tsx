@@ -3,6 +3,7 @@ import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
 import type {CommentDTO} from '@/types';
 import PostOptionsSheet from '@/components/harmonyRoom/harmonyPost/PostOptionsSheet';
+import {useToggleHarmonyCommentLike} from '@/hooks/queries/harmonyRoom/useHarmonyPostMutation.ts';
 
 interface CommentItemProps {
   comment: CommentDTO;
@@ -22,8 +23,9 @@ const CommentItem = ({
     comment.likes,
   );
 
-  /* 수정 */
-  const {mutate: toggleLike} = useToggleCommentLike();
+  console.log(comment);
+
+  const {mutate: toggleLike} = useToggleHarmonyCommentLike();
 
   const handleLikePress = () => {
     // 이전 상태 보관 (롤백용)
@@ -75,14 +77,14 @@ const CommentItem = ({
           {/* 프로필 섹션 */}
           <View style={styles.profileSection}>
             <Image
-              source={{uri: comment.profileUrl}}
+              source={{uri: comment.userProfileImgLink}}
               style={styles.profileImage}
             />
             <View style={styles.userInfo}>
               <View style={styles.nameTimeRow}>
-                <Text style={styles.userName}>사용자</Text>
+                <Text style={styles.userName}>{comment.userNickname}</Text>
                 <View style={styles.dot} />
-                <Text style={styles.timeText}>방금 전</Text>
+                <Text style={styles.timeText}>{comment.createdAgo}</Text>
               </View>
               <Text style={styles.commentText}>{comment.content}</Text>
             </View>
@@ -109,20 +111,20 @@ const CommentItem = ({
                 style={styles.actionIcon}
               />
               <Text style={styles.actionText}>
-                {comment.recomments ? comment.recomments.length : 0}
+                {comment.replies ? comment.replies.length : 0}
               </Text>
             </View>
           </View>
         </View>
 
         {/* 더보기 버튼 */}
-        <PostOptionsSheet userId={userId} postId={postId} />
+        <PostOptionsSheet userId={userId} userNickname={comment.userNickname} postId={postId} />
       </View>
 
       {/* 대댓글 렌더링 */}
-      {comment.recomments && comment.recomments.length > 0 && (
+      {comment.replies && comment.replies.length > 0 && (
         <View>
-          {comment.recomments.map((reply, index) => (
+          {comment.replies.map((reply, index) => (
             <CommentItem
               key={`${reply.userID}-${index}`}
               comment={reply}

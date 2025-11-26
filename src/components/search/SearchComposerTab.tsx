@@ -4,7 +4,7 @@ import { colors } from '@/constants';
 import { useSearchComposer } from '@/hooks/queries/search/useSearch';
 
 type Props = {
-  onSelect: (keyword: string) => void; // ✅ 추가
+  onSelect: (keyword: string) => void;
 };
 
 
@@ -38,7 +38,7 @@ const SearchComposerTab: React.FC<Props> = ({ onSelect }) => {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16, flexGrow: 1 }}>
+    <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, flexGrow: 1 }}>
       <Text style={styles.sectionTitle}>인기 검색어</Text>
       <View style={styles.gridWrap}>
         {composers.map((composer, idx) => (
@@ -62,7 +62,9 @@ const styles = StyleSheet.create({
   gridWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-around',
+    justifyContent: 'flex-start',
+    columnGap: 24,
+    rowGap: 16,
   },
   gridItem: {
     alignItems: 'center',

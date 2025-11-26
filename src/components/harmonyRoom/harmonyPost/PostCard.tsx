@@ -15,15 +15,16 @@ type PostCardNavigationProp = StackNavigationProp<HarmonyStackParamList>;
 type PostCardProps = {
   post: PostDTO;
   user: UserDTO;
+  harmonyId: string;
 };
 
-function PostCard({post, user}: PostCardProps) {
+function PostCard({post, user, harmonyId}: PostCardProps) {
   const navigation = useNavigation<PostCardNavigationProp>();
 
   const handlePress = () => {
     const routes = navigation.getState()?.routeNames ?? [];
 
-//     navigation.navigate(harmonyNavigations.HARMONY_FEED, { postId: post.id });
+    navigation.navigate(harmonyNavigations.HARMONY_FEED, { postId: post.id, harmonyId: harmonyId });
   };
 
   return (
@@ -45,7 +46,7 @@ function PostCard({post, user}: PostCardProps) {
           />
           <View style={styles.userInfo}>
             <Text style={styles.nickName}>{user.nickName}</Text>
-            <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
+            <Text style={styles.timeText}>{post.createdAgo}</Text>
           </View>
         </View>
         <PostOptionsSheet user={user} postId={post.id} />
@@ -64,7 +65,7 @@ function PostCard({post, user}: PostCardProps) {
       </View>
 
       {/* 유튜브 영상 */}
-      {post.mediaUrl &&
+      {post?.mediaUrl &&
         (post.mediaUrl.includes('youtube.com') ||
           post.mediaUrl.includes('youtu.be')) && (
           <YouTubeEmbed url={post.mediaUrl} />
