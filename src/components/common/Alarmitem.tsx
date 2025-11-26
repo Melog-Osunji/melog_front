@@ -67,7 +67,6 @@ const s = StyleSheet.create({
     fontSize: 14,
     color: colors.GRAY_600,
     lineHeight: 24,
-    marginTop: 6,
     flexShrink: 1,
   },
 });

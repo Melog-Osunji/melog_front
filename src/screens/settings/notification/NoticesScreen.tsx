@@ -1,39 +1,55 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
 
 import {colors} from '@/constants';
 
 import IconButton from '@/components/common/IconButton';
 import Alarmlist from '@/components/common/Alarmlist';
-
-const DUMMY = [
-  {
-    id: '1',
-    type: '공지사항',
-    title: '앱 사용성을 개선했어요.',
-    content:
-      '게시물에 올리는 글입니다. 게시물에 올리는 글입니다. 게시물에 올리는 글입니다.',
-    profileUri: null,
-  },
-  {
-    id: '2',
-    type: '공지사항',
-    title: '앱 사용성을 개선했어요.',
-    content:
-      '게시물에 올리는 글입니다. 게시물에 올리는 글입니다. 게시물에 올리는 글입니다.',
-    profileUri: null,
-  },
-  {
-    id: '3',
-    type: '공지사항',
-    title: '앱 사용성을 개선했어요.',
-    content:
-      '게시물에 올리는 글입니다. 게시물에 올리는 글입니다. 게시물에 올리는 글입니다.',
-    profileUri: null,
-  },
-];
+import {useNotices} from '@/hooks/queries/settings/useSettingsQueries';
 
 export default function NoticesScreen() {
+  const {data, isLoading, error} = useNotices();
+
+  if (isLoading) {
+    return (
+      <View
+        style={[
+          styles.screen,
+          {justifyContent: 'center', alignItems: 'center'},
+        ]}>
+        <ActivityIndicator size="large" color={colors.BLUE_400} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.screen}>
+        <View style={styles.header}>
+          <IconButton
+            imageSource={require('@/assets/icons/post/BackArrow.png')}
+            target={'goBack'}
+            size={24}
+          />
+          <Text style={styles.title}>공지사항</Text>
+        </View>
+        <View style={styles.body}>
+          <Text style={{color: colors.GRAY_500}}>
+            알림을 불러오는 중 오류가 발생했습니다.
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  const items = (data?.notices ?? []).map(n => ({
+    id: n.id,
+    type: n.category ?? '공지사항',
+    title: n.title,
+    content: n.content,
+    profileUri: n.imageUrl ?? null,
+  }));
+
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
@@ -45,7 +61,7 @@ export default function NoticesScreen() {
         <Text style={styles.title}>공지사항</Text>
       </View>
       <View style={styles.body}>
-        <Alarmlist data={DUMMY} />
+        <Alarmlist data={items} />
       </View>
     </View>
   );

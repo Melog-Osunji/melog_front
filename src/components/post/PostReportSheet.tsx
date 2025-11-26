@@ -17,11 +17,12 @@ type Props = {
 };
 
 const REASONS = [
-  '욕설 및 비방',
-  '클래식과 무관한 내용',
-  '스팸 또는 광고',
-  '혐오감이 드는 내용',
-  '기타',
+  '부적절한 내용', // INAPPROPRIATE_CONTENT
+  '서비스와 관련없는 내용', // IRRELEVANT_TO_SERVICE
+  '스팸 또는 광고', // SPAM_OR_ADVERTISEMENT
+  '저작권 또는 상표권 침해', // COPYRIGHT_OR_TRADEMARK
+  '혐오감이 드는 내용', // OFFENSIVE_CONTENT
+  '기타', // OTHER
 ];
 
 export default function PostReportSheet({visible, onClose, onReport}: Props) {
@@ -50,7 +51,7 @@ export default function PostReportSheet({visible, onClose, onReport}: Props) {
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      height={step === 'done' ? '30%' : '48%'} // 변경: 완료 화면에서는 30%
+      height={step === 'done' ? '30%' : '55%'} // 변경: 완료 화면에서는 30%
     >
       <View style={styles.container}>
         {step === 'select' ? (

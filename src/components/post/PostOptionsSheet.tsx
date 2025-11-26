@@ -9,6 +9,7 @@ import {useHidePost} from '@/hooks/queries/post/usePostMutations'; // added
 import CheckPopup from '@/components/common/CheckPopup';
 import {showToast} from '@/components/common/ToastService';
 import PostReportSheet from '@/components/post/PostReportSheet'; // 추가
+import {useBlockUser} from '@/hooks/queries/User/useUserMutations'; // 추가
 
 type Props = {
   user?: UserDTO;
@@ -28,7 +29,8 @@ function PostOptionsSheet({
   onFollow,
   onHide,
   onBlock,
-  onReport, // <- ensure this prop exists
+  onBlock: onBlockProp, // keep existing prop
+  onReport,
 }: Props) {
   const targetUserId = user?.id ?? userId;
   const targetNick = user?.nickName ?? '';
@@ -40,6 +42,9 @@ function PostOptionsSheet({
 
   // hide mutation
   const {mutate: hidePostMutate, isLoading: isHiding} = useHidePost();
+
+  // block mutation
+  const {mutate: blockUserMutate, isLoading: isBlocking} = useBlockUser();
 
   const handleClose = () => setVisible(false);
 
@@ -104,7 +109,7 @@ function PostOptionsSheet({
             <Text style={styles.label}>이 피드 숨기기</Text>
           </TouchableOpacity>
 
-          {/* block and report rows unchanged */}
+          {/* block row */}
           <TouchableOpacity
             style={styles.row}
             onPress={() => {
@@ -117,6 +122,7 @@ function PostOptionsSheet({
             <Text style={styles.label}>{targetNick}님 차단하기</Text>
           </TouchableOpacity>
 
+          {/* report row unchanged */}
           <TouchableOpacity
             style={styles.row}
             onPress={() => {
@@ -132,7 +138,7 @@ function PostOptionsSheet({
         </View>
       </BottomSheet>
 
-      {/* existing popups/sheets unchanged */}
+      {/* block confirmation popup: call mutation and on success call parent callback */}
       <CheckPopup
         visible={blockPopupVisible}
         onExit={() => setBlockPopupVisible(false)}
@@ -144,10 +150,21 @@ function PostOptionsSheet({
             showToast(`오류가 발생했어요`, 'error');
             return;
           }
-          onBlock?.(targetUserId);
-          setBlockPopupVisible(false);
-          handleClose();
-          showToast(`${targetNick}님을 차단했습니다`, 'success');
+
+          blockUserMutate(targetUserId, {
+            onSuccess: () => {
+              // notify parent and close sheets
+              onBlock?.(targetUserId);
+              setBlockPopupVisible(false);
+              handleClose();
+              showToast(`${targetNick}님을 차단했습니다`, 'success');
+            },
+            onError: err => {
+              console.error('[PostOptionsSheet] block user error:', err);
+              setBlockPopupVisible(false);
+              showToast('차단 처리에 실패했습니다.', 'error');
+            },
+          });
         }}
         iconImg={require('@/assets/icons/common/error_red.png')}
         title={`${targetNick}님을 차단할까요?`}
@@ -161,6 +178,7 @@ function PostOptionsSheet({
         rightBtnBorderColor={colors.RED_300}
       />
 
+      {/* report sheet unchanged */}
       <PostReportSheet
         visible={reportVisible}
         onClose={() => setReportVisible(false)}
