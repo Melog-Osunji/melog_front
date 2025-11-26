@@ -70,9 +70,16 @@ const settingsNavigations = {
   ACCOUNT_DELETE: 'AccountDelete', //탈퇴하기 
 } as const;
 
+// common
+const commonNavigations = {
+  ALARM: 'Alarm',
+} as const;
+
+
 export {introNavigations};
 export {postNavigations};
 export {harmonyNavigations};
 export {InitProfileNavigations};
 export {myPageNavigations};
 export {settingsNavigations};
+export {commonNavigations};
