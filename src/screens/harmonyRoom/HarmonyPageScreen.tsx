@@ -82,6 +82,12 @@ export default function HarmonyPageScreen() {
 
     const { mutateAsync: requestJoin, isPending: requestLoading } = useRequestJoinHarmonyRoom(roomID);
 
+    useFocusEffect(
+      useCallback(() => {
+        refetchPosts();
+      }, [])
+    );
+
     const currentUserId = userInfo?.id ?? null;
     const isOwner = useMemo(() => {
       if (!roomInfo) return false;
@@ -117,9 +123,7 @@ export default function HarmonyPageScreen() {
     const toPostCardModel = (src: FeedItem): PostDTO => {
       return {
         id: src.id,
-        title: src.title ?? '', // 서버에 title이 없을 수도 있으니 기본값
         content: src.content ?? '',
-        mediaType: src.mediaType ?? 'image', // 기본값으로 image 지정
         mediaUrl: src.mediaUrl ?? '',
         tags: src.tags ?? [],
         createdAgo: src.createdAgo ?? 0,

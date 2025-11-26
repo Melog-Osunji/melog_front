@@ -37,7 +37,6 @@ type HarmonyPageScreenProp = StackScreenProps<
 
 const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
   const {postId} = route.params;
-
   useHideTabBarOnFocus();
 
   // API 호출
@@ -48,7 +47,6 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
     isError: isPostError,
   } = useHarmonyPostDetail(postId);
 
-  console.log(postData);
   const {
     data: commentsData,
     isLoading: commentsLoading,
@@ -61,8 +59,6 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
     error: userError,
     isError: isUserError,
   } = useUserProfile();
-
-  const user = postData.user;
 
   // 로딩 상태 처리
   if (postLoading) {
@@ -87,6 +83,8 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
       </SafeAreaView>
     );
   }
+
+  const user = postData?.user;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -197,7 +195,7 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
           onSend={(text: string) => {
             console.log('[PostPageScreen] onSend comment:', text);
           }}
-          profileUrl={userData?.profileImage}
+          profileUrl={userData?.profileImg}
         />
       </GradientBg>
     </SafeAreaView>

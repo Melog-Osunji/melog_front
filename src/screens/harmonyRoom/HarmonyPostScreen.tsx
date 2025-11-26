@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   StyleSheet,
   View,
@@ -9,134 +9,209 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
-//constants
+
 import {colors} from '@/constants';
-//types
 import {YouTubeVideo} from '@/types';
 import {CreateHarmonyRoomPostRequest} from '@/api/harmonyRoom/harmonyRoomPostAPi';
-//navigation
-import {
-  useNavigation,
-  useFocusEffect,
-  useRoute,
-} from '@react-navigation/native';
-//utils
+
+// navigation
+import {useNavigation, useRoute} from '@react-navigation/native';
+
+// utils
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import {getAccessToken} from '@/utils/storage/UserStorage';
-//hooks
-import {useUserInfo} from '@/hooks/common/useUserInfo';
+
+// hooks
+import {useUserProfile} from '@/hooks/queries/User/useUserQueries';
 import {useCreateHarmonyRoomPost} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
-//components
-import PostActionButtons from '@/components/post/postcreate/PostActionBar';
+
+import {useImagePicker} from '@/hooks/common/useImagePicker';
+import {useUploadImage} from '@/hooks/queries/common/useCommonMutations';
+import {useDebounce} from '@/hooks/useDebounce';
+import {useSearching} from '@/hooks/queries/search/useSearching';
+
+// components
 import CustomButton from '@/components/common/CustomButton';
-import Toast from '@/components/common/Toast';
 import YouTubeEmbed from '@/components/common/YouTubeEmbed';
+import PostActionButtons from '@/components/post/postcreate/PostActionBar';
+import MusicSearchBottomSheet from '@/components/post/postcreate/MusicSearchSheet';
+import {showToast} from '@/components/common/ToastService';
+
+// 최대 글자수
+const MAX_CONTENT_LENGTH = 500;
 
 export default function HarmonyPostScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const {harmonyId} = route.params;
-  console.log(harmonyId);
-  const {userInfo, isLoading: userLoading, error: userError} = useUserInfo();
+
+  const {
+    data: userInfo,
+    isLoading: userLoading,
+  } = useUserProfile();
+
   const createPostMutation = useCreateHarmonyRoomPost(harmonyId);
   const [content, setContent] = useState('');
-  const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
   const [inputHeight, setInputHeight] = useState(50);
+
+  // 미디어
+  const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
+
+  // 이미지
+  const {selectedImage, seletedImageURI, selectImage, resetImage} =
+    useImagePicker();
+  const uploadImageMutation = useUploadImage('post');
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+
+  // 태그
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagTyping, setTagTyping] = useState('');
+
+  // BottomSheet
+  const [musicSheetVisible, setMusicSheetVisible] = useState(false);
+
+  // 글자수 제한 Toast 1회
+  const prevContentLengthRef = useRef(0);
 
   useHideTabBarOnFocus();
 
-  const showToast = (message: string) => {
-    setToastMessage(message);
-    setToastVisible(true);
+  // ===============================
+  // 이미지 자동 업로드
+  // ===============================
+  useEffect(() => {
+    if (selectedImage && !uploadImageMutation.isPending) {
+      uploadImageMutation.mutate(selectedImage, {
+        onSuccess: data => {
+          setUploadedImageUrl(data);
+        },
+        onError: () => {
+          handleRemoveImage();
+          showToast('이미지 업로드에 실패했습니다.', 'error');
+        },
+      });
+    }
+  }, [selectedImage]);
+
+  const handleRemoveImage = () => {
+    resetImage();
+    setUploadedImageUrl(null);
   };
 
-  const hideToast = () => {
-    setToastVisible(false);
-  };
+  // ===============================
+  // 태그 자동 추천
+  // ===============================
+  useEffect(() => {
+    const match = content.match(/#([^\s#]*)$/);
+    setTagTyping(match ? match[1] : '');
+  }, [content]);
 
-  const handleCancel = () => {
-    navigation.goBack();
-  };
+  const debouncedTagTyping = useDebounce(tagTyping, 100);
+  const {data: tagSearchData} = useSearching(debouncedTagTyping);
+  const tagSuggestions = tagSearchData?.suggestions ?? [];
+
+  // 스페이스 입력 시 '#tag ' 자동으로 선택 처리
+  useEffect(() => {
+    const m = content.match(/#([^\s#]+)\s$/);
+    if (m) {
+      const tag = m[1];
+      handleTagSelect(tag);
+      setContent(prev => prev.replace(/#([^\s#]+)\s$/, ''));
+      setTagTyping('');
+    }
+  }, [content]);
 
   const handleTagSelect = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      // 이미 선택된 태그면 제거
-      setSelectedTags(prev => prev.filter(t => t !== tag));
-    } else {
-      // 새로운 태그면 추가
-      setSelectedTags(prev => [...prev, tag]);
-    }
-  };
-
-  const handlePost = async () => {
-    if (!content.trim()) {
-      showToast('내용을 입력해주세요.');
-      return;
-    }
-
-    const accessToken = await getAccessToken();
-    console.log(
-      '[PostCreateScreen] Access Token:',
-      accessToken ? '존재함' : '없음',
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag],
     );
 
-    if (!accessToken) {
-      console.error('[PostCreateScreen] 토큰이 없습니다. 로그인이 필요합니다.');
-      showToast('로그인이 필요합니다.');
-      return;
+    // 현재 작성 중인 #token 제거
+    setContent(prev => prev.replace(/#([^\s#]*)$/, ''));
+    setTagTyping('');
+  };
+
+  // ===============================
+  // Content 변경
+  // ===============================
+  const handleContentChange = (text: string) => {
+    if (
+      text.length === MAX_CONTENT_LENGTH &&
+      prevContentLengthRef.current < MAX_CONTENT_LENGTH
+    ) {
+      showToast('최대 글자수에 도달했습니다.', 'error', 'top', 10);
     }
+    prevContentLengthRef.current = text.length;
+    setContent(text);
+  };
 
-    console.log('게시글 작성 시작');
-    console.log('작성자 정보:', userInfo);
-
-    const postData: CreateHarmonyRoomPostRequest = {
-      content: content.trim(),
-      mediaType: 'youtube',
-      mediaUrl: selectedVideo
-        ? `https://www.youtube.com/watch?v=${extractVideoId(
-            selectedVideo.thumbnail,
-          )}`
-        : '',
-      tags: selectedTags,
-    };
-
-    console.log('전송할 데이터:', postData);
-
-    try {
-      await createPostMutation.mutateAsync(postData);
-      console.log('게시글 작성 완료');
-      showToast('게시되었습니다.');
-
-      setTimeout(() => {
-        navigation.goBack();
-      }, 1000);
-    } catch (error) {
-      console.error('게시글 작성 실패:', error);
-      showToast('게시글 작성에 실패했습니다.');
-    }
+  // ===============================
+  // YouTube video
+  // ===============================
+  const extractVideoId = (url: string) => {
+    const regex =
+      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : '';
   };
 
   const handleVideoSelect = (video: YouTubeVideo) => {
     setSelectedVideo(video);
+    setMusicSheetVisible(false);
   };
 
   const handleRemoveVideo = () => {
     setSelectedVideo(null);
   };
 
-  // YouTube URL에서 비디오 ID 추출하는 함수
-  const extractVideoId = (url: string) => {
-    const regex =
-      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-    const match = url.match(regex);
-    return match ? match[1] : 'dQw4w9WgXcQ'; // 기본값
+  // ===============================
+  // 게시글 작성
+  // ===============================
+  const handlePost = async () => {
+    if (!content.trim()) {
+      showToast('내용을 입력해주세요.', 'error');
+      return;
+    }
+
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
+      showToast('로그인이 필요합니다.', 'error');
+      return;
+    }
+
+    const mediaType =
+      selectedVideo !== null
+        ? 'youtube'
+        : uploadedImageUrl
+        ? 'image'
+        : 'text';
+
+    const mediaUrl =
+      selectedVideo !== null
+        ? `https://www.youtube.com/watch?v=${extractVideoId(
+            selectedVideo.thumbnail,
+          )}`
+        : uploadedImageUrl || '';
+
+    const postData: CreateHarmonyRoomPostRequest = {
+      content: content.trim(),
+      mediaType,
+      mediaUrl,
+      tags: selectedTags,
+    };
+
+    try {
+      await createPostMutation.mutateAsync(postData);
+      showToast('게시되었습니다.', 'success');
+      setTimeout(() => navigation.goBack(), 500);
+    } catch (error) {
+      showToast('게시글 작성에 실패했습니다.', 'error');
+    }
   };
 
-  const isSubmitting = createPostMutation.isPending;
+  const isSubmitting =
+    createPostMutation.isPending || uploadImageMutation.isPending;
 
   if (userLoading) {
     return (
@@ -150,19 +225,17 @@ export default function HarmonyPostScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.WHITE} />
 
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        behavior={'padding'}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={handleCancel}
-            style={styles.cancelButton}
+            onPress={() => navigation.goBack()}
             disabled={isSubmitting}>
-            <Text
-              style={[styles.cancelText, isSubmitting && styles.disabledText]}>
+            <Text style={[styles.cancelText, isSubmitting && styles.disabledText]}>
               취소
             </Text>
           </TouchableOpacity>
@@ -176,81 +249,114 @@ export default function HarmonyPostScreen() {
           />
         </View>
 
-        {/* User Profile Section */}
+        {/* Profile */}
         <View style={styles.profileSection}>
-          <View style={styles.profileImage} />
-          <Text style={styles.userId}>{userInfo?.nickName || '사용자'}</Text>
+          <Image
+            source={
+              userInfo?.profileImg
+                ? {uri: userInfo.profileImg}
+                : require('@/assets/icons/common/EmptyProfile.png')
+            }
+            style={styles.profileImage}
+          />
+          <Text style={styles.userId}>{userInfo?.nickName}</Text>
         </View>
 
-        {/* Content Input */}
+        {/* Content */}
         <View style={styles.contentSection}>
           <TextInput
             style={[
               styles.contentInput,
-              {height: content.trim() ? Math.max(100, inputHeight + 50) : 100},
+              {
+                height: content.trim() ? Math.max(100, inputHeight + 50) : 100,
+              },
             ]}
             placeholder="오늘은 어떤 클래식을 감상했나요?"
             placeholderTextColor={colors.GRAY_300}
             multiline
-            textAlignVertical="top"
             value={content}
-            onChangeText={text => {
-              setContent(text);
-            }}
-            onContentSizeChange={event => {
-              const newHeight = event.nativeEvent.contentSize.height;
-              // 텍스트가 있을 때만 높이 업데이트
-              if (content.trim()) {
-                setInputHeight(newHeight);
-              }
-            }}
+            onChangeText={handleContentChange}
+            onContentSizeChange={e =>
+              content.trim() && setInputHeight(e.nativeEvent.contentSize.height)
+            }
             editable={!isSubmitting}
+            maxLength={MAX_CONTENT_LENGTH}
           />
 
+          {/* selected tags */}
           {selectedTags.length > 0 && (
-            <View style={styles.selectedTagsContainer}>
-              {selectedTags.map(tag => (
-                <View key={tag} style={styles.selectedTag}>
-                  <TouchableOpacity onPress={() => handleTagSelect(tag)}>
-                    <Text style={styles.selectedTagText}>#{tag}</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {/* Selected Video Display */}
-          {selectedVideo && (
-            <View style={styles.selectedVideoContainer}>
-              <View style={styles.videoEmbedWrapper}>
-                <YouTubeEmbed
-                  url={`https://www.youtube.com/watch?v=${extractVideoId(
-                    selectedVideo.thumbnail,
-                  )}`}
-                />
-                <TouchableOpacity
-                  style={styles.removeVideoButton}
-                  onPress={handleRemoveVideo}
-                  disabled={isSubmitting}>
-                  <Text style={styles.removeVideoText}>✕</Text>
-                </TouchableOpacity>
+              <View style={styles.selectedTagsContainer}>
+                {selectedTags.map(tag => (
+                  <View key={tag} style={styles.selectedTag}>
+                    <TouchableOpacity onPress={() => handleTagSelect(tag)}>
+                      <Text style={styles.selectedTagText}>#{tag}</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
               </View>
-            </View>
-          )}
+            )}
+
+          {/* 이미지 미리보기 */}
+          {seletedImageURI && (
+              <View style={styles.selectedContainer}>
+                <TouchableOpacity onPress={handleRemoveImage}>
+                  <Image
+                    source={require('@/assets/icons/common/close.png')}
+                    style={styles.removeButtonIcon}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+                <Image
+                  source={{uri: seletedImageURI}}
+                  style={styles.selectedImage}
+                />
+              </View>
+            )}
+
+          {/* Youtube 미리보기 */}
+          {selectedVideo && (
+              <View style={styles.selectedContainer}>
+                <TouchableOpacity onPress={handleRemoveVideo}>
+                  <Image
+                    source={require('@/assets/icons/common/close.png')}
+                    style={styles.removeButtonIcon}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+                <View style={styles.videoEmbedWrapper}>
+                  <YouTubeEmbed
+                    // 우선 YouTubeVideo.url 사용, 없으면 id로 watch URL 구성하여 전달
+                    url={
+                      selectedVideo.url ||
+                      `https://www.youtube.com/watch?v=${selectedVideo.id}`
+                    }
+                  />
+                </View>
+              </View>
+            )}
         </View>
 
-        {/* Action Buttons */}
         <PostActionButtons
+          onOpenMusicSheet={() => setMusicSheetVisible(true)}
           onVideoSelect={handleVideoSelect}
           onTagSelect={handleTagSelect}
+          onImageSelect={selectImage}
+          selectedTags={selectedTags}
+          hasMediaSelected={!!seletedImageURI || !!selectedVideo}
+          forceShowTagBar={!!tagTyping}
+          suggestedTags={tagSuggestions}
         />
       </KeyboardAvoidingView>
 
-      {/* Toast */}
-      <Toast message={toastMessage} visible={toastVisible} onHide={hideToast} />
+      <MusicSearchBottomSheet
+        visible={musicSheetVisible}
+        onClose={() => setMusicSheetVisible(false)}
+        onVideoSelect={handleVideoSelect}
+      />
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -312,7 +418,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   contentInput: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '400',
     lineHeight: 20,
     letterSpacing: 0.2,
@@ -320,10 +426,10 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     paddingHorizontal: 6,
   },
-  selectedVideoContainer: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
+  selectedContainer: {
     marginVertical: 16,
+    alignItems: 'flex-end',
+    gap: 8,
   },
   videoEmbedWrapper: {
     width: '100%',
@@ -332,22 +438,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
-  removeVideoButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
+  removeButtonIcon: {
     width: 28,
     height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-  },
-  removeVideoText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    tintColor: colors.GRAY_200,
   },
   selectedTagsContainer: {
     marginTop: -40,
@@ -367,5 +461,11 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     color: colors.GRAY_300,
+  },
+  selectedImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    resizeMode: 'cover',
   },
 });
