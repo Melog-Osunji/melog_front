@@ -25,7 +25,7 @@ export const useHarmonyPostDetail = (postId: string) => {
     queryKey: HARMONY_POST_QK.detail(postId),
     queryFn: () => fetchHarmonyPostDetail(postId),
     enabled: !!postId,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
     gcTime: 1000 * 60 * 10,
   });
 };
@@ -51,7 +51,7 @@ export const useHarmonyPostBestComments = (postId: string) => {
     queryKey: HARMONY_POST_QK.bestComments(postId),
     queryFn: () => fetchPostBestComments(postId),
     enabled: !!postId,
-    staleTime: 1000 * 60 * 3,
+    staleTime: 1000 * 60,
     gcTime: 1000 * 60 * 5,
   });
 };

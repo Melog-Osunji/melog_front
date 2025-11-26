@@ -42,8 +42,6 @@ type PostPageScreenProp = StackScreenProps<
 
 const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   const {postId} = route.params;
-  const [isFollow, setIsFollow] = useState<boolean>(false);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
 
   useHideTabBarOnFocus();
 
@@ -60,35 +58,41 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     error: commentsError,
   } = usePostComments(postId);
 
+  // 로딩 상태 처리
+    if (postLoading) {
+      return (
+        <SafeAreaView style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <Loading text={'게시글을 불러오는 중...'} />
+          </View>
+        </SafeAreaView>
+      );
+    }
+
+    // 에러 상태 처리
+    if (isPostError || !postData) {
+      console.error('[PostPageScreen] 게시글 로드 실패:', postError);
+      return (
+        <SafeAreaView style={styles.container}>
+          <View style={styles.errorContainer}>
+            <Text>게시글을 불러올 수 없습니다.</Text>
+            <Button title="다시 시도" onPress={() => navigation.goBack()} />
+          </View>
+        </SafeAreaView>
+      );
+    }
+
   // postData가 아직 없을 때는 빈 문자열 전달 — 훅은 항상 호출됨
-  const {data: followingData} = useGetUserFollowing(
+  const { data: followingData } = useGetUserFollowing(
     postData?.user?.nickName ?? '',
+    {
+        enabled: !!postData?.user?.nickName,
+    },
   );
   const followMutation = useFollowUser();
 
-  // 로딩 상태 처리
-  if (postLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Loading text={'게시글을 불러오는 중...'} />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // 에러 상태 처리
-  if (isPostError || !postData) {
-    console.error('[PostPageScreen] 게시글 로드 실패:', postError);
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text>게시글을 불러올 수 없습니다.</Text>
-          <Button title="다시 시도" onPress={() => navigation.goBack()} />
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const [isFollow, setIsFollow] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
   const {post, user} = postData as {post: PostDTO; user: UserDTO};
 

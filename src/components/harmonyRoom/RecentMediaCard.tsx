@@ -29,7 +29,7 @@ export default function RecentMediaCard({data}: Props) {
 
   console.log(data);
   const handlePress = () => {
-//     navigation.navigate('HARMONY_POST_PAGE', { postId: postID });
+    navigation.navigate(harmonyNavigations.HARMONY_FEED, { postId: postID });
   };
 
   const getYouTubeThumbnail = (url: string): string => {

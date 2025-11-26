@@ -7,6 +7,7 @@ import PostPageScreen from '@/screens/post/PostPageScreen';
 import PostCreateScreen from '@/screens/post/PostCreateScreen';
 import PostSearchScreen from '@/screens/post/PostSearchScreen';
 import PostSearchResultScreen from '@/screens/post/PostSearchResultScreen';
+import PersonalProfileScreen from '@/screens/mypage/PersonalProfileScreen';
 
 export type PostStackParamList = {
   [postNavigations.POST_HOME]: undefined;
@@ -14,6 +15,8 @@ export type PostStackParamList = {
   [postNavigations.POST_CREATE]: undefined;
   [postNavigations.POST_SEARCH]: undefined;
   [postNavigations.POST_SEARCH_RESULT]: {searchKeyword: string};
+  [postNavigations.POST_PROFILE]: {userId: string};
+
 };
 
 const Stack = createStackNavigator<PostStackParamList>();
@@ -47,6 +50,11 @@ function MainStackNavigator() {
         name={postNavigations.POST_SEARCH_RESULT}
         component={PostSearchResultScreen}
         options={{headerShown: false, title: ' '}}
+      />
+      <Stack.Screen
+        name={postNavigations.POST_PROFILE}
+        component={PersonalProfileScreen}
+        options={{headerShown:false}}
       />
     </Stack.Navigator>
   );

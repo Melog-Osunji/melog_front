@@ -51,7 +51,7 @@ export default function CustomButton({
             ? externalStyle(state)
             : externalStyle;
 
-        return [base, ext];
+        return [base, ext, state.pressed && {opacity: 0.6}];
       }}
       {...props}>
       <Text

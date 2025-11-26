@@ -57,7 +57,7 @@ export const toggleHarmonyPostLike = async (postId: string) => {
 };
 
 // 2) bookmark
-// GET (게시글 북마크)
+// POST (게시글 북마크)
 export const addHarmonyPostBookmark = async (postId: string) => {
   const res = await instance.post<BaseResponse<null>>(
     `/api/harmony/posts/${postId}/bookmark`,

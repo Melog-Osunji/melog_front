@@ -2,12 +2,12 @@
 //post
 export type PostDTO = {
   id: string;
-  title: string;
+  title?: string;
   content: string;
-  mediaType: string;
-  mediaUrl: string;
+  mediaType?: string;
+  mediaUrl?: string;
   tags: string[];
-  createdAgo?: number;
+  createdAgo?: string;
   likeCount: number;
   hiddenUser?: string[];
   commentCount: number;
@@ -54,9 +54,9 @@ export type CommentsDTO = {
 };
 
 export type BestCommentDTO = {
-  userID: string;
+  userId: string;
   content: string;
-  profileImg: string;
+  profileImg?: string;
 };
 
 // feed

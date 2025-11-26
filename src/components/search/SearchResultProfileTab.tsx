@@ -7,62 +7,32 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
-import styled from 'styled-components/native';
-import {colors} from '@/constants';
+import {useNavigation} from '@react-navigation/native';
+import type {NavigationProp} from '@react-navigation/native';
+import {PostStackParamList} from '@/navigations/stack/postStackNavigator';
+import {colors, postNavigations} from '@/constants';
 import EmptyTab from '@/components/search/EmptyTab';
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import {useSearchProfile} from '@/hooks/queries/search/useSearchResult';
 import {useFollowUser} from '@/hooks/queries/User/useUserMutations';
-import {useGetUserFollowing} from '@/hooks/queries/User/useUserQueries';
 import CustomButton from '@/components/common/CustomButton';
+import {useQueryClient} from '@tanstack/react-query';
 
 type Props = {keyword?: string};
 
-const mock: any[] = []; // ← 비었을 때 EmptyState가 보이도록 가정
-
 const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
   useHideTabBarOnFocus();
-  const [isFollow, setIsFollow] = useState<boolean>(false);
+  const navigation = useNavigation<NavigationProp<PostStackParamList>>();
+  const queryClient = useQueryClient();
 
   const {data, isLoading, isError} = useSearchProfile(keyword ?? '');
+  const followMutation = useFollowUser();
 
   console.log(data);
 
-  // follow 상태 초기화
-  const user = data?.user
-
-  console.log(user);
-
-  const {data: followingData} = useGetUserFollowing(user?.userNickname ?? '');
-
-  // 서버 응답 적용 (data: { isFollowing: boolean })
-  useEffect(() => {
-    if (followingData) {
-        const isFollowing = (followingData as any).result ?? false;
-        setIsFollow(!!isFollowing);
-    }
-  }, [followingData]);
-
-  // 팔로우/언팔로우 토글 핸들러
-  const followMutation = useFollowUser();
-  const handleToggleFollow = useCallback(() => {
-    if (!user?.id) return;
-
-    const previous = isFollow;
-    setIsFollow(!previous);
-
-    followMutation.mutate(user.id, {
-    onError: () => {
-      setIsFollow(previous);
-      showToast(
-        previous ? '언팔로우에 실패했어요.' : '팔로우에 실패했어요.',
-        'error',
-      );
-    },
-    });
-  }, [followMutation, user?.id, isFollow]);
-
-
+  // ───────────────────────────────────────────
+  // 로딩 / 에러 핸들링
+  // ───────────────────────────────────────────
   if (isLoading) {
     return (
       <View style={styles.center}>
@@ -76,39 +46,71 @@ const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
     return <EmptyTab keyword={keyword} fullScreen />;
   }
 
-  if (data.length === 0) {
-    return <EmptyTab keyword={keyword} fullScreen />;
-  }
+  // ───────────────────────────────────────────
+  // 팔로우 토글 핸들러
+  // ───────────────────────────────────────────
+  const handleToggleFollow = useCallback(
+    (userId: string) => {
+      followMutation.mutate(userId, {
+        onSuccess: () => {
+          // ★ React Query 캐시 업데이트
+          queryClient.setQueryData(['search', 'profile', keyword], (prev: any) => {
+            if (!prev) return prev;
 
+            const updatedUsers = prev.user.map((u: any) =>
+              u.userId === userId
+                ? {
+                    ...u,
+                    follow: u.follow === 'T' ? 'F' : 'T',
+                  }
+                : u,
+            );
+
+            return {...prev, user: updatedUsers};
+          });
+        },
+        onError: err => {
+          console.warn('[팔로우 실패]', err);
+        },
+      });
+    },
+    [followMutation, queryClient, keyword],
+  );
+
+  // ───────────────────────────────────────────
+  // UI
+  // ───────────────────────────────────────────
   return (
     <ScrollView contentContainerStyle={styles.content}>
-      {data.user.map((user, idx) => {
+      {data.user.map((user: any, idx: number) => {
         const isFollowed = user.follow === 'T';
 
         return (
           <View
-            key={user.userNickname + idx}
+            key={user.userId + idx}
             style={[
               styles.item,
               idx === 0 && styles.itemFirst,
               idx === data.user.length - 1 && styles.itemLast,
             ]}>
             <View style={styles.avatar} />
-            <View style={styles.textWrap}>
+            <Pressable style={styles.textWrap} onPress={()=> navigation.navigate(postNavigations.POST_PROFILE,{userId: user.userId})}>
               <Text style={styles.name}>{user.userNickname}</Text>
               <Text style={styles.bio}>
                 {user.intro || '자기소개가 없습니다.'}
               </Text>
-            </View>
+            </Pressable>
 
             <CustomButton
-                label={isFollow ? '팔로잉' : '팔로우'}
-                size="small"
-                onPress={handleToggleFollow}
-                style={{
-                  backgroundColor: isFollow ? colors.GRAY_200 : colors.BLUE_400,
-                }}
-              />
+              label={isFollowed ? '팔로잉' : '팔로우'}
+              size="small"
+              onPress={() => handleToggleFollow(user.userId)}
+              style={{
+                backgroundColor: isFollowed
+                  ? colors.GRAY_200
+                  : colors.BLUE_400,
+              }}
+            />
           </View>
         );
       })}
@@ -117,7 +119,7 @@ const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
 };
 
 const styles = StyleSheet.create({
-  center:{
+  center: {
     marginTop: 80,
     alignItems: 'center',
     justifyContent: 'center',
@@ -137,7 +139,6 @@ const styles = StyleSheet.create({
   itemLast: {
     paddingBottom: 0,
   },
-  // 왼쪽 아바타(회색 동그라미)
   avatar: {
     width: 40,
     height: 40,
@@ -145,7 +146,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.GRAY_300,
     marginRight: 12,
   },
-  // 텍스트 영역
   textWrap: {
     flex: 1,
   },
@@ -162,23 +162,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     letterSpacing: 0.2,
     color: colors.GRAY_500,
-  },
-  // 팔로우 버튼
-  followBtn: {
-    height: 36,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    backgroundColor: colors.BLUE_400,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  followLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 20,
-    letterSpacing: 0.2,
-    color: colors.WHITE,
   },
 });
 

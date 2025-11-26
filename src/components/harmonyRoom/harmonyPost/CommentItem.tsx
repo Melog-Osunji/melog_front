@@ -18,9 +18,9 @@ const CommentItem = ({
   postId,
   userId,
 }: CommentItemProps) => {
-  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [isLiked, setIsLiked] = useState(comment.isLike);
   const [currentLikeCount, setCurrentLikeCount] = useState<number>(
-    comment.likes,
+    comment.likeCount
   );
 
   console.log(comment);

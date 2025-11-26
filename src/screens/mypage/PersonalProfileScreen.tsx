@@ -50,7 +50,7 @@ function PersonalProfileScreen({ route }: PersonalProfileScreenProps) {
     refetch: refetchFollowing,
   } = useGetUserFollowing(data?.nickname ?? '');
 
-  const followMutation = useFollowUser(userId);
+  const followMutation = useFollowUser();
 
   const isFollowing = followingData?.result === true;
 
