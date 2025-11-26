@@ -19,6 +19,7 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   onExit: () => void;
+  onConfirm?: () => void; // NEW: confirm callback for right button
   iconImg?: any; // 아이콘 이미지
   title?: string;
   content?: string;
@@ -36,6 +37,7 @@ export default function CheckPopup({
   visible,
   onClose,
   onExit,
+  onConfirm, // added prop
   iconImg,
   title,
   content,
@@ -86,7 +88,13 @@ export default function CheckPopup({
                   borderColor: rightBtnBorderColor,
                 },
               ]}
-              onPress={onClose}>
+              onPress={() => {
+                if (onConfirm) {
+                  onConfirm();
+                } else {
+                  onClose();
+                }
+              }}>
               <Text style={[styles.exitText, {color: rightBtnTextColor}]}>
                 {rightBtnText}
               </Text>
