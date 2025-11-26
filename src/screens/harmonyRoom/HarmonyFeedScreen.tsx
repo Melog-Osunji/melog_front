@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Button,
+  Pressable
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StackScreenProps} from '@react-navigation/stack';
@@ -26,6 +27,7 @@ import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
 import PostOptionsSheet from '@/components/harmonyRoom/harmonyPost/PostOptionsSheet';
 import {useHarmonyPostDetail, useHarmonyPostComments} from '@/hooks/queries/harmonyRoom/useHarmonyPostQueries';
+import {PostDTO, UserDTO} from '@/types';
 
 type HarmonyPageScreenProp = StackScreenProps<
   HarmonyStackParamList,
@@ -75,8 +77,7 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
     );
   }
 
-
-  const {post, user} = postData;
+  const user = postData.user;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -107,14 +108,14 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{paddingBottom: 100}}>
           {/* 미디어 */}
-          {post.mediaUrl ? (
+          {postData.mediaUrl ? (
             <View style={styles.media}>
-              {post.mediaUrl.includes('youtube.com') ||
-              post.mediaUrl.includes('youtu.be') ? (
-                <YouTubeEmbed2 url={post.mediaUrl} borderRadius={0} />
+              {postData.mediaUrl.includes('youtube.com') ||
+              postData.mediaUrl.includes('youtu.be') ? (
+                <YouTubeEmbed2 url={postData.mediaUrl} borderRadius={0} />
               ) : (
                 <Image
-                  source={{uri: post.mediaUrl}}
+                  source={{uri: postData.mediaUrl}}
                   style={styles.fullWidthImage}
                 />
               )}
@@ -124,25 +125,25 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
           <View style={styles.postContainer}>
             {/* 사용자 정보 */}
             <View style={styles.userSection}>
-              <View style={styles.userWrapper}>
+              <Pressable style={styles.userWrapper} onPress={()=> navigation.navigate(harmonyNavigations.HARMONY_PERSONAL,{userId: user.id})}>
                 <Image
                   source={{uri: user.profileImg}}
                   style={styles.profileImage}
                 />
                 <View style={styles.userInfo}>
                   <Text style={styles.nickName}>{user.nickName}</Text>
-                  <Text style={styles.timeText}>{post.createdAgo}시간 전</Text>
+                  <Text style={styles.timeText}>{postData.createdAgo}</Text>
                 </View>
-              </View>
-              <PostOptionsSheet user={user} postId={post.id} />
+              </Pressable>
+              <PostOptionsSheet user={user} postId={postId} />
             </View>
 
             {/* 본문 */}
-            <Text style={styles.content}>{post.content}</Text>
+            <Text style={styles.content}>{postData.content}</Text>
 
             {/* 태그 */}
             <View style={styles.tags}>
-              {(post.tags ?? []).map((tag, index) => (
+              {(postData.tags ?? []).map((tag, index) => (
                 <Text key={index} style={styles.tag}>
                   #{tag}
                 </Text>
@@ -151,9 +152,9 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
 
             {/* 통계 */}
             <PostStats
-              id={post.id}
-              likeCount={post.likeCount}
-              commentCount={post.commentCount}
+              id={postData.id}
+              likeCount={postData.likeCount}
+              commentCount={postData.commentCount}
               visibleStats={['like', 'share', 'bookmark']}
             />
           </View>
@@ -172,7 +173,7 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
             ) : commentsData ? (
               <CommentList
                 commentsData={commentsData}
-                totalCommentCount={post.commentCount || 0}
+                totalCommentCount={postData.commentCount || 0}
                 postId={postId}
               />
             ) : null}
@@ -185,6 +186,7 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
           onSend={(text: string) => {
             console.log('[PostPageScreen] onSend comment:', text);
           }}
+          profileUrl={postData.profileImage}
         />
       </GradientBg>
     </SafeAreaView>

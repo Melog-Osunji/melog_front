@@ -87,7 +87,7 @@ export default function HarmonyInfoScreen() {
   const [popupMode, setPopupMode] = useState<'joined' | 'applied'>('joined');
 
   // 변수
-  const headerImg = detail?.profileImgLink ?? '';
+  const headerImg = detail?.profileImgLink?.trim() || null;
   const headerName = detail?.name ?? '하모니룸';
   const headerTags = detail?.category ?? [];
   const headerIntro = detail?.intro ?? '';
@@ -212,13 +212,14 @@ export default function HarmonyInfoScreen() {
                 style={styles.circleGradient}
             >
               <View style={styles.circleInner}>
-                {headerImg ? (
-                  <Image source={{uri: headerImg}} style={styles.roomImg} />
-                ) : (
-                  <View
-                    style={[styles.roomImg, {backgroundColor: colors.GRAY_300}]}
-                  />
-                )}
+                <Image
+                  source={
+                    headerImg
+                      ? { uri: headerImg }
+                      : require('@/assets/icons/common/EmptyProfile.png')
+                  }
+                  style={styles.roomImg}
+                />
               </View>
             </LinearGradient>
             <View style={styles.roomInfo}>

@@ -2,7 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import {
   fetchHarmonyPostDetail,
   fetchPostComments,
-  fetchPostBestComments
+  fetchPostBestComments,
+  type HarmonyPostDTO,
 } from '@/api/harmonyRoom/harmonyRoomFeedApi';
 import type { PostWithUserDTO, CommentsDTO, BestCommentDTO } from '@/types';
 
@@ -20,7 +21,7 @@ export const HARMONY_POST_QK = {
 // #1) 게시글 상세
 // =====================
 export const useHarmonyPostDetail = (postId: string) => {
-  return useQuery<PostWithUserDTO, Error>({
+  return useQuery<HarmonyPostDTO, Error>({
     queryKey: HARMONY_POST_QK.detail(postId),
     queryFn: () => fetchHarmonyPostDetail(postId),
     enabled: !!postId,

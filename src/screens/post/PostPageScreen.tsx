@@ -60,6 +60,12 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     error: commentsError,
   } = usePostComments(postId);
 
+  // postData가 아직 없을 때는 빈 문자열 전달 — 훅은 항상 호출됨
+  const {data: followingData} = useGetUserFollowing(
+    postData?.user?.nickName ?? '',
+  );
+  const followMutation = useFollowUser();
+
   // 로딩 상태 처리
   if (postLoading) {
     return (
@@ -87,7 +93,7 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   const {post, user} = postData as {post: PostDTO; user: UserDTO};
 
   // follow 상태 초기화
-  const {data: followingData} = useGetUserFollowing(user?.nickName ?? '');
+  // const {data: followingData} = useGetUserFollowing(user?.nickName ?? '');
 
   // 서버 응답 적용 (data: { isFollowing: boolean })
   useEffect(() => {
@@ -98,7 +104,6 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   }, [followingData]);
 
   // 팔로우/언팔로우 토글 핸들러
-  const followMutation = useFollowUser();
   const handleToggleFollow = useCallback(() => {
     if (!user?.id) return;
 

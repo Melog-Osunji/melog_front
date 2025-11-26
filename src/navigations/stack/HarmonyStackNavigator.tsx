@@ -17,6 +17,7 @@ import {MAIN_TAB_SCREEN_OPTIONS} from '@/navigations/tab/MainTabNavigator';
 import {HarmonyRoomInfo} from '@/constants/types';
 import {HarmonyRoomProvider} from '@/contexts/HarmonyRoomContext';
 import PostPageScreen from '@/screens/post/PostPageScreen';
+import PersonalProfileScreen from '@/screens/mypage/PersonalProfileScreen';
 
 
 export type HarmonyStackParamList = {
@@ -35,6 +36,8 @@ export type HarmonyStackParamList = {
   [harmonyNavigations.HARMONY_SEARCH]: undefined;
   [harmonyNavigations.HARMONY_SEARCH_RESULT]: {searchKeyword: string};
   [harmonyNavigations.HARMONY_FEED]: {postId: string};
+  [harmonyNavigations.HARMONY_PERSONAL]: {userId: string};
+
 };
 
 const Stack = createStackNavigator<HarmonyStackParamList>();
@@ -103,6 +106,11 @@ function HarmonyStackNavigator() {
           component={HarmonyFeedScreen}
           options={{ headerShown: false }}
          />
+        <Stack.Screen
+         name={harmonyNavigations.HARMONY_PERSONAL}
+         component={PersonalProfileScreen}
+         options={{headerShown:false}}
+        />
       </Stack.Navigator>
     </HarmonyRoomProvider>
   );

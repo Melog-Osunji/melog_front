@@ -35,6 +35,7 @@ export type UserDTO = {
   id: string;
   nickName: string;
   profileImg: string;
+  description?:string;
 };
 
 //comment

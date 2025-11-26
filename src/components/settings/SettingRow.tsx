@@ -5,12 +5,18 @@ import Icon from '@/components/common/IconButton';
 type Props = {
   label: string;
   info?: React.ReactNode | string;
+  arrow?: boolean;
   onPress?: () => void;
 };
 
-export default function SettingRow({label, info, onPress}: Props) {
+export default function SettingRow({
+  label,
+  info,
+  arrow = true,
+  onPress,
+}: Props) {
   return (
-    <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
+    <View style={styles.row}>
       <View style={styles.left}>
         <Text style={styles.label}>{label}</Text>
       </View>
@@ -20,12 +26,15 @@ export default function SettingRow({label, info, onPress}: Props) {
         ) : (
           info
         )}
-        <Icon
-          imageSource={require('@/assets/icons/common/arrow_forward_ios.png')}
-          size={24}
-        />
+        {arrow && (
+          <Icon
+            imageSource={require('@/assets/icons/common/arrow_forward_ios.png')}
+            size={24}
+            onPress={onPress}
+          />
+        )}
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
 

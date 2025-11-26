@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Text, StyleSheet, ScrollView, Switch} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, Switch, Image} from 'react-native';
 // constants, navigations, contexts
 import {settingsNavigations, colors} from '@/constants';
 import {StackScreenProps} from '@react-navigation/stack';
@@ -8,15 +8,24 @@ import {useAuthContext} from '@/contexts/AuthContext';
 // components
 import IconButton from '@/components/common/IconButton';
 import SettingRow from '@/components/settings/SettingRow';
+import SettingToggleRow from '@/components/settings/SettingToggleRow';
 
 type SettingsHomeScreenProps = StackScreenProps<
   SettingNavigatorParamList,
   typeof settingsNavigations.SETTINGS_HOME
 >;
 
-export default function PostHomeScreen({navigation}: SettingsHomeScreenProps) {
+export default function SettingHomeScreen({navigation}: SettingsHomeScreenProps) {
   const {user: authUser} = useAuthContext();
   const [pushEnabled, setPushEnabled] = useState(false);
+  // 플랫폼 키를 소문자로 맞춰서 아이콘 매핑
+  const PLATFORM_ICONS: Record<string, any> = {
+    kakao: require('@/assets/icons/common/kakao_icon.png'),
+    google: require('@/assets/icons/common/google_icon.png'),
+    naver: require('@/assets/icons/common/naver_icon.png'),
+  };
+  const platformKey = (authUser?.platform ?? '').toLowerCase();
+  const platformIcon = PLATFORM_ICONS[platformKey];
 
   return (
     <View style={styles.container}>
@@ -30,7 +39,21 @@ export default function PostHomeScreen({navigation}: SettingsHomeScreenProps) {
       </View>
       <ScrollView style={styles.list}>
         <Text style={styles.sectionTitle}>내 계정</Text>
-        <SettingRow label="로그인" />
+        <View style={styles.loginRow}>
+          <Text style={styles.loginTitle}>로그인</Text>
+          <View style={styles.loginRight}>
+            <View style={styles.avatarCircle}>
+              {platformIcon ? (
+                <Image source={platformIcon} style={styles.avatarImg} />
+              ) : (
+                <Text style={styles.avatarInitial}>
+                  {(authUser?.email?.[0] ?? 'N').toUpperCase()}
+                </Text>
+              )}
+            </View>
+            <Text style={styles.emailText}>{authUser?.email ?? '로그인'}</Text>
+          </View>
+        </View>
         <Text style={styles.sectionTitle}>사용자 관리</Text>
         <SettingRow
           label="나의 활동 범위"
@@ -59,7 +82,12 @@ export default function PostHomeScreen({navigation}: SettingsHomeScreenProps) {
         />
 
         <Text style={styles.sectionTitle}>알림</Text>
-        <Text>PUSH 알림 설정</Text>
+        <SettingToggleRow
+          label="PUSH 알림 설정"
+          info="본 설정은 해당 기기에서만 유효하며,
+수신 거절 시 상담/답변 등의 정보성 알림도 발송되지 않습니다."
+          onPress={() => navigation.navigate(settingsNavigations.NOTICES)}
+        />
 
         <SettingRow
           label="공지사항"
@@ -142,4 +170,29 @@ const styles = StyleSheet.create({
     color: colors.BLACK,
     fontSize: 12,
   },
+  loginRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  loginTitle: {fontSize: 14, fontWeight: 'bold', color: colors.BLACK},
+  loginRight: {flexDirection: 'row', alignItems: 'center', gap: 10},
+  avatarCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.WHITE,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  avatarInitial: {fontSize: 16, fontWeight: '700', color: colors.BLACK},
+  emailText: {fontSize: 14, color: colors.BLACK},
 });

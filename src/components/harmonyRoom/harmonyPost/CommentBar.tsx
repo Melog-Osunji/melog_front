@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {StyleSheet, View, TextInput} from 'react-native';
+import {StyleSheet, View, TextInput, Image} from 'react-native';
 import {colors} from '@/constants';
 import {useCreateHarmonyComment} from '@/hooks/queries/harmonyRoom/useHarmonyPostMutation';
 
@@ -8,6 +8,7 @@ interface LikeAndCommentProps {
   liked?: boolean;
   onSend?: (text: string) => void;
   postId?: string;
+  profileUrl?: string;
 }
 
 function LikeAndComment({
@@ -15,9 +16,10 @@ function LikeAndComment({
   liked = false,
   onSend,
   postId,
+  profileUrl,
 }: LikeAndCommentProps) {
   const [comment, setComment] = useState('');
-  /* 수정 */
+
   const createCommentMutation = useCreateHarmonyComment();
 
   const handleSend = () => {
@@ -40,7 +42,11 @@ function LikeAndComment({
   return (
     <View style={styles.container}>
       {/* 프로필 이미지 */}
-      <View style={styles.profileImage} />
+      <Image
+        source={ profileUrl
+              ? { uri: profileUrl }
+              : require('@/assets/icons/common/EmptyProfile.png')
+           } style={styles.profileImage}/>
 
       {/* 댓글 입력 영역 */}
       <View style={styles.inputContainer}>

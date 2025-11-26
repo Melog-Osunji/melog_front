@@ -1,13 +1,11 @@
 import React from 'react';
 import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
-
 import {colors} from '@/constants';
-
 import IconButton from '@/components/common/IconButton';
 import Alarmlist from '@/components/common/Alarmlist';
 import {useNotices} from '@/hooks/queries/settings/useSettingsQueries';
 
-export default function NoticesScreen() {
+export default function AlarmScreen() {
   const {data, isLoading, error} = useNotices();
 
   if (isLoading) {
@@ -31,7 +29,6 @@ export default function NoticesScreen() {
             target={'goBack'}
             size={24}
           />
-          <Text style={styles.title}>공지사항</Text>
         </View>
         <View style={styles.body}>
           <Text style={{color: colors.GRAY_500}}>
@@ -44,7 +41,7 @@ export default function NoticesScreen() {
 
   const items = (data?.notices ?? []).map(n => ({
     id: n.id,
-    type: n.category ?? '공지사항',
+    type: n.category ?? '알림',
     title: n.title,
     content: n.content,
     profileUri: n.imageUrl ?? null,
@@ -58,7 +55,6 @@ export default function NoticesScreen() {
           target={'goBack'}
           size={24}
         />
-        <Text style={styles.title}>공지사항</Text>
       </View>
       <View style={styles.body}>
         <Alarmlist data={items} />

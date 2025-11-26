@@ -38,6 +38,7 @@ const harmonyNavigations = {
   HARMONY_SEARCH: 'HarmonySearch',
   HARMONY_SEARCH_RESULT: 'HarmonySearchResult',
   HARMONY_FEED: 'HarmonyFeed',
+  HARMONY_PERSONAL: 'HarmonyPersonal',
 } as const;
 
 //프로필설정
@@ -71,9 +72,16 @@ const settingsNavigations = {
   ACCOUNT_DELETE: 'AccountDelete', //탈퇴하기 
 } as const;
 
+// common
+const commonNavigations = {
+  ALARM: 'Alarm',
+} as const;
+
+
 export {introNavigations};
 export {postNavigations};
 export {harmonyNavigations};
 export {InitProfileNavigations};
 export {myPageNavigations};
 export {settingsNavigations};
+export {commonNavigations};

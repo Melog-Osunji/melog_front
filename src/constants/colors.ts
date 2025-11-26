@@ -9,7 +9,7 @@ const colors = {
   GRAY_200: '#BDCAD8', //G_1
   GRAY_300: '#8C9CAA', //G_3
   GRAY_350: '#989B9E', //Grey 07
-  GRAY_400: '#636C73',
+  GRAY_400: '#636C73', //G_4
   GRAY_500: '#40474C', //G_5
   GRAY_600: '#1C1E1F',
 

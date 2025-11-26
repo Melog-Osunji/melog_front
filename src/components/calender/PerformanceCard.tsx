@@ -100,7 +100,7 @@ export default function PerformanceCard({ data, onUpdated, selectedDate }: Props
       };
 
     const disabled = saving || deleting;
-    const truncatedTitle = title.length > 24 ? `${title.slice(0, 24)}...` : title;
+    const truncatedTitle = title.length > 36 ? `${title.slice(0, 36)}...` : title;
 
     return (
         <View style={styles.container}>
@@ -120,7 +120,7 @@ export default function PerformanceCard({ data, onUpdated, selectedDate }: Props
                         {dday === 0 ? 'D-DAY' : dday > 0 ? `D-${dday}` : '진행중'}
                     </Text>
                     </LinearGradient>
-                    <Text style={styles.title}>{title}</Text>
+                    <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">{truncatedTitle}</Text>
                     <Text style={styles.location}>{venue}</Text>
                     <Text style={styles.period}>{formatRange(startDateTime, endDateTime)}</Text>
                 </View>
@@ -193,8 +193,6 @@ const styles = StyleSheet.create({
         letterSpacing: 0.15,
         color: colors.BLACK,
         maxWidth: SCREEN_W * 0.55,
-        numberOfLines: 1,
-        ellipsizeMode: 'tail',
     },
     location: {
         fontFamily: 'Noto Sans KR',

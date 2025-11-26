@@ -8,7 +8,12 @@ import {
   TouchableOpacity,
 } from 'react-native';
 //constants
-import {colors, postNavigations, defaultFeedTypes} from '@/constants';
+import {
+  colors,
+  postNavigations,
+  defaultFeedTypes,
+  commonNavigations,
+} from '@/constants';
 //types
 import type {FeedType, PostWithUserDTO} from '@/types';
 //navigation
@@ -139,9 +144,9 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
           imageSource={require('@/assets/icons/post/Search.png')}
           target={[postNavigations.POST_SEARCH]}
         />
-        <IconButton<PostStackParamList>
+        <IconButton
           imageSource={require('@/assets/icons/post/Notice.png')}
-          target={[postNavigations.POST_SEARCH]}
+          target={[commonNavigations.ALARM]}
         />
       </View>
     </View>
