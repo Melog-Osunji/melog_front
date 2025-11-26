@@ -25,16 +25,15 @@ export const useGetUserFollowing = (nickname: string) => {
     queryFn: () => getUserFollowing(nickname),
     enabled: !!nickname,
     retry: false,
-    staleTime: 1000 * 60 * 1,
+    staleTime: 0,
   });
 };
 
 // 유저 프로필 조회
 export const useUserProfile = () => {
   return useQuery({
-    queryKey: USE_USER_QK.profile,
+    queryKey: USE_USER_QK.profile(),
     queryFn: () => fetchUserProfile(),
-    enabled: false,
     retry: false,
     staleTime: 1000 * 60 * 1,
   })

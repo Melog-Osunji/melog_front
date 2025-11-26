@@ -22,6 +22,7 @@ const postNavigations = {
   POST_CREATE: 'PostCreate',
   POST_SEARCH: 'PostSearch',
   POST_SEARCH_RESULT: 'PostSearchResult',
+  POST_PROFILE: 'PostPersonalProfile',
 } as const;
 
 const harmonyNavigations = {
