@@ -9,36 +9,62 @@ import {
 } from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import {colors} from '@/constants';
+import {useReportPost} from '@/hooks/queries/post/usePostMutations';
+import {showToast} from '@/components/common/ToastService';
 
 type Props = {
   visible: boolean;
   onClose: () => void;
   onReport?: (reason: string) => void;
+  postId?: string | null;
+  commentId?: string | null;
+  reportedUserId?: string | null;
 };
 
-const REASONS = [
-  '부적절한 내용', // INAPPROPRIATE_CONTENT
-  '서비스와 관련없는 내용', // IRRELEVANT_TO_SERVICE
-  '스팸 또는 광고', // SPAM_OR_ADVERTISEMENT
-  '저작권 또는 상표권 침해', // COPYRIGHT_OR_TRADEMARK
-  '혐오감이 드는 내용', // OFFENSIVE_CONTENT
-  '기타', // OTHER
+// label과 서버로 보낼 enum string(value)을 함께 정의
+const REASONS: {label: string; value: string}[] = [
+  {label: '부적절한 내용', value: 'INAPPROPRIATE_CONTENT'},
+  {label: '서비스와 관련없는 내용', value: 'IRRELEVANT_TO_SERVICE'},
+  {label: '스팸 또는 광고', value: 'SPAM_OR_ADVERTISEMENT'},
+  {label: '저작권 또는 상표권 침해', value: 'COPYRIGHT_OR_TRADEMARK'},
+  {label: '혐오감이 드는 내용', value: 'OFFENSIVE_CONTENT'},
+  {label: '기타', value: 'OTHER'},
 ];
 
-export default function PostReportSheet({visible, onClose, onReport}: Props) {
+export default function PostReportSheet({
+  visible,
+  onClose,
+  onReport,
+  postId = null,
+  commentId = null,
+  reportedUserId = null,
+}: Props) {
   const [step, setStep] = useState<'select' | 'done'>('select');
   const [selected, setSelected] = useState<string | null>(null);
+  const {mutate: reportMutate, isLoading: isReporting} = useReportPost();
 
-  const handleSelect = (reason: string) => {
-    setSelected(reason);
-    // 바로 접수화면 보여주기
-    setStep('done');
-    // 실제 신고 API 호출은 onReport로 위임
-    try {
-      onReport?.(reason);
-    } catch (e) {
-      console.warn('[PostReportSheet] onReport error', e);
-    }
+  const handleSelect = (reasonValue: string, reasonLabel: string) => {
+    setSelected(reasonValue);
+    // 호출
+    reportMutate(
+      {
+        reason: reasonValue,
+        postId: postId ?? null,
+        commentId: commentId ?? null,
+        reportedUserId: reportedUserId ?? null,
+      },
+      {
+        onSuccess: () => {
+          setStep('done');
+          showToast('신고가 접수되었습니다.', 'success');
+          onReport?.(reasonValue);
+        },
+        onError: err => {
+          console.warn('[PostReportSheet] report error', err);
+          showToast('신고 처리에 실패했습니다.', 'error');
+        },
+      },
+    );
   };
 
   const handleDone = (e?: GestureResponderEvent) => {
@@ -51,22 +77,22 @@ export default function PostReportSheet({visible, onClose, onReport}: Props) {
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      height={step === 'done' ? '30%' : '55%'} // 변경: 완료 화면에서는 30%
-    >
+      height={step === 'done' ? '30%' : '55%'}>
       <View style={styles.container}>
         {step === 'select' ? (
           <>
             <Text style={styles.headerTitle}>
-              이 댓글을 신고하는 이유를 알려주세요.
+              이 게시글을 신고하는 이유를 알려주세요.
             </Text>
 
-            {REASONS.map(reason => (
+            {REASONS.map(({label, value}) => (
               <TouchableOpacity
-                key={reason}
+                key={value}
                 style={styles.row}
-                onPress={() => handleSelect(reason)}
-                activeOpacity={0.7}>
-                <Text style={styles.label}>{reason}</Text>
+                onPress={() => handleSelect(value, label)}
+                activeOpacity={0.7}
+                disabled={isReporting}>
+                <Text style={styles.label}>{label}</Text>
                 <Image
                   source={require('@/assets/icons/common/RightArrow.png')}
                   style={styles.arrow}
@@ -75,7 +101,6 @@ export default function PostReportSheet({visible, onClose, onReport}: Props) {
             ))}
           </>
         ) : (
-          // 완료 화면
           <View style={styles.doneWrap}>
             <Image
               source={require('@/assets/icons/common/check_circle.png')}
@@ -126,7 +151,6 @@ const styles = StyleSheet.create({
     height: 18,
     tintColor: colors.GRAY_300,
   },
-
   // done screen
   doneWrap: {
     flex: 1,

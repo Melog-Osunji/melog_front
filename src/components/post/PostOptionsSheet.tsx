@@ -182,6 +182,8 @@ function PostOptionsSheet({
       <PostReportSheet
         visible={reportVisible}
         onClose={() => setReportVisible(false)}
+        postId={postId}
+        reportedUserId={targetUserId}
         onReport={(reason: string) => {
           setReportVisible(false);
           onReport?.(postId);
