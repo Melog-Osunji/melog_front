@@ -9,6 +9,7 @@ import {
   hidePost,
   addPostBookmark,
   deletePostBookmark,
+  postReport, 
 } from '@/api/post/postPostApi';
 import {POST_QUERY_KEYS} from './usePostQueries';
 import type {NewPostDTO} from '@/types';
@@ -264,6 +265,33 @@ export const useHidePost = () => {
     onSettled: () => {
       qc.invalidateQueries({queryKey: POST_QUERY_KEYS.posts});
       qc.invalidateQueries({queryKey: MY_PAGE_QK});
+    },
+  });
+};
+
+// 신고하기 훅
+export const useReportPost = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: {
+      userID?: string | null;
+      reason: string;
+      postId?: string | null;
+      commentId?: string | null;
+      reportedUserId?: string | null;
+    }) => postReport(payload),
+    onSuccess: (_data, variables) => {
+      // 서버가 신고를 처리하면 관련 캐시를 무효화
+      qc.invalidateQueries({queryKey: POST_QUERY_KEYS.posts});
+      if (variables?.postId) {
+        qc.invalidateQueries({queryKey: ['post', variables.postId]});
+        qc.invalidateQueries({
+          queryKey: ['post', 'comments', variables.postId],
+        });
+      }
+    },
+    onError: err => {
+      console.warn('[useReportPost] 신고 실패', err);
     },
   });
 };

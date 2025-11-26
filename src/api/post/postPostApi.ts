@@ -2,6 +2,14 @@ import instance from '../axiosInstance';
 import type {BaseResponse} from '../baseResponse';
 import type {NewPostDTO} from '@/types';
 
+export type ReportRequest = {
+  userID: string | null;
+  reason: string;
+  postId?: string | null;
+  commentId?: string | null;
+  reportedUserId?: string | null;
+};
+
 // #3) CRUD operations for post (POST/PATCH/DELETE requests)
 // POST /api/posts (게시글 작성)
 export const createPost = async (postData: NewPostDTO): Promise<void> => {
@@ -78,4 +86,18 @@ export const hidePost = async (postId: string) => {
     `/api/posts/${postId}/hidden`,
   );
   return res.data.data;
+};
+
+// POST /api/report (신고)
+export const postReport = async (payload: ReportRequest) => {
+  // API로 전송되는 body를 콘솔에 출력
+  console.debug('[postReport] payload:', JSON.stringify(payload, null, 2));
+
+  try {
+    const res = await instance.post<BaseResponse<any>>('/api/report', payload);
+    return res.data.data;
+  } catch (err) {
+    console.error('[postReport] error:', err);
+    throw err;
+  }
 };

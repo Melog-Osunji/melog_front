@@ -4,6 +4,7 @@ import {
   updateUserMarketing,
   updateUserProfile,
   postUserFollowing,
+  postBlockUser,
 } from '@/api/User/UserPostApi';
 
 // #1) 이용약관
@@ -84,5 +85,30 @@ export const useFollowUser = () => {
   return {
     ...mutation,
     isLoading: mutation.isPending,
+  };
+};
+
+// #4) 사용자 차단/차단해제
+export const useBlockUser = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (targetUserId: string) => postBlockUser(targetUserId),
+    onSuccess: (_data, targetUserId) => {
+      // block 변경 시 관련 캐시 무효화
+      queryClient.invalidateQueries({queryKey: ['user']});
+      queryClient.invalidateQueries({queryKey: ['user', 'following']});
+      queryClient.invalidateQueries({queryKey: ['user', 'followers']});
+      // 필요하면 알림/설정 관련 캐시 무효화
+      queryClient.invalidateQueries({queryKey: ['settings', 'notices']});
+    },
+    onError: (err: unknown) => {
+      console.warn('[useUser] useBlockUser 에러:', err);
+    },
+  });
+
+  return {
+    ...mutation,
+    isLoading: mutation.isLoading,
   };
 };

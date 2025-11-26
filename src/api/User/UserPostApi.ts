@@ -22,6 +22,10 @@ export interface FollowResponseDto {
   msg: 'follow' | 'unfollow' | string;
 }
 
+export type BlockResponseDto = {
+  userId: string;
+};
+
 // #1) 이용약관
 // POST /api/users/agreement (이용 약관 동의)
 export const postUserAgreement = async (marketing: boolean) => {
@@ -71,7 +75,6 @@ export const updateUserProfile = async (
   }
 };
 
-
 // #3) 팔로우 / 언팔로우
 // POST /api/users/following (유저 팔로우/언팔로우)
 export const postUserFollowing = async (
@@ -86,6 +89,23 @@ export const postUserFollowing = async (
     );
     return res.data.data;
   } catch (err: any) {
+    throw err;
+  }
+};
+
+// 차단
+export const postBlockUser = async (
+  acceptUserId: string,
+): Promise<BlockResponseDto> => {
+  const body = {acceptUserId};
+  try {
+    const res = await instance.post<BaseResponse<BlockResponseDto>>(
+      '/api/settings/follower/block',
+      body,
+    );
+    return res.data.data;
+  } catch (err: any) {
+    // rethrow so caller (mutation) can handle
     throw err;
   }
 };

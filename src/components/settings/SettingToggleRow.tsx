@@ -1,6 +1,6 @@
 import React from 'react';
-import {TouchableOpacity, View, Text, StyleSheet} from 'react-native';
-import Icon from '@/components/common/IconButton';
+import {View, Text, StyleSheet} from 'react-native';
+import IconButton from '@/components/common/IconButton';
 import SwitchToggle from '@/components/common/SwitchToggle';
 
 type Props = {
@@ -12,46 +12,54 @@ type Props = {
 export default function SettingRow({label, info, onPress}: Props) {
   const [isPublic, setIsPublic] = React.useState(true);
   return (
-    <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
-      <View style={styles.left}>
+    <View style={styles.container}>
+      <View style={styles.row}>
         <Text style={styles.label}>{label}</Text>
+        <View style={styles.right}>
+          <SwitchToggle
+            value={isPublic}
+            onValueChange={() =>
+              isPublic ? setIsPublic(false) : setIsPublic(true)
+            }
+            size="md"
+          />
+        </View>
       </View>
-      <SwitchToggle
-        value={isPublic}
-        onValueChange={() =>
-          isPublic ? setIsPublic(false) : setIsPublic(true)
-        }
-        size="md"
-      />
-      <View style={styles.right}>
-        {info && typeof info === 'string' ? (
-          <Text style={styles.infoText}>{info}</Text>
-        ) : (
-          info
-        )}
-        <Icon
-          imageSource={require('@/assets/icons/common/arrow_forward_ios.png')}
-          size={24}
-        />
-      </View>
-    </TouchableOpacity>
+
+      {info && typeof info === 'string' ? (
+        <Text style={styles.infoText}>{info}</Text>
+      ) : (
+        info
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
+  container: {
     width: '100%',
     paddingVertical: 8,
     paddingHorizontal: 20,
+    backgroundColor: '#fff',
+  },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#F0F0F0',
-    backgroundColor: '#fff',
   },
   left: {flex: 1},
-  right: {flexDirection: 'row', alignItems: 'center', gap: 8},
-  label: {fontSize: 14, color: '#222', fontWeight: 'bold'},
-  infoText: {fontSize: 14, color: '#888', marginRight: 8},
+  right: {flexDirection: 'row', alignItems: 'center', gap: 8, paddingRight: 11},
+  label: {
+    fontSize: 14,
+    color: '#222',
+    fontWeight: 'bold',
+    lineHeight: 16,
+    letterSpacing: 0.2,
+  },
+  infoText: {
+    fontSize: 12,
+    color: '#888',
+    lineHeight: 16,
+    letterSpacing: 0.2,
+  },
 });

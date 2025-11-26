@@ -4,6 +4,10 @@ import IntroStackNavigator from '@/navigations/stack/IntroStackNavigator';
 import RegistrationStackNavigator from '@/navigations/stack/RegistrationStackNavigator';
 import MainTabNavigator from '@/navigations/tab/MainTabNavigator';
 import WelcomeScreen from '@/screens/intro/WelcomeScreen';
+import {createStackNavigator} from '@react-navigation/stack';
+import AlarmScreen from '@/screens/common/AlarmScreen';
+
+const AppStack = createStackNavigator();
 
 function RootNavigator() {
   const {isLogin, isRegistered, isLoading, setIsLogin, setIsRegistered} =
@@ -18,7 +22,7 @@ function RootNavigator() {
   useEffect(() => {
     // 개발 환경에서만 테스트 상태 설정
     if (__DEV__) {
-      const TEST_SCENARIO = 'LOGIN'; // 'LOGIN' | 'REGISTRATION' | 'MAIN'
+      const TEST_SCENARIO = 'MAIN'; // 'LOGIN' | 'REGISTRATION' | 'MAIN'
 
       switch (TEST_SCENARIO) {
         case 'REGISTRATION':
@@ -66,7 +70,12 @@ function RootNavigator() {
   }
 
   // 로그인 + 가입 완료된 경우 -> 메인 앱
-  return <MainTabNavigator />;
+  return (
+    <AppStack.Navigator screenOptions={{headerShown: false}}>
+      <AppStack.Screen name="MainTab" component={MainTabNavigator} />
+      <AppStack.Screen name="Alarm" component={AlarmScreen} />
+    </AppStack.Navigator>
+  );
 }
 
 export default RootNavigator;

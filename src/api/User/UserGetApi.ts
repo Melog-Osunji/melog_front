@@ -16,10 +16,6 @@ export const getUserFollowing = async (nickname: string) => {
   const res = await instance.get<BaseResponse<{result: boolean}>>(
     `/api/users/following/${encodeURIComponent(nickname)}`,
   );
-  console.log(
-    '[UserGetApi.ts] GET /api/users/following/{nickname} response:',
-    res.data,
-  );
   return res.data.data; // { isFollowing: boolean }
 };
 
