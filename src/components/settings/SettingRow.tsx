@@ -5,10 +5,16 @@ import Icon from '@/components/common/IconButton';
 type Props = {
   label: string;
   info?: React.ReactNode | string;
+  arrow?: boolean;
   onPress?: () => void;
 };
 
-export default function SettingRow({label, info, onPress}: Props) {
+export default function SettingRow({
+  label,
+  info,
+  arrow = true,
+  onPress,
+}: Props) {
   return (
     <View style={styles.row}>
       <View style={styles.left}>
@@ -20,11 +26,13 @@ export default function SettingRow({label, info, onPress}: Props) {
         ) : (
           info
         )}
-        <Icon
-          imageSource={require('@/assets/icons/common/arrow_forward_ios.png')}
-          size={24}
-          onPress={onPress}
-        />
+        {arrow && (
+          <Icon
+            imageSource={require('@/assets/icons/common/arrow_forward_ios.png')}
+            size={24}
+            onPress={onPress}
+          />
+        )}
       </View>
     </View>
   );
