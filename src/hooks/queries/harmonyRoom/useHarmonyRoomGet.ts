@@ -44,7 +44,7 @@ export const HarmonyQueryKeys = {
   roomInfo: (harmonyId: string) => ['harmony', harmonyId, 'information'] as const,
   roomDetail: (harmonyId: string) => ['harmony', harmonyId, 'detail'] as const,
   isMember: (harmonyId: string) => ['harmony', harmonyId, 'isMember'] as const,
-
+  isWaiting: (harmonyId: string) => ['harmony', harmonyId, 'isWaiting'] as const,
   insidePosts: (harmonyId: string) => ['harmony', harmonyId, 'insidePosts'] as const,
   search: (q: string) => ['harmony', 'search', q] as const,
 };
@@ -161,7 +161,7 @@ export const useHarmonyIsWaiting = (
   options?: Opt<isWaitingDTO>
 ) =>
   useQuery({
-    queryKey: HarmonyQueryKeys.insidePosts(harmonyId),
+    queryKey: HarmonyQueryKeys.isWaiting(harmonyId),
     queryFn: () => fetchIsWaiting(harmonyId),
     enabled: !!harmonyId,
     ...DEFAULTS,

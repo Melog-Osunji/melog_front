@@ -27,8 +27,7 @@ function PostCard({post, user, harmonyId}: PostCardProps) {
     navigation.navigate(harmonyNavigations.HARMONY_FEED, { postId: post.id, harmonyId: harmonyId });
   };
 
-  console.log(post);
-
+  console.log(post.id);
   return (
     <TouchableOpacity
       style={styles.card}
@@ -78,6 +77,9 @@ function PostCard({post, user, harmonyId}: PostCardProps) {
         id={post.id}
         likeCount={post.likeCount}
         commentCount={post.commentCount}
+        visibleStats={['like', 'share', 'bookmark']}
+        initialIsLiked={post.isLike}
+        isBookmark={post.isBookmark}
       />
 
       {/* 베스트 댓글 */}

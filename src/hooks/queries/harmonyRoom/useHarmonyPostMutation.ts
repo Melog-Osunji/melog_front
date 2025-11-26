@@ -40,8 +40,20 @@ export const useToggleHarmonyPostLike = (harmonyId: string) => {
   return useMutation({
     mutationFn: (postId: string) => toggleHarmonyPostLike(postId),
     onSuccess: (_data, postId) => {
-      qc.invalidateQueries({ queryKey: HARMONY_POST_QK.detail(postId) });
-      qc.invalidateQueries({ queryKey: HarmonyQueryKeys.roomPosts(harmonyId) });
+        // 1) 상세 invalidate
+        qc.invalidateQueries({
+          queryKey: HARMONY_POST_QK.detail(postId)
+        });
+
+        // 2) 목록 invalidate (핵심)
+        qc.invalidateQueries({
+          queryKey: HarmonyQueryKeys.roomPosts(harmonyId),
+        });
+
+        // 3) 강제로 refetch (중첩 구조 업데이트 위해 필요)
+        qc.refetchQueries({
+          queryKey: HarmonyQueryKeys.roomPosts(harmonyId),
+        });
     },
     onError: err => console.warn('[useToggleHarmonyPostLike] 실패:', err),
   });
@@ -66,9 +78,8 @@ export const useToggleHarmonyPostBookmark = (harmonyId: string) => {
       qc.invalidateQueries({ queryKey: HARMONY_POST_QK.detail(postId) });
 
       if (harmonyId) {
-        qc.invalidateQueries({
-          queryKey: HarmonyQueryKeys.roomPosts(harmonyId),
-        });
+        qc.invalidateQueries({ queryKey: HarmonyQueryKeys.roomPosts(harmonyId) });
+        qc.refetchQueries({ queryKey: HarmonyQueryKeys.roomPosts(harmonyId) });
       }
     },
 
@@ -142,7 +153,7 @@ export const useDeleteHarmonyComment = () => {
 
   return useMutation({
     mutationFn: ({ postId, commentId }: { postId: string; commentId: string }) =>
-      deletHarmonyeComment(postId, commentId),
+      deleteHarmonyComment(postId, commentId),
 
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({

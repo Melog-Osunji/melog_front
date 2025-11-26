@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {colors} from '@/constants';
 import {PostDTO} from '@/types';
@@ -29,12 +29,19 @@ const PostStats = ({
 
   const qc = useQueryClient();
   const [isLiked, setIsLiked] = useState(initialIsLiked ?? false);
-  const { data: detail } = useHarmonyPostDetail(postId);
   const [bookmarked, setBookmarked] = useState(isBookmark ?? false);
   const [currentLikeCount, setCurrentLikeCount] = useState(likeCount || 0);
 
   const toggleLikeMutation = useToggleHarmonyPostLike(harmonyId);
   const toggleBookmarkMutation = useToggleHarmonyPostBookmark(harmonyId);
+
+  useEffect(() => {
+    setIsLiked(initialIsLiked ?? false);
+  }, [initialIsLiked]);
+
+  useEffect(() => {
+    setBookmarked(isBookmark ?? false);
+  }, [isBookmark]);
 
   const handleLikePress = () => {
     const prev = isLiked;
