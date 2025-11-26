@@ -53,6 +53,7 @@ export type SearchProfile = {
   profileUrl: string;
   intro: string;
   follow: "T" | "F";
+  userID?: string;
 }
 
 export type SearchProfileDTO = {

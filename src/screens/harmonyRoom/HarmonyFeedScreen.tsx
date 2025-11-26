@@ -27,6 +27,7 @@ import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
 import PostOptionsSheet from '@/components/harmonyRoom/harmonyPost/PostOptionsSheet';
 import {useHarmonyPostDetail, useHarmonyPostComments} from '@/hooks/queries/harmonyRoom/useHarmonyPostQueries';
+import {useUserProfile} from '@/hooks/queries/User/useUserQueries';
 import {PostDTO, UserDTO} from '@/types';
 
 type HarmonyPageScreenProp = StackScreenProps<
@@ -47,11 +48,21 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
     isError: isPostError,
   } = useHarmonyPostDetail(postId);
 
+  console.log(postData);
   const {
     data: commentsData,
     isLoading: commentsLoading,
     error: commentsError,
   } = useHarmonyPostComments(postId);
+
+  const {
+    data: userData,
+    isLoading: userLoading,
+    error: userError,
+    isError: isUserError,
+  } = useUserProfile();
+
+  const user = postData.user;
 
   // 로딩 상태 처리
   if (postLoading) {
@@ -76,8 +87,6 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
       </SafeAreaView>
     );
   }
-
-  const user = postData.user;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -156,6 +165,8 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
               likeCount={postData.likeCount}
               commentCount={postData.commentCount}
               visibleStats={['like', 'share', 'bookmark']}
+              initialIsLiked={postData.isLike}
+              isBookmark={postData.isBookmark}
             />
           </View>
 
@@ -186,7 +197,7 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
           onSend={(text: string) => {
             console.log('[PostPageScreen] onSend comment:', text);
           }}
-          profileUrl={postData.profileImage}
+          profileUrl={userData?.profileImage}
         />
       </GradientBg>
     </SafeAreaView>

@@ -27,6 +27,8 @@ function PostCard({post, user, harmonyId}: PostCardProps) {
     navigation.navigate(harmonyNavigations.HARMONY_FEED, { postId: post.id, harmonyId: harmonyId });
   };
 
+  console.log(post);
+
   return (
     <TouchableOpacity
       style={styles.card}

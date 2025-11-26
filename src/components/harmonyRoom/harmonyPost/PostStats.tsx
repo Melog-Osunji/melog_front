@@ -12,10 +12,8 @@ import { HARMONY_POST_QK } from '@/hooks/queries/harmonyRoom/useHarmonyPostQueri
 
 type StatsType = 'like' | 'comment' | 'share' | 'bookmark';
 
-type PostStatsProps = Pick<PostDTO, 'id' | 'likeCount' | 'commentCount'> & {
+type PostStatsProps = Pick<PostDTO, 'id' | 'likeCount' | 'commentCount' | 'isBookmark' | 'initialIsLiked'> & {
   visibleStats?: StatsType[];
-  initialIsLiked?: boolean;
-  initialIsBookmarked?: boolean;
   harmonyId: string;
 };
 
@@ -25,18 +23,18 @@ const PostStats = ({
   commentCount,
   visibleStats = ['like', 'comment', 'share', 'bookmark'],
   initialIsLiked,
-  initialIsBookmarked,
+  isBookmark,
   harmonyId,
 }: PostStatsProps) => {
 
   const qc = useQueryClient();
+  const [isLiked, setIsLiked] = useState(initialIsLiked ?? false);
+  const { data: detail } = useHarmonyPostDetail(postId);
+  const [bookmarked, setBookmarked] = useState(isBookmark ?? false);
+  const [currentLikeCount, setCurrentLikeCount] = useState(likeCount || 0);
 
   const toggleLikeMutation = useToggleHarmonyPostLike(harmonyId);
   const toggleBookmarkMutation = useToggleHarmonyPostBookmark(harmonyId);
-  const [isLiked, setIsLiked] = useState(initialIsLiked ?? false);
-  const { data: detail } = useHarmonyPostDetail(postId);
-  const isBookmarked = detail?.isBookmark ?? false;
-  const [currentLikeCount, setCurrentLikeCount] = useState(likeCount || 0);
 
   const handleLikePress = () => {
     const prev = isLiked;
@@ -65,25 +63,19 @@ const PostStats = ({
   };
 
   const handleBookmarkPress = () => {
-    // optimistic update
-    qc.setQueryData(HARMONY_POST_QK.detail(postId), old => ({
-      ...old,
-      isBookmark: !isBookmarked,
-    }));
+    const prev = bookmarked;
+    setBookmarked(!prev); // optimistic UI
 
     toggleBookmarkMutation.mutate(
-      { postId },
-      {
-        onError: () => {
-          // rollback
-          qc.setQueryData(HARMONY_POST_QK.detail(postId), old => ({
-            ...old,
-            isBookmark: isBookmarked,
-          }));
-        },
-      },
-    );
-  };
+        { postId, current: prev }, // prev=현재 상태
+        {
+          onError: () => {
+            // rollback
+            setBookmarked(prev);
+          },
+        }
+        );
+    };
 
   const renderLike = () => {
     if (!visibleStats.includes('like')) return null;
@@ -135,13 +127,11 @@ const PostStats = ({
   const renderBookmark = () => {
     if (!visibleStats.includes('bookmark')) return null;
 
-    const bookmarked = toggleBookmarkMutation.data?.bookmarked ?? isBookmarked;
-
     return (
       <TouchableOpacity style={styles.statItem} onPress={handleBookmarkPress}>
         <Image
           source={
-            isBookmarked
+            bookmarked
               ? require('@/assets/icons/post/Bookmark_activate.png')
               : require('@/assets/icons/post/Bookmark.png')
           }

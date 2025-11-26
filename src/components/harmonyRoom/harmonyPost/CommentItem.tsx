@@ -23,8 +23,6 @@ const CommentItem = ({
     comment.likes,
   );
 
-  console.log(comment);
-
   const {mutate: toggleLike} = useToggleHarmonyCommentLike();
 
   const handleLikePress = () => {

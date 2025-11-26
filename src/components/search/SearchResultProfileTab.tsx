@@ -46,12 +46,12 @@ const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
   // 팔로우/언팔로우 토글 핸들러
   const followMutation = useFollowUser();
   const handleToggleFollow = useCallback(() => {
-    if (!user?.id) return;
+    if (!user?.userID) return;
 
     const previous = isFollow;
     setIsFollow(!previous);
 
-    followMutation.mutate(user.id, {
+    followMutation.mutate(user.userID, {
     onError: () => {
       setIsFollow(previous);
       showToast(
