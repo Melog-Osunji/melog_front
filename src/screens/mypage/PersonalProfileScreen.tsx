@@ -216,9 +216,9 @@ function PersonalProfileScreen({ route }: PersonalProfileScreenProps) {
             </View>
             {/* 탭 콘텐츠 */}
             <View style={styles.tabContent}>
-                {selectedTab === 'feed' && <MyPageFeedTab />}
-                {selectedTab === 'media' && <MyPageMediaTab />}
-                {selectedTab === 'bookmarkFeed' && <MyPageBookmarkTab />}
+                {selectedTab === 'feed' && <MyPageFeedTab profileUser={userId}/>}
+                {selectedTab === 'media' && <MyPageMediaTab profileUser={userId}/>}
+                {selectedTab === 'bookmarkFeed' && <MyPageBookmarkTab profileUser={userId}/>}
             </View>
             </ScrollView>
           </SafeAreaView>
