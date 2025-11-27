@@ -43,22 +43,91 @@ type PostPageScreenProp = StackScreenProps<
 const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   const {postId} = route.params;
 
-  useHideTabBarOnFocus();
+    useHideTabBarOnFocus();
 
-  // post 및 commnet 데이터 로드
-  const {
-    data: postData,
-    isLoading: postLoading,
-    error: postError,
-    isError: isPostError,
-  } = usePostDetail(postId);
-  const {
-    data: commentsData,
-    isLoading: commentsLoading,
-    error: commentsError,
-  } = usePostComments(postId);
+    const {
+      data: postData,
+      isLoading: postLoading,
+      error: postError,
+      isError: isPostError,
+    } = usePostDetail(postId);
 
-  // 로딩 상태 처리
+    const {
+      data: commentsData,
+      isLoading: commentsLoading,
+      error: commentsError,
+    } = usePostComments(postId);
+
+    const { data: followingData } = useGetUserFollowing(
+      postData?.user?.nickName ?? '',
+      {
+        enabled: !!postData?.user?.nickName,
+      }
+    );
+
+    const followMutation = useFollowUser();
+
+    const [isFollow, setIsFollow] = useState<boolean>(false);
+    const [refreshing, setRefreshing] = useState<boolean>(false);
+
+    type ReplyTarget = {id: string; nickname: string; commentId?: string} | null;
+    const [replyTarget, setReplyTarget] = useState<ReplyTarget>(null);
+
+    useEffect(() => {
+      if (followingData) {
+        const isFollowing = (followingData as any).result ?? false;
+        setIsFollow(!!isFollowing);
+      }
+    }, [followingData]);
+
+    const handleToggleFollow = useCallback(() => {
+      if (!postData?.user?.id) return;
+
+      const previous = isFollow;
+      setIsFollow(!previous);
+
+      followMutation.mutate(postData.user.id, {
+        onError: () => {
+          setIsFollow(previous);
+          showToast(
+            previous ? '언팔로우에 실패했어요.' : '팔로우에 실패했어요.',
+            'error',
+          );
+        },
+      });
+    }, [followMutation, postData?.user?.id, isFollow]);
+
+    const handleReply = useCallback((target: {id?: string; commentId?: string; nickname: string}) => {
+      console.log('[PostPageScreen] handleReply', target);
+      const id = target.id ?? target.commentId;
+      if (!id) return;
+      setReplyTarget({
+        id,
+        nickname: target.nickname,
+        commentId: target.commentId ?? undefined,
+      });
+    }, []);
+
+    const handleCancelReply = useCallback(() => {
+      console.log('[PostPageScreen] cancelReply');
+      setReplyTarget(null);
+    }, []);
+
+    const handleSendComment = useCallback(
+      (text: string, reply?: {id: string; nickname: string; commentId?: string} | null) => {
+        console.log('[PostPageScreen] send comment', {text, reply});
+        setReplyTarget(null);
+      },
+      [postId],
+    );
+
+    const onRefresh = useCallback(() => {
+      setRefreshing(true);
+      setTimeout(() => {
+        setRefreshing(false);
+      }, 2000);
+    }, []);
+
     if (postLoading) {
       return (
         <SafeAreaView style={styles.container}>
@@ -69,7 +138,6 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
       );
     }
 
-    // 에러 상태 처리
     if (isPostError || !postData) {
       console.error('[PostPageScreen] 게시글 로드 실패:', postError);
       return (
@@ -82,93 +150,7 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
       );
     }
 
-  // postData가 아직 없을 때는 빈 문자열 전달 — 훅은 항상 호출됨
-  const { data: followingData } = useGetUserFollowing(
-    postData?.user?.nickName ?? '',
-    {
-        enabled: !!postData?.user?.nickName,
-    },
-  );
-  const followMutation = useFollowUser();
-
-  const [isFollow, setIsFollow] = useState<boolean>(false);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
-
-  const {post, user} = postData as {post: PostDTO; user: UserDTO};
-
-  // follow 상태 초기화
-  // const {data: followingData} = useGetUserFollowing(user?.nickName ?? '');
-
-  // 서버 응답 적용 (data: { isFollowing: boolean })
-  useEffect(() => {
-    if (followingData) {
-      const isFollowing = (followingData as any).result ?? false;
-      setIsFollow(!!isFollowing);
-    }
-  }, [followingData]);
-
-  // 팔로우/언팔로우 토글 핸들러
-  const handleToggleFollow = useCallback(() => {
-    if (!user?.id) return;
-
-    const previous = isFollow;
-    setIsFollow(!previous);
-
-    followMutation.mutate(user.id, {
-      onError: () => {
-        setIsFollow(previous);
-        showToast(
-          previous ? '언팔로우에 실패했어요.' : '팔로우에 실패했어요.',
-          'error',
-        );
-      },
-    });
-  }, [followMutation, user?.id, isFollow]);
-
-  // replyTarget: CommentBar가 기대하는 형태 { id: string; nickname: string; commentId?: string }
-  type ReplyTarget = {id: string; nickname: string; commentId?: string} | null;
-  const [replyTarget, setReplyTarget] = useState<ReplyTarget>(null);
-
-  // normalize incoming target (some callers pass { commentId, nickname }, others may pass { id, nickname })
-  const handleReply = useCallback(
-    (target: {commentId?: string; id?: string; nickname: string}) => {
-      console.log('[PostPageScreen] handleReply', target);
-      const id = target.id ?? target.commentId;
-      if (!id) return;
-      setReplyTarget({
-        id,
-        nickname: target.nickname,
-        commentId: target.commentId ?? undefined,
-      });
-    },
-    [],
-  );
-
-  const handleCancelReply = useCallback(() => {
-    console.log('[PostPageScreen] cancelReply');
-    setReplyTarget(null);
-  }, []);
-
-  // 댓글 전송 핸들러
-  const handleSendComment = useCallback(
-    (
-      text: string,
-      reply?: {id: string; nickname: string; commentId?: string} | null,
-    ) => {
-      console.log('[PostPageScreen] send comment', {text, reply});
-      setReplyTarget(null);
-    },
-    [route.params.postId],
-  );
-
-  // 새로 고침 핸들러
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    // 여기에 데이터 새로 고침 로직 추가 (예: 쿼리 재요청)
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  }, []);
+  const {post, user} = postData;
 
   return (
     <SafeAreaView style={styles.container}>

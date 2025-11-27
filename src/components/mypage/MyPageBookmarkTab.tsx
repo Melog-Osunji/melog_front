@@ -13,8 +13,12 @@ import PostCard from '@/components/post/PostCard';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
-const MyPageBookmarkTab = () => {
-  const {data, isLoading, isError, refetch, isRefetching} = useMyPage();
+type Props = {
+  profileUser?: string; // ← 통합 포인트
+};
+
+const MyPageBookmarkTab: React.FC<Props> = ({profileUser}) => {
+  const {data, isLoading, isError, refetch, isRefetching} = useMyPage(profileUser);
 
   const bookmarkPost = useMemo(() => {
     if (!data?.bookmarks) return [];
@@ -40,6 +44,8 @@ const MyPageBookmarkTab = () => {
       user: userInfo, // 모든 포스트에 동일한 유저 정보 넣기
     }));
   }, [data]);
+
+  console.log(bookmarkPost);
 
   if (isLoading) {
     return (
@@ -67,11 +73,14 @@ const MyPageBookmarkTab = () => {
   }
 
   return (
-    <View style={styles.content}>
-      {bookmarkPost.map(item => (
-        <PostCard key={item.post.id} post={item.post} user={item.user} />
-      ))}
-    </View>
+//     <View style={styles.content}>
+//       {bookmarkPost.map(item => (
+//         <PostCard key={item.post.id} post={item.post} user={item.user} />
+//       ))}
+//     </View>
+      <View style={styles.center}>
+        <Text style={styles.emptyText}>아직 북마크한 피드가 없어요</Text>
+      </View>
   );
 };
 

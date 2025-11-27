@@ -6,8 +6,12 @@ import PostCard from '@/components/post/PostCard';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
-const MyPageMediaTab = () => {
-  const { data, isLoading, isError, refetch, isRefetching } = useMyPage();
+type Props = {
+  profileUser?: string; // ← 통합 포인트
+};
+
+const MyPageMediaTab: React.FC<Props> = ({profileUser})=> {
+  const { data, isLoading, isError, refetch, isRefetching } = useMyPage(profileUser);
 
   const postMedias = useMemo(() => {
      if (!data?.mediaPosts) return [];
