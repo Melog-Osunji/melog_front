@@ -23,7 +23,8 @@ import {StackScreenProps} from '@react-navigation/stack';
 import {PostStackParamList} from '@/navigations/stack/PostStackNavigator';
 //hooks
 import {usePostsByFeedId} from '@/hooks/queries/post/usePostQueries';
-import {useHarmonyRecommendRooms} from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
+// 하모니룸 관련 로직은 HroomNaviBtn 내부로 이동했습니다.
+// import {useHarmonyRecommendRooms} from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 //components
 import HroomNaviBtn from '@/components/post/posthome/HroomNaviBtn';
 import PostList from '@/components/post/PostList';
@@ -42,28 +43,6 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
   const [selectedFeed, setSelectedFeed] = useState<FeedType>(
     defaultFeedTypes[0],
   );
-  const [selectedRoomId, setSelectedRoomId] = useState<string>('room1');
-
-  // 하모니룸 추천 API에서 데이터 가져와서 navibtn에 전달
-  const {data, isLoading, error} = useHarmonyRecommendRooms();
-
-  const rooms =
-    (data as any)?.recommendedRooms?.map((r: any) => ({
-      id: r.id,
-      name: r.name ?? r.intro ?? '하모니룸',
-      image: r.profileImgLink ?? r.profileImg ?? undefined,
-    })) ?? [];
-
-  // 하모니룸 선택 handler
-  const onRoomSelect = useCallback(
-    (roomId: string) => {
-      console.log(
-        `[PostHomeScreen] 하모니룸 변경: ${selectedRoomId} → ${roomId}`,
-      );
-      setSelectedRoomId(roomId);
-    },
-    [selectedRoomId],
-  );
 
   // 피드 선택 handler
   const handleFeedSelect = useCallback(
@@ -73,8 +52,14 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
     [selectedFeed.label],
   );
 
-  // 포스트 조회
-  const {data: apiPosts, refetch} = usePostsByFeedId(selectedFeed.id);
+  // 포스트 조회: isLoading, error 등도 함께 받아옵니다.
+  const {
+    data: apiPosts,
+    refetch,
+    isLoading,
+    error,
+    isFetching,
+  } = usePostsByFeedId(selectedFeed.id);
 
   // Pull-to-refresh 상태 관리
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -247,12 +232,7 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
               }),
             },
           ]}>
-          <HroomNaviBtn
-            rooms={rooms}
-            onRoomSelect={onRoomSelect}
-            isLoading={isLoading}
-            error={error}
-          />
+          <HroomNaviBtn />
         </Animated.View>
 
         <View style={styles.writeButton}>

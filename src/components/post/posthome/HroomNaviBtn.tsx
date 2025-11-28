@@ -9,8 +9,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import {colors} from '@/constants';
+import {colors, maintabNavigations, harmonyNavigations} from '@/constants';
 import Gradient1 from '@/components/common/styles/gradient1';
+import {useHarmonyRecommendRooms} from '@/hooks/queries/harmonyRoom/useHarmonyRoomGet';
 
 interface HarmonyRoom {
   id: string;
@@ -19,29 +20,62 @@ interface HarmonyRoom {
 }
 
 interface HaryroomNaviBtnProps {
-  rooms: HarmonyRoom[];
+  // optional: if parent passes rooms, use them; otherwise component will fetch itself
+  rooms?: HarmonyRoom[];
   selectedRoomId?: string;
   onRoomSelect?: (roomId: string) => void;
-  isLoading?: boolean;
-  error?: unknown;
 }
 
 function HaryroomNaviBtn({
   rooms,
   selectedRoomId,
   onRoomSelect,
-  isLoading,
-  error,
 }: HaryroomNaviBtnProps) {
   const navigation = useNavigation<any>();
+  // if parent didn't provide rooms, fetch recommended rooms here
+  const {data, isLoading, error} = useHarmonyRecommendRooms();
+
+  const fetchedRooms =
+    (data as any)?.recommendedRooms?.map((r: any) => ({
+      id: r.id,
+      name: r.name ?? r.intro ?? '하모니룸',
+      image: r.profileImgLink ?? r.profileImg ?? undefined,
+    })) ?? [];
+
+  const displayRooms = rooms && rooms.length > 0 ? rooms : fetchedRooms;
 
   const handlePress = (roomId: string) => {
     if (onRoomSelect) {
       onRoomSelect(roomId);
       return;
     }
-    // 기본 동작: id로 네비게이션
-    navigation.navigate('HarmonyRoom' as any, {id: roomId});
+
+    const pageName = harmonyNavigations.HARMONY_PAGE;
+    const stackName = maintabNavigations.MAIN_TAB_HARMONY;
+
+    // 가장 흔한 패턴: 부모(탭/루트)에 스택이 등록되어 있으면 stack -> screen으로 네비게이트
+    if (stackName) {
+      navigation.getParent?.()?.navigate?.(
+        stackName as any,
+        {
+          screen: pageName,
+          params: {roomID: roomId},
+        } as any,
+      );
+      return;
+    }
+
+    // 폴백: 직접 페이지로 시도
+    try {
+      navigation.navigate(pageName as any, {roomID: roomId});
+    } catch {
+      console.warn(
+        '[HroomNaviBtn] navigation failed, page:',
+        pageName,
+        'stack:',
+        stackName,
+      );
+    }
   };
 
   return (
@@ -62,7 +96,7 @@ function HaryroomNaviBtn({
             </Text>
           </View>
         ) : (
-          rooms.map(room => (
+          displayRooms.map((room: HarmonyRoom) => (
             <TouchableOpacity
               key={room.id}
               onPress={() => handlePress(room.id)}>
