@@ -1,5 +1,9 @@
 import {useQuery} from '@tanstack/react-query';
-import {checkNicknameExists, getUserFollowing, fetchUserProfile} from '@/api/User/UserGetApi';
+import {
+  checkNicknameExists,
+  getUserFollowing,
+  fetchUserProfile,
+} from '@/api/User/UserGetApi';
 
 export const USE_USER_QK = {
   nicknameExists: (nick: string) => ['nicknameExists', nick] as const,
@@ -19,11 +23,11 @@ export const useCheckNickname = (nickname: string) => {
 };
 
 // 해당 유저 팔로잉 여부 조회
-export const useGetUserFollowing = (nickname: string) => {
+export const useGetUserFollowing = (id: string) => {
   return useQuery({
-    queryKey: USE_USER_QK.following(nickname),
-    queryFn: () => getUserFollowing(nickname),
-    enabled: !!nickname,
+    queryKey: USE_USER_QK.following(id),
+    queryFn: () => getUserFollowing(id),
+    enabled: !!id,
     retry: false,
     staleTime: 0,
   });
@@ -36,5 +40,5 @@ export const useUserProfile = () => {
     queryFn: () => fetchUserProfile(),
     retry: false,
     staleTime: 1000 * 60 * 1,
-  })
+  });
 };

@@ -222,7 +222,6 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
             onReport={handleReportPost}
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            onScrollOffset={handleListScrollOffset}
           />
         </View>
 
