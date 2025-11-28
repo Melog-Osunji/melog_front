@@ -84,7 +84,10 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
 
   // postData가 아직 없을 때는 빈 문자열 전달 — 훅은 항상 호출됨
   const {data: followingData} = useGetUserFollowing(
-    postData?.user?.nickName ?? ''
+    postData?.user?.nickName ?? '',
+    {
+      enabled: !!postData?.user?.nickName,
+    },
   );
   const followMutation = useFollowUser();
 

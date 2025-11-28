@@ -20,7 +20,7 @@ const CommentItem = ({
 }: CommentItemProps) => {
   const [isLiked, setIsLiked] = useState(comment.isLike);
   const [currentLikeCount, setCurrentLikeCount] = useState<number>(
-    comment.likeCount
+    comment.likeCount,
   );
 
   console.log(comment);
@@ -111,20 +111,24 @@ const CommentItem = ({
                 style={styles.actionIcon}
               />
               <Text style={styles.actionText}>
-                {comment.replies ? comment.replies.length : 0}
+                {comment.recomments ? comment.recomments.length : 0}
               </Text>
             </View>
           </View>
         </View>
 
         {/* 더보기 버튼 */}
-        <PostOptionsSheet userId={userId} userNickname={comment.userNickname} postId={postId} />
+        <PostOptionsSheet
+          userId={userId}
+          userNickname={comment.nickname}
+          postId={postId}
+        />
       </View>
 
       {/* 대댓글 렌더링 */}
-      {comment.replies && comment.replies.length > 0 && (
+      {comment.recomments && comment.recomments.length > 0 && (
         <View>
-          {comment.replies.map((reply, index) => (
+          {comment.recomments.map((reply, index) => (
             <CommentItem
               key={`${reply.userID}-${index}`}
               comment={reply}

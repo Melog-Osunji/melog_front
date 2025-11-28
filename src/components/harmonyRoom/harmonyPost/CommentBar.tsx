@@ -43,10 +43,13 @@ function LikeAndComment({
     <View style={styles.container}>
       {/* 프로필 이미지 */}
       <Image
-        source={ profileUrl
-              ? { uri: profileUrl }
-              : require('@/assets/icons/common/EmptyProfile.png')
-           } style={styles.profileImage}/>
+        source={
+          profileUrl
+            ? {uri: profileUrl}
+            : require('@/assets/icons/common/EmptyProfile.png')
+        }
+        style={styles.profileImage}
+      />
 
       {/* 댓글 입력 영역 */}
       <View style={styles.inputContainer}>
