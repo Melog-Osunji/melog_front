@@ -25,7 +25,7 @@ export interface SocialLoginRequest {
 
 export interface SocialLoginResponse {
   user: ProfileDTO;
-  newUser: boolean;
+  isNewUser: boolean;
 }
 
 export interface SocialLoginResult {

@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {
   View,
@@ -6,6 +6,8 @@ import {
   ActivityIndicator,
   Text,
   TouchableOpacity,
+  ScrollView,
+  Animated,
 } from 'react-native';
 //constants
 import {
@@ -73,6 +75,17 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
 
   // 포스트 조회
   const {data: apiPosts, refetch} = usePostsByFeedId(selectedFeed.id);
+
+  // Pull-to-refresh 상태 관리
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   // 로컬 복사본으로 관리 (optimistic update)
   const [posts, setPosts] = useState<PostWithUserDTO[]>([]);
@@ -162,6 +175,37 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
 
   // 화면 상태 결정
   let content;
+  // animated hide for HroomNaviBtn when list is scrolled
+  const headerHideAnim = useRef(new Animated.Value(0)).current; // 0: visible, 1: hidden
+  const headerHiddenRef = useRef(false);
+  const HIDE_THRESHOLD = 8; // threshold in px to consider "scrolled"
+
+  const setHeaderHidden = useCallback(
+    (hide: boolean) => {
+      if (headerHiddenRef.current === hide) return;
+      headerHiddenRef.current = hide;
+      Animated.timing(headerHideAnim, {
+        toValue: hide ? 1 : 0,
+        duration: 220,
+        useNativeDriver: true,
+      }).start();
+    },
+    [headerHideAnim],
+  );
+
+  // callback passed to PostList to receive scroll offset
+  const handleListScrollOffset = useCallback(
+    (y: number) => {
+      if (y > HIDE_THRESHOLD) {
+        setHeaderHidden(true);
+      } else {
+        setHeaderHidden(false);
+      }
+    },
+    [setHeaderHidden],
+  );
+
+  // Build content: keep HroomNaviBtn independent (absolute/overlay)
   if (error) {
     content = renderError();
   } else if (isLoading) {
@@ -169,20 +213,49 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
   } else {
     content = (
       <>
-        <PostList
-          data={posts}
-          ListHeaderComponent={
-            <HroomNaviBtn
-              rooms={rooms}
-              onRoomSelect={onRoomSelect}
-              isLoading={isLoading}
-              error={error}
-            />
-          }
-          onHide={handleHidePost}
-          onBlock={handleBlockUser}
-          onReport={handleReportPost}
-        />
+        {/* PostList remains normal; we pass onScrollOffset */}
+        <View style={{paddingTop: 50, paddingBottom: 80}}>
+          <PostList
+            data={posts}
+            onHide={handleHidePost}
+            onBlock={handleBlockUser}
+            onReport={handleReportPost}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            onScrollOffset={handleListScrollOffset}
+          />
+        </View>
+
+        {/* HroomNaviBtn is independent overlay that hides on scroll */}
+        <Animated.View
+          pointerEvents="box-none"
+          style={[
+            styles.hroomContainer,
+            {
+              transform: [
+                {
+                  translateY: headerHideAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, -56], // slide up out of view
+                    extrapolate: 'clamp',
+                  }),
+                },
+              ],
+              opacity: headerHideAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [1, 0],
+                extrapolate: 'clamp',
+              }),
+            },
+          ]}>
+          <HroomNaviBtn
+            rooms={rooms}
+            onRoomSelect={onRoomSelect}
+            isLoading={isLoading}
+            error={error}
+          />
+        </Animated.View>
+
         <View style={styles.writeButton}>
           <IconButton
             imageSource={require('@/assets/icons/post/Write.png')}
@@ -204,6 +277,7 @@ function PostHomeScreen({navigation}: PostHomeScreenProps) {
   );
 }
 
+// add style for overlaying HroomNaviBtn
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -229,6 +303,14 @@ const styles = StyleSheet.create({
   headerIconRow: {
     flexDirection: 'row',
     gap: 8,
+  },
+  hroomContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 60,
+    zIndex: 50,
+    alignItems: 'center',
   },
   writeButton: {
     position: 'absolute',

@@ -34,6 +34,7 @@
     "react-native-maps": "1.8.3",
     "react-native-markdown-display": "^7.0.2",
     "react-native-permissions": "^3.9.0",
+    "react-native-pull-to-refresh-custom": "^1.0.3",
     "react-native-reanimated": "^3.5.4",
     "react-native-safe-area-context": "^4.7.4",
     "react-native-screens": "^3.27.0",

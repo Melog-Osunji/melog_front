@@ -6,6 +6,7 @@ import {SocialProvider} from '@/types';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {login as kakaoLogin} from '@react-native-seoul/kakao-login';
 import NaverLogin from '@react-native-seoul/naver-login';
+// import {authorize} from 'react-native-app-auth'; //naver oidc용//
 
 // ------dto------
 export interface PlatformTokens {
@@ -64,6 +65,7 @@ export const googleLoginApi = async (): Promise<PlatformTokens> => {
         clientId: Config.GOOGLE_CLIENT_ID,
         clientSecret: Config.GOOGLE_CLIENT_SECRET,
         grant_type: 'authorization_code',
+        scope: ['openid'],
       }),
     });
     const GoogleResult = await res.json();
@@ -90,11 +92,20 @@ export const googleLoginApi = async (): Promise<PlatformTokens> => {
   }
 };
 
+const naverOidcConfig = {
+  issuer: 'https://nid.naver.com',
+  clientId: Config.NAVER_CONSUMER_KEY,
+  redirectUrl: 'naver.melog://callback',
+  scopes: ['openid', 'profile'],
+  serviceConfiguration: {
+    authorizationEndpoint: 'https://nid.naver.com/oauth2.0/authorize',
+    tokenEndpoint: 'https://nid.naver.com/oauth2.0/token',
+  },
+};
+
 // ------naver------
 export const naverLoginApi = async (): Promise<PlatformTokens> => {
   try {
-    // 초기화: 앱 전역에서 이미 초기화하고 있다면 중복 호출하지 않아도 됩니다.
-    // Config에 네이버 키가 정의되어 있다고 가정합니다.
     if (Platform.OS === 'ios') {
       NaverLogin.initialize({
         appName: Config.NAVER_APP_NAME,
@@ -124,8 +135,11 @@ export const naverLoginApi = async (): Promise<PlatformTokens> => {
 
     console.log('[ProviderApi] 네이버 로그인 성공:', successResponse);
 
+    // const naverOidcResult = await authorize(naverOidcConfig);
+    // console.log(naverOidcResult); // accessToken, idToken 등
+
     return {
-      idToken: undefined,
+      // idToken: naverOidcResult.idToken || undefined,
       accessToken: successResponse.accessToken,
       platform: 'NAVER',
     };

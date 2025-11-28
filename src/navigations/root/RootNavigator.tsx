@@ -39,6 +39,10 @@ function RootNavigator() {
           setIsLogin(true);
           setIsRegistered(true);
           break;
+        default:
+          setIsLogin(true);
+          setIsRegistered(true);
+          break;
       }
       // override 호출 직후에 플래그 세팅 (실제 상태 변경은 비동기지만
       // 이 플래그를 통해 초기 렌더링을 방지)

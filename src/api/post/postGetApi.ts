@@ -18,7 +18,7 @@ export const fetchFollowPosts = async (): Promise<PostsDTO> => {
 
 // GET /api/posts/recommends (추천 피드)
 export const fetchRecommendPosts = async (): Promise<PostsDTO> => {
-  const res = await instance.get('/api/posts/recommends');
+  const res = await instance.get('/api/feed/recommends');
 
   // (임시 err 처리) 서버가 BaseResponse<T>를 따르지 않고 { results: [...] } 형태로 반환하는 경우를 처리
   const payload = (res.data as any)?.data ?? res.data;
@@ -71,4 +71,3 @@ export const fetchPostComments = async (
   );
   return res.data.data;
 };
-

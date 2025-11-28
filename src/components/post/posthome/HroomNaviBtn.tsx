@@ -91,6 +91,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 58,
     borderBottomWidth: 1,
+    backgroundColor: colors.WHITE,
     borderBottomColor: '#E3E6ED',
     justifyContent: 'center',
   },
