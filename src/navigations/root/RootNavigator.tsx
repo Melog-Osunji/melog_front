@@ -22,7 +22,7 @@ function RootNavigator() {
   useEffect(() => {
     // 개발 환경에서만 테스트 상태 설정
     if (__DEV__) {
-      const TEST_SCENARIO = 'LOGIN'; // 'LOGIN' | 'REGISTRATION' | 'MAIN'
+      const TEST_SCENARIO = 'MAIN'; // 'LOGIN' | 'REGISTRATION' | 'MAIN'
 
       switch (TEST_SCENARIO) {
         case 'REGISTRATION':

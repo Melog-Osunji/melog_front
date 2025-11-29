@@ -55,7 +55,6 @@ export const googleLoginApi = async (): Promise<PlatformTokens> => {
 
     await GoogleSignin.hasPlayServices();
 
-    // DEBUG: 강제 계정 선택을 위해 기존 세션을 로그아웃(개발용)
     try {
       await GoogleSignin.signOut();
       console.log(
@@ -68,29 +67,6 @@ export const googleLoginApi = async (): Promise<PlatformTokens> => {
     const userInfo = await GoogleSignin.signIn();
     const GoogleResult = await GoogleSignin.getTokens();
     console.log('[ProviderApi] 구글 SDK 로그인 성공:', GoogleResult);
-
-    // const userInfo = await GoogleSignin.signIn();
-    // const res = await fetch('https://www.googleapis.com/oauth2/v3/token', {
-    //   method: 'POST',
-    //   body: JSON.stringify({
-    //     code: userInfo.data.serverAuthCode,
-    //     clientId: Config.GOOGLE_CLIENT_ID,
-    //     clientSecret: Config.GOOGLE_CLIENT_SECRET,
-    //     grant_type: 'authorization_code',
-    //   }),
-    // });
-    // const GoogleResult = await res.json();
-
-    if (GoogleResult.error) {
-      console.error('[ProviderApi] 구글 로그인 에러:', GoogleResult);
-      throw new Error(
-        `[Google Login Error] ${GoogleResult.error}: ${
-          GoogleResult.error_description || ''
-        }`,
-      );
-    }
-
-    console.log('[ProviderApi] 구글 로그인 성공:', GoogleResult.id_token);
 
     return {
       idToken: GoogleResult.idToken,
