@@ -54,21 +54,32 @@ export const googleLoginApi = async (): Promise<PlatformTokens> => {
     }
 
     await GoogleSignin.hasPlayServices();
-    console.log('[ProviderApi] Google Play Services 사용 ');
+
+    // DEBUG: 강제 계정 선택을 위해 기존 세션을 로그아웃(개발용)
+    try {
+      await GoogleSignin.signOut();
+      console.log(
+        '[ProviderApi] Google signOut performed to force account picker',
+      );
+    } catch (e) {
+      console.log('[ProviderApi] signOut failed (ignore):', e);
+    }
+
     const userInfo = await GoogleSignin.signIn();
-    console.log('userInfo=', userInfo);
-    console.log('serverAuthCode=', userInfo.data.serverAuthCode);
-    const res = await fetch('https://www.googleapis.com/oauth2/v3/token', {
-      method: 'POST',
-      body: JSON.stringify({
-        code: userInfo.data.serverAuthCode,
-        clientId: Config.GOOGLE_CLIENT_ID,
-        clientSecret: Config.GOOGLE_CLIENT_SECRET,
-        grant_type: 'authorization_code',
-        scope: ['openid'],
-      }),
-    });
-    const GoogleResult = await res.json();
+    const GoogleResult = await GoogleSignin.getTokens();
+    console.log('[ProviderApi] 구글 SDK 로그인 성공:', GoogleResult);
+
+    // const userInfo = await GoogleSignin.signIn();
+    // const res = await fetch('https://www.googleapis.com/oauth2/v3/token', {
+    //   method: 'POST',
+    //   body: JSON.stringify({
+    //     code: userInfo.data.serverAuthCode,
+    //     clientId: Config.GOOGLE_CLIENT_ID,
+    //     clientSecret: Config.GOOGLE_CLIENT_SECRET,
+    //     grant_type: 'authorization_code',
+    //   }),
+    // });
+    // const GoogleResult = await res.json();
 
     if (GoogleResult.error) {
       console.error('[ProviderApi] 구글 로그인 에러:', GoogleResult);
@@ -79,11 +90,11 @@ export const googleLoginApi = async (): Promise<PlatformTokens> => {
       );
     }
 
-    console.log('[ProviderApi] 구글 로그인 성공:', GoogleResult);
+    console.log('[ProviderApi] 구글 로그인 성공:', GoogleResult.id_token);
 
     return {
-      idToken: GoogleResult.id_token,
-      accessToken: GoogleResult.access_token,
+      idToken: GoogleResult.idToken,
+      accessToken: GoogleResult.accessToken,
       platform: 'GOOGLE',
     };
   } catch (error) {

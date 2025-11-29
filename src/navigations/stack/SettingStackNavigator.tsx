@@ -11,6 +11,7 @@ import BlockedUsersScreen from '@/screens/settings/user-management/BlockedUsersS
 import NoticesScreen from '@/screens/settings/notification/NoticesScreen';
 import SupportScreen from '@/screens/settings/notification/SupportScreen';
 import SupportFormScreen from '@/screens/settings/notification/SupportFormScreen';
+import {ParentType} from '@/constants/Support';
 // service-info
 import TermsOfServiceScreen from '@/screens/settings/service-info/TermsOfServiceScreen';
 import PrivacyPolicyScreen from '@/screens/settings/service-info/PrivacyPolicyScreen';
@@ -19,26 +20,21 @@ import LanguageSettingScreen from '@/screens/settings/etc/LanguageSettingScreen'
 // account
 import AccountDeleteScreen from '@/screens/settings/account/AccountDeleteScreen';
 
-export type SettingNavigatorParamList = {
+export type SettingStackParamList = {
   [settingsNavigations.SETTINGS_HOME]: undefined;
   [settingsNavigations.ACTIVITY_SCOPE]: {userId: string};
   [settingsNavigations.FOLLOWER_REQUESTS]: {userId: string};
   [settingsNavigations.BLOCKED_USERS]: {userId: string};
   [settingsNavigations.NOTICES]: undefined;
-  [settingsNavigations.SUPPORT]: {userId: string};
-  [settingsNavigations.SUPPORT_FORM]: {
-    userId: string;
-    title?: string;
-    category?: string[];
-    onPress?: () => void;
-  };
+  [settingsNavigations.SUPPORT]: undefined;
+  [settingsNavigations.SUPPORT_FORM]: {type?: ParentType};
   [settingsNavigations.TERMS_OF_SERVICE]: undefined;
   [settingsNavigations.PRIVACY_POLICY]: undefined;
   [settingsNavigations.LANGUAGE_SETTING]: undefined;
   [settingsNavigations.ACCOUNT_DELETE]: {userId: string};
 };
 
-const Stack = createStackNavigator<SettingNavigatorParamList>();
+const Stack = createStackNavigator<SettingStackParamList>();
 
 function SettingStackNavigator() {
   return (

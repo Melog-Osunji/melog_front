@@ -20,6 +20,7 @@ interface CustomButtonProps extends PressableProps {
   style?:
     | StyleProp<ViewStyle>
     | ((state: {pressed: boolean}) => StyleProp<ViewStyle>); // 명시적으로 View 스타일만, 함수 타입도 허용
+  variantColor?: string; // 추가: variant 색상 지정 (filled 배경 / outlined 테두리 & 텍스트)
 }
 
 const deviceHeight = Dimensions.get('screen').height;
@@ -31,6 +32,7 @@ export default function CustomButton({
   inValid = false,
   inValidStyle,
   style: externalStyle,
+  variantColor,
   ...props
 }: CustomButtonProps) {
   return (
@@ -42,6 +44,13 @@ export default function CustomButton({
           styles.container,
           styles[size],
           state.pressed ? styles[`${variant}Pressed`] : styles[variant],
+          // 동적 variant 색상 적용: filled->background, outlined->border
+          variant === 'filled' && variantColor
+            ? {backgroundColor: variantColor}
+            : null,
+          variant === 'outlined' && variantColor
+            ? {borderColor: variantColor}
+            : null,
           // inValid일 때 inValidStyle이 있으면 그걸 우선, 없으면 기본 styles.inValid 사용
           inValid && (inValidStyle ? inValidStyle : styles.inValid),
         ];
@@ -55,7 +64,13 @@ export default function CustomButton({
       }}
       {...props}>
       <Text
-        style={[styles.text, styles[`${variant}Text`], styles[`${size}Text`]]}>
+
+        style={[
+          styles.text,
+          styles[`${variant}Text`],
+          styles[`${size}Text`],
+          variant === 'outlined' && variantColor ? {color: variantColor} : null,
+        ]}>
         {label}
       </Text>
     </Pressable>
