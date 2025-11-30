@@ -13,7 +13,7 @@ export const  checkFollowerList = async () => {
 // 차단 요청 관리 조회
 export const  checkBlockList = async () => {
   const res = await instance.get<BaseResponse<UserDTO[]>>(
-    `/api/settings/block`,
+    `/api/settings/follower/block`,
   );
   return res.data.data;
 };

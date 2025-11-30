@@ -21,3 +21,13 @@ export const createInquiry = async (body: CreateInquiryRequest) => {
   );
   return res.data.data;
 };
+
+// 사용자 차단
+// export const blockUser = async (acceptUserId: string) => {
+//   const res = await instance.post<BaseResponse<
+//
+// }
+
+// 사용자 차단 해제
+
+// 팔로워 요청 수락

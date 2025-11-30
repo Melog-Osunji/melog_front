@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState, useCallback} from 'react';
 import {
   StyleSheet,
   Text,
@@ -20,11 +20,7 @@ import styled from 'styled-components/native';
 import {colors, harmonyNavigations} from '@/constants';
 import {useHarmonyRoomContext} from '@/contexts/HarmonyRoomContext';
 import RoomApplyCard, {ApplyUser} from '@/components/harmonyRoom/RoomApplyCard';
-import {
-  useWaitingUserList,
-  useUpdateHarmonyMembership,
-} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
-import {useUserInfo} from '@/hooks/common/useUserInfo';
+import {useFollowingApply} from '@/hooks/queries/settings/useSettingsQueries';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
@@ -43,17 +39,19 @@ export default function FollowerRequestsScreen() {
 
   //1) 대기자 목록 조회
   const {
-    data: waitingDTO,
+    data: applyData,
     isLoading,
     isError,
     error,
     refetch,
     isRefetching,
-  } = useWaitingUserList(roomID);
+  } = useFollowingApply();
+
+  console.log(applyData);
 
   //2) 승인/거부 - 수정
-  const {mutateAsync: updateMembership, isPending} =
-    useUpdateHarmonyMembership(roomID);
+//   const {mutateAsync: updateMembership, isPending} =
+//     useUpdateHarmonyMembership(roomID);
 
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = useCallback(async () => {
@@ -66,68 +64,28 @@ export default function FollowerRequestsScreen() {
   }, [refetch]);
 
   const users: ApplyUser[] = useMemo(() => {
-    const src = waitingDTO?.waitingUsers ?? [];
+    const src = applyData ?? [];
     return src.map(u => ({
-      id: String(u.user.id),
-      name: u.user.nickname ?? '익명',
-      intro: u.user.intro ?? '',
-      profileImgLink: u.user.profileImgLink, // RoomApplyCard가 받는다면 그대로 전달
+      id: String(u.userID),
+      name: u.nickname ?? '익명',
+      intro: u.description ?? '',
+      profileImgLink: u.profileImg, // RoomApplyCard가 받는다면 그대로 전달
     }));
-  }, [waitingDTO]);
-
-  const listKey = useMemo(() => ['harmony', 'waiting', roomID], [roomID]);
+  }, [applyData]);
 
   const handleApprove = async (userId: string) => {
-    if (isPending) return; // 중복 클릭 방지
-
-    // 스냅샷
-    const prev = qc.getQueryData<any>(listKey);
-
-    try {
-      qc.setQueryData<any>(listKey, old => {
-        if (!old) return old;
-        const next = Array.isArray(old.user)
-          ? old.user.filter((u: any) => String(u.id) !== String(userId))
-          : [];
-        return {...old, user: next};
-      });
-
-      // 서버 호출
-      await updateMembership({action: 'approve', userID: userId});
-    } catch (e) {
-      // 롤백
-      qc.setQueryData(listKey, prev);
-    }
   };
 
   const handleReject = async (userId: string) => {
-    if (isPending) return;
-
-    const prev = qc.getQueryData<any>(listKey);
-
-    try {
-      qc.setQueryData<any>(listKey, old => {
-        if (!old) return old;
-        const next = Array.isArray(old.user)
-          ? old.user.filter((u: any) => String(u.id) !== String(userId))
-          : [];
-        return {...old, user: next};
-      });
-
-      await updateMembership({action: 'deny', userID: userId});
-    } catch (e) {
-      qc.setQueryData(listKey, prev);
-    }
   };
 
-  if (isLoading && !waitingDTO) {
+  if (isLoading && !applyData) {
     return (
       <SafeAreaView style={styles.center}>
         <ActivityIndicator />
       </SafeAreaView>
     );
   }
-
 
   return (
     <SafeAreaView style={styles.container}>
@@ -158,9 +116,9 @@ export default function FollowerRequestsScreen() {
         renderItem={({item}) => (
           <RoomApplyCard
             user={item}
-            onApprove={() => handleApprove(item.id)}
-            onReject={() => handleReject(item.id)}
-            disabled={isPending}
+            onApprove={() => handleApprove(item.userId)}
+            onReject={() => handleReject(item.userId)}
+//             disabled={isPending}
             type='apply'
           />
         )}

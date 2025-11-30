@@ -33,6 +33,8 @@ const MyPageBookmarkTab: React.FC<Props> = ({profileUser}) => {
      }));
   }, [data]);
 
+  console.log(bookmarkPost);
+
   if (isLoading) {
     return (
       <View style={styles.center}>

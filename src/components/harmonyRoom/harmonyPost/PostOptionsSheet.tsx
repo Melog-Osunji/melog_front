@@ -6,6 +6,7 @@ import {colors} from '@/constants';
 import type {UserDTO} from '@/types';
 import CheckPopup from '@/components/common/CheckPopup';
 import {useFollowUser} from '@/hooks/queries/User/useUserMutations';
+import PostReportSheet from '@/components/post/PostReportSheet'; // 추가
 
 type Props = {
   user?: UserDTO;
@@ -34,6 +35,7 @@ const PostOptionsSheet: React.FC<Props> = ({
 }) => {
   const [visible, setVisible] = useState(false);
   const [blockPopupVisible, setBlockPopupVisible] = useState(false);
+  const [reportVisible,setReportVisible] = useState(false);
 
   const {mutate: followUser, isLoading: isFollowingLoading} = useFollowUser();
 
@@ -111,14 +113,8 @@ const PostOptionsSheet: React.FC<Props> = ({
           <TouchableOpacity
             style={[styles.row, styles.reportRow]}
             onPress={() => {
-              console.log(
-                '[PostOptionsSheet] report post',
-                postId,
-                'user:',
-                targetUserId,
-              );
-              onReport?.(postId);
               handleClose();
+              setTimeout(() => setReportVisible(true), 80);
             }}>
             <Image
               source={require('@/assets/icons/post/Abuse.png')}
@@ -156,6 +152,17 @@ const PostOptionsSheet: React.FC<Props> = ({
         rightBtnText="차단하기"
         rightBtnBorderColor={colors.RED_300}
       />
+
+      <PostReportSheet
+          visible={reportVisible}
+          onClose={() => setReportVisible(false)}
+          postId={postId}
+          onReport={(reason: string) => {
+            setReportVisible(false);
+            onReport?.(postId);
+            showToast('신고가 접수되었습니다.', 'success');
+          }}
+        />
     </>
   );
 };

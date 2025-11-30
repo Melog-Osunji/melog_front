@@ -65,6 +65,14 @@ function PersonalProfileScreen({ route }: PersonalProfileScreenProps) {
     });
   };
 
+  if (isLoading) {
+        return (
+          <SafeAreaView style={[styles.container, {justifyContent:'center', alignItems:'center'}]}>
+            <ActivityIndicator />
+            <Text style={{marginTop:8, color:colors.GRAY_500}}>불러오는 중…</Text>
+          </SafeAreaView>
+        );
+      }
 
 
   const communities = useMemo<Community[]>(() => {
@@ -80,14 +88,7 @@ function PersonalProfileScreen({ route }: PersonalProfileScreenProps) {
 
   const feedCount = data?.posts?.results.length ?? 0;
 
-  if (isLoading) {
-      return (
-        <SafeAreaView style={[styles.container, {justifyContent:'center', alignItems:'center'}]}>
-          <ActivityIndicator />
-          <Text style={{marginTop:8, color:colors.GRAY_500}}>불러오는 중…</Text>
-        </SafeAreaView>
-      );
-    }
+
 
   return (
     <LinearGradient

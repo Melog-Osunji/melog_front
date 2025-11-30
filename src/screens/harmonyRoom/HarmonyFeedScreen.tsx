@@ -68,7 +68,7 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
     isError: isUserError,
   } = useUserProfile();
 
-  const followingQuery = useGetUserFollowing(postData?.user?.id ?? '');
+  const followingQuery = useGetUserFollowing(postData?.user?.id || undefined);
   const followingData = followingQuery?.data;
   const followMutation = useFollowUser();
   const deletePostMutation = useDeleteHarmonyPost(roomID);
@@ -153,6 +153,16 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <Text>게시글을 불러오는 중...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!postData || !userData) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator />
         </View>
       </SafeAreaView>
     );
