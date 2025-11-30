@@ -1,9 +1,10 @@
 // src/screens/intro/InitProfile/InitProfileIntroductionScreen.tsx
 // 현재 사용하지 않음
 import React, {useState} from 'react';
-import {View, Text, Image, TextInput, StyleSheet} from 'react-native';
-import CustomButton from '@/components/common/CustomButton';
+import {View, Text, Image, StyleSheet} from 'react-native';
 import {colors} from '@/constants';
+import CustomButton from '@/components/common/CustomButton';
+import InputBox from '@/components/common/InputBox';
 
 import {StackScreenProps} from '@react-navigation/stack';
 import {IntroStackParamList} from '@/navigations/stack/IntroStackNavigator';
@@ -62,30 +63,18 @@ function InitProfileIntroductionScreen({navigation}: InitProfileScreenProps) {
         {/* 자기소개 */}
         <View style={{width: '100%', gap: 12}}>
           <Text style={styles.h2}>자기소개</Text>
-          <View style={[styles.inputbar, {position: 'relative'}]}>
-            <TextInput
-              value={inrtoduction}
-              onChangeText={text => {
-                if (text.length <= 200) setInrtoduction(text);
-              }}
-              multiline
-              maxLength={200}
-              style={{minHeight: 100, textAlignVertical: 'top', padding: 0}}
-            />
-            {inrtoduction === '' && (
-              <Text style={styles.placeholder_text}>자기소개를 입력하세요</Text>
-            )}
-            <Text
-              style={{
-                position: 'absolute',
-                right: 12,
-                bottom: 8,
-                fontSize: 12,
-                color: colors.GRAY_400,
-              }}>
-              {inrtoduction.length}/200
-            </Text>
-          </View>
+          <InputBox
+            value={inrtoduction}
+            onChangeText={text => {
+              if (text.length <= 200) setInrtoduction(text);
+            }}
+            multiline
+            maxLength={200}
+            placeholder="자기소개를 입력하세요"
+            showCount={true}
+            minHeight={100}
+            style={{position: 'relative'}}
+          />
         </View>
       </View>
 

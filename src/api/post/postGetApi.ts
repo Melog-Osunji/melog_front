@@ -18,19 +18,8 @@ export const fetchFollowPosts = async (): Promise<PostsDTO> => {
 
 // GET /api/posts/recommends (추천 피드)
 export const fetchRecommendPosts = async (): Promise<PostsDTO> => {
-  const res = await instance.get('/api/posts/recommends');
-
-  // (임시 err 처리) 서버가 BaseResponse<T>를 따르지 않고 { results: [...] } 형태로 반환하는 경우를 처리
-  const payload = (res.data as any)?.data ?? res.data;
-
-  if (!payload) {
-    console.warn(
-      '[postApiGet.ts] /api/posts/recommends payload 비어있음 → 빈 결과 반환',
-    );
-    return {results: []} as PostsDTO;
-  }
-
-  return payload as PostsDTO;
+  const res = await instance.get('/api/feed/recommends');
+  return res.data.data;
 };
 
 // 피드 아이디에 따른 API 함수 맵핑
@@ -71,4 +60,3 @@ export const fetchPostComments = async (
   );
   return res.data.data;
 };
-

@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Text, StyleSheet, Image} from 'react-native';
+import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
 import type {CommentDTO} from '@/types';
 import {useAuthContext} from '@/contexts/AuthContext';
@@ -74,16 +74,25 @@ const CommentItem: React.FC<CommentItemProps> = ({
     );
   };
 
+  // 클릭하여 답글(또는 리플) 트리거
+  const handleContentPress = () => {
+    onReply?.({commentId: comment.id, nickname: comment.nickname ?? 'user'});
+  };
+
   return (
     <>
       <View style={[styles.commentContainer, isReply && styles.replyContainer]}>
         <View style={styles.left}>
           <Image source={{uri: comment.profileUrl}} style={styles.avatar} />
         </View>
-        <View style={styles.body}>
+        {/* 댓글 본문 전체를 클릭 가능하도록 TouchableOpacity로 래핑 */}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          style={styles.body}
+          onPress={handleContentPress}>
           <Text style={styles.nick}>{comment.nickname}</Text>
           <Text style={styles.text}>{comment.content}</Text>
-        </View>
+        </TouchableOpacity>
 
         {/* 옵션 버튼: 작성자이면 삭제 확인, 아니면 신고 시트 오픈 */}
         {authUser?.id === userId ? (
@@ -124,6 +133,22 @@ const CommentItem: React.FC<CommentItemProps> = ({
           showToast('신고가 접수되었습니다.', 'success');
         }}
       />
+
+      {/* 대댓글 렌더링 */}
+      {comment.recomments && comment.recomments.length > 0 && (
+        <View>
+          {comment.recomments.map((reply, index) => (
+            <CommentItem
+              key={`${reply.userID}-${index}`}
+              comment={reply}
+              isReply={true}
+              postId={postId}
+              userId={reply.userID}
+              onReply={onReply} // 부모의 onReply를 하위 댓글에도 전달
+            />
+          ))}
+        </View>
+      )}
     </>
   );
 };

@@ -10,6 +10,12 @@ export type ReportRequest = {
   reportedUserId?: string | null;
 };
 
+export type TogglePostLikeResponse = {
+  action: '취소' | '추가';
+  liked: boolean;
+  likeCount: number;
+};
+
 // #3) CRUD operations for post (POST/PATCH/DELETE requests)
 // POST /api/posts (게시글 작성)
 export const createPost = async (postData: NewPostDTO): Promise<void> => {
@@ -27,7 +33,7 @@ export const deletePost = async (postId: string) => {
 // 1) like
 // POST /api/posts/{postId}/like (게시글 좋아요 토글)
 export const togglePostLike = async (postId: string) => {
-  const res = await instance.post<BaseResponse<null>>(
+  const res = await instance.post<BaseResponse<TogglePostLikeResponse>>(
     `/api/posts/${postId}/like`,
   );
   return res.data.data; // { action, liked, likeCount }

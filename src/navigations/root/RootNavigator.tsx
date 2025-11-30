@@ -22,7 +22,7 @@ function RootNavigator() {
   useEffect(() => {
     // 개발 환경에서만 테스트 상태 설정
     if (__DEV__) {
-      const TEST_SCENARIO = 'MAIN'; // 'LOGIN' | 'REGISTRATION' | 'MAIN'
+      const TEST_SCENARIO = 'LOGIN'; // 'LOGIN' | 'REGISTRATION' | 'MAIN'
 
       switch (TEST_SCENARIO) {
         case 'REGISTRATION':
@@ -36,6 +36,10 @@ function RootNavigator() {
           console.log('[dev] 가입 이후 로그인 프로세스 상태로 설정됨');
           break;
         case 'MAIN':
+          setIsLogin(true);
+          setIsRegistered(true);
+          break;
+        default:
           setIsLogin(true);
           setIsRegistered(true);
           break;

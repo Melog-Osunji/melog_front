@@ -78,6 +78,8 @@ android {
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
+        // Provide appAuthRedirectScheme for react-native-app-auth / AppAuth library
+        manifestPlaceholders = [appAuthRedirectScheme: "melognaver"]
     }
     
     compileOptions {
@@ -118,6 +120,7 @@ android {
 dependencies {
     implementation("com.facebook.react:react-android")
     implementation 'com.google.android.gms:play-services-location:21.0.1'
+    implementation 'com.facebook.fresco:animated-gif:2.6.0'
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {

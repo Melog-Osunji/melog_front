@@ -6,6 +6,7 @@ import {useAuthContext} from '@/contexts/AuthContext';
 import {
   setTokens,
   setUserInfo as setUserInfoStorage,
+  setRegistrationStatus as setIsRegistered,
 } from '@/utils/storage/UserStorage';
 //api
 import {
@@ -15,7 +16,6 @@ import {
   type PlatformTokens,
 } from '@/api/Auth/ProviderApi';
 import {socialLogin} from '@/api/Auth/AuthApi';
-
 
 export const useSocialLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -85,6 +85,13 @@ export const useSocialLogin = () => {
       if (result.data.user) {
         await setUserInfoStorage(result.data.user);
         await login(result.data.user);
+      }
+
+      if (result.data.isNewUser) {
+        console.log(`[useSocialLogin] 신규 사용자로 감지됨`);
+      } else {
+        console.log(`[useSocialLogin] 기존 사용자로 감지됨`);
+        setIsRegistered(true);
       }
 
       console.log(`[useSocialLogin] ${platform} 로그인 플로우 완료`);

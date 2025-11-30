@@ -2,6 +2,11 @@ import instance from '../axiosInstance';
 import type {BaseResponse} from '../baseResponse';
 import type {ProfileDTO, followingCheckDTO} from '@/types';
 
+//dto
+export interface GetUserFollowingDTO {
+  result: boolean;
+  status: 'REQUESTED' | 'UNFOLLOW';
+}
 // 닉네임 중복 조회
 export const checkNicknameExists = async (nickname: string) => {
   const res = await instance.get<BaseResponse<{exists: boolean}>>(
@@ -11,12 +16,13 @@ export const checkNicknameExists = async (nickname: string) => {
   return res.data.data;
 };
 
-// 사용자 팔로잉 여부 조회: GET /api/users/following/check
-export const getUserFollowing = async (targetId: string) => {
-  const res = await instance.get<BaseResponse<followingCheckDTO>>(
-    `/api/users/following/check?targetId=${encodeURIComponent(targetId)}`
+// 사용자 팔로잉 여부 조회: GET /api/users/following/{nickname}
+export const getUserFollowing = async (id: string) => {
+  const res = await instance.get<BaseResponse<GetUserFollowingDTO>>(
+    `/api/users/following/check`,
+    {params: {targetId: id}},
   );
-  return res.data.data; // { isFollowing: boolean }
+  return res.data.data;
 };
 
 // 유저 프로필 조회
@@ -26,4 +32,3 @@ export const fetchUserProfile = async () => {
   );
   return res.data.data;
 };
-

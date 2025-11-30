@@ -43,59 +43,85 @@ type PostPageScreenProp = StackScreenProps<
 const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
   const {postId} = route.params;
 
-    useHideTabBarOnFocus();
+  useHideTabBarOnFocus();
 
-    const {
-      data: postData,
-      isLoading: postLoading,
-      error: postError,
-      isError: isPostError,
-    } = usePostDetail(postId);
+  // post 및 commnet 데이터 로드
+  const {
+    data: postData,
+    isLoading: postLoading,
+    error: postError,
+    isError: isPostError,
+  } = usePostDetail(postId);
+  const {
+    data: commentsData,
+    isLoading: commentsLoading,
+    error: commentsError,
+  } = usePostComments(postId);
 
-    const {
-      data: commentsData,
-      isLoading: commentsLoading,
-      error: commentsError,
-    } = usePostComments(postId);
+  // 항상 훅 호출 — 네트워크 요청은 내부 enabled로 제어
+  const followingQuery = useGetUserFollowing(postData?.user?.id ?? '');
+  const followingData = followingQuery?.data; // FollowResponseDto | undefined
+  const followMutation = useFollowUser();
+  const [isFollow, setIsFollow] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  
+  // 안전하게 post / user를 옵셔널로 가져옵니다 (즉시 구조분해하지 않음).
+  // 이 변수들은 렌더 초기에 undefined일 수 있지만 훅 호출 순서는 변하지 않습니다.
+  const post = postData?.post as PostDTO;
+  const user = postData?.user as UserDTO;
 
-    const { data: followingData } = useGetUserFollowing(
-      postData?.user?.id ?? ''
+  // postData.user.id가 생기면 즉시 refetch (hook은 항상 호출됨)
+  useEffect(() => {
+    const userId = postData?.user?.id;
+    if (userId && typeof followingQuery?.refetch === 'function') {
+      console.log(
+        '[PostPageScreen] postData.user.id 변경, 팔로잉 상태 재조회:',
+        userId,
+      );
+      followingQuery.refetch().catch(() => {});
+    }
+  }, [postData?.user?.id]);
+
+  // followingData 변경 시 isFollow 즉시 갱신
+  useEffect(() => {
+    if (!followingData) return;
+    console.log(
+      '[PostPageScreen] followingData 변경, isFollow 설정:',
+      followingData,
     );
+    setIsFollow(false);
+    if (followingData.status === 'REQUESTED') setIsFollow(true);
+  }, [followingData]);
 
-    const followMutation = useFollowUser();
+  // 팔로우/언팔로우 토글 핸들러 (user?.id 사용)
+  const handleToggleFollow = useCallback(() => {
+    if (!user?.id) return;
 
-    const [isFollow, setIsFollow] = useState<boolean>(false);
-    const [refreshing, setRefreshing] = useState<boolean>(false);
+    const previous = isFollow;
+    setIsFollow(!previous);
+    console.log('[PostPageScreen] handleToggleFollow', {
+      userId: user.id,
+      previous,
+      new: !previous,
+    });
 
-    type ReplyTarget = {id: string; nickname: string; commentId?: string} | null;
-    const [replyTarget, setReplyTarget] = useState<ReplyTarget>(null);
+    followMutation.mutate(user.id, {
+      onError: () => {
+        setIsFollow(previous);
+        showToast(
+          previous ? '언팔로우에 실패했어요.' : '팔로우에 실패했어요.',
+          'error',
+        );
+      },
+    });
+  }, [followMutation, user?.id, isFollow]);
 
-    useEffect(() => {
-      if (followingData) {
-        const isFollowing = (followingData as any).result ?? false;
-        setIsFollow(!!isFollowing);
-      }
-    }, [followingData]);
+  // replyTarget 상태/핸들러
+  type ReplyTarget = {id: string; nickname: string; commentId?: string} | null;
+  const [replyTarget, setReplyTarget] = useState<ReplyTarget>(null);
 
-    const handleToggleFollow = useCallback(() => {
-      if (!postData?.user?.id) return;
-
-      const previous = isFollow;
-      setIsFollow(!previous);
-
-      followMutation.mutate(postData.user.id, {
-        onError: () => {
-          setIsFollow(previous);
-          showToast(
-            previous ? '언팔로우에 실패했어요.' : '팔로우에 실패했어요.',
-            'error',
-          );
-        },
-      });
-    }, [followMutation, postData?.user?.id, isFollow]);
-
-    const handleReply = useCallback((target: {id?: string; commentId?: string; nickname: string}) => {
-      console.log('[PostPageScreen] handleReply', target);
+  const handleReply = useCallback(
+    (target: {commentId?: string; id?: string; nickname: string}) => {
       const id = target.id ?? target.commentId;
       if (!id) return;
       setReplyTarget({
@@ -103,51 +129,45 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
         nickname: target.nickname,
         commentId: target.commentId ?? undefined,
       });
-    }, []);
+    },
+    [],
+  );
 
-    const handleCancelReply = useCallback(() => {
-      console.log('[PostPageScreen] cancelReply');
+  const handleCancelReply = useCallback(() => {
+    setReplyTarget(null);
+  }, []);
+
+  const handleSendComment = useCallback(
+    (
+      text: string,
+      reply?: {id: string; nickname: string; commentId?: string} | null,
+    ) => {
+      console.log('[PostPageScreen] send comment', {text, reply});
       setReplyTarget(null);
-    }, []);
+    },
+    [route.params.postId],
+  );
 
-    const handleSendComment = useCallback(
-      (text: string, reply?: {id: string; nickname: string; commentId?: string} | null) => {
-        console.log('[PostPageScreen] send comment', {text, reply});
-        setReplyTarget(null);
-      },
-      [postId],
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 2000);
+  }, []);
+
+  // 안전: postData가 준비될 때까지 로딩 화면을 보여줍니다.
+  if (postLoading || !postData) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Loading text={'게시글을 불러오는 중...'} />
+        </View>
+      </SafeAreaView>
     );
+  }
 
-    const onRefresh = useCallback(() => {
-      setRefreshing(true);
-      setTimeout(() => {
-        setRefreshing(false);
-      }, 2000);
-    }, []);
-
-    if (postLoading) {
-      return (
-        <SafeAreaView style={styles.container}>
-          <View style={styles.loadingContainer}>
-            <Loading text={'게시글을 불러오는 중...'} />
-          </View>
-        </SafeAreaView>
-      );
-    }
-
-    if (isPostError || !postData) {
-      console.error('[PostPageScreen] 게시글 로드 실패:', postError);
-      return (
-        <SafeAreaView style={styles.container}>
-          <View style={styles.errorContainer}>
-            <Text>게시글을 불러올 수 없습니다.</Text>
-            <Button title="다시 시도" onPress={() => navigation.goBack()} />
-          </View>
-        </SafeAreaView>
-      );
-    }
-
-  const {post, user} = postData;
+  // 여기서는 post/user가 존재함이 보장됩니다.
+  // (위에서 이미 안전하게 선언된 post/user 변수를 사용)
+  // 타입 단언이 필요하면 아래처럼 사용할 수 있습니다:
+  // const { post: postVal, user: userVal } = postData as { post: PostDTO; user: UserDTO };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -384,7 +404,6 @@ const styles = StyleSheet.create({
   },
   relatedPostsSection: {
     backgroundColor: colors.WHITE,
-    // paddingHorizontal: 12,
     paddingVertical: 20,
     gap: 12,
   },

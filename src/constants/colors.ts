@@ -5,8 +5,8 @@ const colors = {
   KAKAO_YELLOW: '#FFE733',
 
   GRAY_50: '#F4F5F5', //delete modal
-  GRAY_100: '#EEF1F7',
-  GRAY_200: '#BDCAD8', //G_1
+  GRAY_100: '#EEF1F7', //G_1
+  GRAY_200: '#BDCAD8', //G_2
   GRAY_300: '#8C9CAA', //G_3
   GRAY_350: '#989B9E', //Grey 07
   GRAY_400: '#636C73', //G_4

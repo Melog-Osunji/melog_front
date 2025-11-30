@@ -109,6 +109,6 @@ export const useBlockUser = () => {
 
   return {
     ...mutation,
-    isLoading: mutation.isLoading,
+    isLoading: mutation.isPending,
   };
 };

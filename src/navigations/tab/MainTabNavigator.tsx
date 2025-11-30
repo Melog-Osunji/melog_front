@@ -1,12 +1,9 @@
 import React from 'react';
 import {Image, View, Platform} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-
-import HarmonyRoom from '@/screens/harmonyRoom/HarmonyHomeScreen';
-import PostHomeScreen from '@/screens/post/PostHomeScreen';
-
-import HarmonyStackNavigator from '../stack/HarmonyStackNavigator';
+import {maintabNavigations} from '@/constants';
 import PostStackNavigator from '../stack/PostStackNavigator';
+import HarmonyStackNavigator from '@/navigations/stack/HarmonyStackNavigator';
 import CalendarHomeScreen from '@/screens/calendar/CalendarHomeScreen';
 import MyPageStackNavigator from '../stack/MyPageStackNavigator';
 
@@ -39,7 +36,7 @@ function MainTabNavigator() {
     <Tab.Navigator screenOptions={MAIN_TAB_SCREEN_OPTIONS}>
       {/*home*/}
       <Tab.Screen
-        name="home"
+        name={maintabNavigations.MAIN_TAB_POST}
         component={PostStackNavigator}
         options={{
           tabBarLabel: '',
@@ -62,7 +59,7 @@ function MainTabNavigator() {
 
       {/*harmonyroom*/}
       <Tab.Screen
-        name="harmonyroom"
+        name={maintabNavigations.MAIN_TAB_HARMONY}
         component={HarmonyStackNavigator}
         options={{
           tabBarLabel: '',
@@ -85,7 +82,7 @@ function MainTabNavigator() {
 
       {/*calendar*/}
       <Tab.Screen
-        name="calendar"
+        name={maintabNavigations.MAIN_TAB_CALENDAR}
         component={CalendarHomeScreen}
         options={{
           tabBarLabel: '',
@@ -108,7 +105,7 @@ function MainTabNavigator() {
 
       {/* mypage */}
       <Tab.Screen
-        name="MY"
+        name={maintabNavigations.MAIN_TAB_MYPAGE}
         component={MyPageStackNavigator}
         options={{
           tabBarLabel: '',

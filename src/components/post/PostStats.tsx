@@ -7,6 +7,7 @@ import {
   useAddPostBookmark,
   useDeletePostBookmark,
 } from '@/hooks/queries/post/usePostMutations';
+import {type TogglePostLikeResponse} from '@/api/post/postPostApi';
 import {showToast} from '@/components/common/ToastService';
 
 type StatsType = 'like' | 'comment' | 'share' | 'bookmark';
@@ -59,7 +60,8 @@ const PostStats = ({
         if (data && typeof data.likeCount === 'number') {
           setCurrentLikeCount(data.likeCount);
         }
-        setIsBookmarked(prev);
+        // 서버 응답에 isLike가 있으면 동기화, 없으면 optimistic 값 유지
+        setIsLiked((data as TogglePostLikeResponse)?.liked ?? !prev);
         console.log('[PostStats] 좋아요 성공:', data);
       },
       onError: err => {

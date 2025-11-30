@@ -1,3 +1,10 @@
+const maintabNavigations = { 
+  MAIN_TAB_POST: 'MainTabPost',
+  MAIN_TAB_HARMONY: 'MainTabHarmony',
+  MAIN_TAB_CALENDAR: 'MainTabCalendar',
+  MAIN_TAB_MYPAGE: 'MainTabMyPage',
+} as const;
+
 const introNavigations = {
   //첫화면
   INTRO_WELCOME: 'IntroWelcome',
@@ -78,7 +85,7 @@ const commonNavigations = {
   ALARM: 'Alarm',
 } as const;
 
-
+export {maintabNavigations};
 export {introNavigations};
 export {postNavigations};
 export {harmonyNavigations};
