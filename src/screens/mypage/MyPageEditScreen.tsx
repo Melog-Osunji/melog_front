@@ -24,6 +24,8 @@ import CustomButton from '@/components/common/CustomButton';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {useUpdateProfile, useMyPage} from '@/hooks/queries/myPage/useMyPage';
 import { uploadProfileImage } from '@/api/myPage/myPageApi';
+import {useCheckNickname} from '@/hooks/queries/User/useUserQueries';
+import {showToast} from '@/components/common/ToastService';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
@@ -47,6 +49,8 @@ function MyPageEditScreen() {
         setSelectedImage(data.profileImg ?? null);
       }
   }, [data]);
+
+  const nicknameQuery = useCheckNickname(nickname);
 
   const handleSelectImage = () => {
     launchImageLibrary({mediaType: 'photo', quality: 0.8}, response => {
@@ -74,7 +78,9 @@ function MyPageEditScreen() {
   const isInvalidChar =
     nickname !== '' && !/^[a-zA-Z0-9가-힣]+$/.test(nickname);
   const isTooLong = nickname.length > 10;
-  const hasError = isInvalidChar || isTooLong;
+  const isTooShort = nickname.length < 2;
+  const hasError = isInvalidChar || isTooLong || isTooShort;
+
 
   const handleSave = async () => {
       if (!nickname.trim()) {
@@ -109,22 +115,40 @@ function MyPageEditScreen() {
           },
           {
             onSuccess: () => {
-              Alert.alert('완료', '프로필이 수정되었습니다.', [
-                {
-                  text: '확인',
-                  onPress: () => navigation.navigate(myPageNavigations.MYPAGE_HOME),
-                },
-              ]);
+              showToast('프로필이 수정되었습니다', 'success', 'top', 30);
+              navigation.navigate(myPageNavigations.MYPAGE_HOME)
             },
             onError: error => {
-              console.error('[handleSave] 프로필 수정 실패:', error);
-              Alert.alert('오류', '프로필 수정 중 문제가 발생했습니다.');
+              showToast('프로필 수정을 실패했습니다', 'error', 'top', 30);
             },
           },
         );
       } catch (error) {
         console.error('[handleSave] 이미지 업로드 실패:', error);
-        Alert.alert('오류', '이미지 업로드 중 문제가 발생했습니다.');
+        showToast('이미지 업로드 중 문제가 발생했습니다', 'error', 'top', 30);
+      }
+    };
+
+  const handleCheckDuplicate = async () => {
+      if (!nickname || hasError || isTooShort) {
+        showToast('닉네임 형식을 확인해 주세요.', 'error', 'top', 30);
+        setChecked(false);
+        return;
+      }
+      try {
+        const {data} = await nicknameQuery.refetch();
+        console.log(data);
+        const exists = data?.exists ?? false;
+        if (exists) {
+          setChecked(false);
+          showToast('이미 사용 중인 닉네임입니다.', 'error', 'top', 30);
+        } else {
+          setChecked(true);
+          showToast('사용 가능한 닉네임입니다.', 'success', 'top', 30);
+        }
+      } catch (err) {
+        showToast('중복 확인에 실패했습니다.', 'error', 'top', 30);
+        setChecked(false);
       }
     };
 
@@ -172,7 +196,24 @@ function MyPageEditScreen() {
           </View>
           {/* 닉네임 */}
           <View style={styles.nicknameWrap}>
-            <Text style={styles.h2}>닉네임</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+                gap: 8,
+              }}>
+                  <Text style={styles.h2}>
+                    닉네임
+                  </Text>
+                  {!hasError && checked && (
+                    <Image
+                      source={require('@/assets/icons/intro/check_icon.png')}
+                      style={{width: 12, height: 12}}
+                      resizeMode="contain"
+                    />
+                  )}
+            </View>
             <View style={{position: 'relative'}}>
               <TextInput
                 value={nickname}
@@ -185,23 +226,22 @@ function MyPageEditScreen() {
                   },
                 ]}
               />
-
+              {nickname === '' && (
+                <Text style={styles.placeholder_text}>
+                  2~10자인 한글, 영문, 숫자만 사용할 수 있어요.
+                </Text>
+              )}
               <TouchableOpacity
                 style={[
                   styles.duplicate_btn,
                   {opacity: nickname ? 1 : 0, top: hasError ? 8 : 6},
                 ]}
                 activeOpacity={0.7}
-                disabled={!nickname}
-                onPress={() => {
-                  if (!hasError && nickname) {
-                    setChecked(true);
-                  } else {
-                    setChecked(false);
-                  }
-                }}>
-                <Text style={styles.duplicate_btn_text}>중복확인</Text>
-                {/* ++ 나중에  중복확인요청 로직 작성 */}
+                disabled={!nickname || nicknameQuery.isFetching}
+                onPress={handleCheckDuplicate}>
+                <Text style={styles.duplicate_btn_text}>
+                  {nicknameQuery.isFetching ? '확인중...' : '중복확인'}
+                </Text>
               </TouchableOpacity>
             </View>
             {isInvalidChar && (
@@ -363,7 +403,7 @@ const styles = StyleSheet.create({
     top: 8,
     paddingVertical: 6,
     paddingHorizontal: 16,
-    backgroundColor: colors.GRAY_300,
+    backgroundColor: colors.GRAY_200,
     borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',

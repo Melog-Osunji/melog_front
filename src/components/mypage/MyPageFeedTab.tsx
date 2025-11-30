@@ -20,21 +20,6 @@ type Props = {
 const MyPageFeedTab: React.FC<Props> = ({profileUser}) => {
   const {data, isLoading, isError, refetch, isRefetching} = useMyPage(profileUser);
 
-  console.log('MyPageFeedTab posts:', data);
-
-  const posts = useMemo(() => {
-    if (!data?.posts) return [];
-
-    return data.posts.map((p: any) => ({
-      post: p.post, // ✔ 서버 그대로 사용
-      user: {
-        id: p.user?.id,
-        nickName: data.nickname || 'test',
-        profileImg: data.profileImg || '',
-      },
-    }));
-  }, [data]);
-
   if (isLoading) {
     return (
       <View style={styles.center}>
@@ -51,6 +36,19 @@ const MyPageFeedTab: React.FC<Props> = ({profileUser}) => {
       </View>
     );
   }
+
+  const posts = useMemo(() => {
+    if (!data?.posts.results) return [];
+
+    return data.posts.results.map((p: any) => ({
+    post: p.post, // ✔ 서버 그대로 사용
+    user: {
+      id: p.user?.id,
+      nickName: data.nickname || 'test',
+      profileImg: data.profileImg || '',
+    },
+    }));
+  }, [data]);
 
   if (posts.length === 0) {
     return (

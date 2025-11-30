@@ -11,7 +11,7 @@
     import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
     import {StackNavigationProp} from '@react-navigation/stack';
     import {harmonyRoomNavigation} from '@/constants';
-    import {colors, harmonyNavigations} from '@/constants';
+    import {colors, harmonyNavigations, maintabNavigations} from '@/constants';
     import LinearGradient from 'react-native-linear-gradient';
     import {recommendRoom} from '@/api/harmonyRoom/harmonRoomApi';
 
@@ -26,7 +26,7 @@
 
       const handlePress = () => {
         // 현재 navigation은 PostStack에 속하므로, 상위(MainTab)로 올라가서 navigate
-        navigation.getParent()?.navigate('harmonyroom', {
+        navigation.getParent()?.navigate(maintabNavigations.MAIN_TAB_HARMONY, {
           screen: harmonyNavigations.HARMONY_PAGE,
           params: { roomID: id },
         });

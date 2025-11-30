@@ -18,11 +18,6 @@ export const useMyPage = (profileUser?:string) =>
     staleTime: 60 * 1000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-    select: (data: MyPageDTO) => {
-      const tmp: any = data ?? {};
-      const posts: PostWithUserDTO[] = normalizePostsList(data.posts ?? []);
-      return {...tmp, posts};
-    },
     enabled: true, // enabled: !!isLogin
   });
 

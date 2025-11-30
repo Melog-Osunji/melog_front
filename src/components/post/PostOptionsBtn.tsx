@@ -17,12 +17,14 @@ type Props = {
   onPress?: () => void;
   btnIcon?: ImageSourcePropType; // 버튼 아이콘을 props로 받음
   btnText?: string; // 버튼 텍스트를 props로 받음
+  type?: 'none' | 'header'
 };
 
 function PostOptionsBtn({
   onPress,
   btnIcon = require('@/assets/icons/common/trash.png'),
   btnText = '삭제하기',
+  type,
 }: Props) {
   const [visible, setVisible] = useState(false);
   const overlay = useOverlay();
@@ -100,7 +102,7 @@ function PostOptionsBtn({
       <View ref={triggerRef} collapsable={false}>
         <IconButton
           imageSource={require('@/assets/icons/post/Info.png')}
-          size={24}
+          size={type === 'header' ? 32 : 24}
           onPress={openAtTrigger}
         />
       </View>
