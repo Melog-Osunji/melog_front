@@ -48,7 +48,7 @@ function PersonalProfileScreen({ route }: PersonalProfileScreenProps) {
     data: followingData,
     isLoading: isFollowingLoading,
     refetch: refetchFollowing,
-  } = useGetUserFollowing(data?.nickname ?? '');
+  } = useGetUserFollowing(userId ?? '');
 
   const followMutation = useFollowUser();
 

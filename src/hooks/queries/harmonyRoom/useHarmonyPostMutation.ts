@@ -14,7 +14,7 @@ import { HARMONY_POST_QK } from './useHarmonyPostQueries';
 // ======================================
 // #1) 게시글 삭제
 // ======================================
-export const useDeleteHarmonyPost = () => {
+export const useDeleteHarmonyPost = (harmonyId: string) => {
   const qc = useQueryClient();
 
   return useMutation({
@@ -23,6 +23,8 @@ export const useDeleteHarmonyPost = () => {
     onSuccess: (_data, postId) => {
       qc.invalidateQueries({ queryKey: HARMONY_POST_QK.post });
       qc.invalidateQueries({ queryKey: HARMONY_POST_QK.detail(postId) });
+      qc.invalidateQueries({ queryKey: HarmonyQueryKeys.roomPosts(harmonyId) });
+      qc.refetchQueries({ queryKey: HarmonyQueryKeys.roomPosts(harmonyId) });
     },
 
     onError: err => {

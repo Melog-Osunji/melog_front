@@ -35,7 +35,7 @@ export type HarmonyStackParamList = {
   [harmonyNavigations.HARMONY_POST]: {roomID: string};
   [harmonyNavigations.HARMONY_SEARCH]: undefined;
   [harmonyNavigations.HARMONY_SEARCH_RESULT]: {searchKeyword: string};
-  [harmonyNavigations.HARMONY_FEED]: {postId: string};
+  [harmonyNavigations.HARMONY_FEED]: {postId: string, roomID:string};
   [harmonyNavigations.HARMONY_PERSONAL]: {userId: string};
 
 };

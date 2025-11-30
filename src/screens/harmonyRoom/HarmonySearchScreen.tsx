@@ -79,7 +79,7 @@ function HarmonySearchScreen({navigation}: IntroScreenProps) {
           <View style={styles.header}>
             <IconButton<HarmonyStackParamList>
               imageSource={require('@/assets/icons/post/BackArrow.png')}
-              target={[harmonyNavigations.HARMONY_HOME]}
+              target={'goBack'}
               size={24}
             />
             <SearchInputField

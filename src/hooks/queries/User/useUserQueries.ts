@@ -19,11 +19,11 @@ export const useCheckNickname = (nickname: string) => {
 };
 
 // 해당 유저 팔로잉 여부 조회
-export const useGetUserFollowing = (nickname: string) => {
+export const useGetUserFollowing = (targetId: string) => {
   return useQuery({
-    queryKey: USE_USER_QK.following(nickname),
-    queryFn: () => getUserFollowing(nickname),
-    enabled: !!nickname,
+    queryKey: USE_USER_QK.following(targetId),
+    queryFn: () => getUserFollowing(targetId),
+    enabled: !!targetId,
     retry: false,
     staleTime: 0,
   });

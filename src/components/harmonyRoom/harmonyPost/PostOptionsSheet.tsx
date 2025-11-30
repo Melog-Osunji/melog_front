@@ -18,6 +18,7 @@ type Props = {
   onHideFeed?: (postId: string) => void;
   onBlock?: (userId: string) => void;
   onReport?: (postId: string) => void;
+  type?: 'none' | 'header';
 };
 
 const PostOptionsSheet: React.FC<Props> = ({
@@ -29,6 +30,7 @@ const PostOptionsSheet: React.FC<Props> = ({
   onHideFeed,
   onBlock,
   onReport,
+  type
 }) => {
   const [visible, setVisible] = useState(false);
   const [blockPopupVisible, setBlockPopupVisible] = useState(false);
@@ -45,7 +47,7 @@ const PostOptionsSheet: React.FC<Props> = ({
     <>
       <IconButton
         imageSource={require('@/assets/icons/post/Info.png')}
-        size={24}
+        size={type === 'header' ? 32 : 24}
         onPress={() => setVisible(true)}
       />
 

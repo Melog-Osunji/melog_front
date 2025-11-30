@@ -27,6 +27,8 @@ import { RefreshControl } from 'react-native';
 import { useRequestJoinHarmonyRoom } from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
 import { useQueryClient } from '@tanstack/react-query';
 import {useUserInfo} from '@/hooks/common/useUserInfo';
+import {showToast} from '@/components/common/ToastService';
+import GradientBg from '@/components/common/styles/GradientBg';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
@@ -51,6 +53,8 @@ export default function HarmonyPageScreen() {
     const [selectTab, setSelectTab] = useState<'rcmd' | 'popular'>('rcmd');
     // 상태: 가입 상태(버튼 문구/노출 제어), 팝업 모드
     const [popupMode, setPopupMode] = useState<'joined' | 'applied'>('joined');
+    const [hiddenPosts, setHiddenPosts] = useState<string[]>([]);
+    const [blockedUsers, setBlockedUsers] = useState<string[]>([]);
 
     const {
       userInfo,
@@ -148,8 +152,6 @@ export default function HarmonyPageScreen() {
       [activeFeedRaw]
     );
 
-    const isEmpty = activeFeed.length === 0;
-
     // info로 이동
     const handlePress = () => {
         navigation.navigate(harmonyNavigations.HARMONY_INFO, { roomID: roomID, roomData: roomInfo });
@@ -189,10 +191,40 @@ export default function HarmonyPageScreen() {
     };
 
     // 폐쇄하기 확인
-      const handleConfirmExit = () => {
-          setShowExitPopup(false);
-          navigation.goBack();
-      };
+    const handleConfirmExit = () => {
+        setShowExitPopup(false);
+        navigation.goBack();
+    };
+
+
+    // 복사본으로 관리
+    const [posts, setPosts] = useState<PostWithUserDTO[]>([]);
+    const handleHidePost = useCallback((postId: string) => {
+        setHiddenPosts(prev => [...prev, postId]);
+        showToast('피드를 숨겼습니다.', 'success');
+    }, []);
+
+    const handleBlockUser = useCallback((userId: string) => {
+        setBlockedUsers(prev => [...prev, userId]);
+        showToast('사용자를 차단했습니다.', 'success');
+    }, []);
+
+    // 신고 처리: 신고 후 해당 포스트를 목록에서 제거
+    const handleReportPost = useCallback((postId: string) => {
+        setHiddenPosts(prev => [...prev, postId]);
+        showToast('신고가 접수되었습니다. 해당 피드를 숨깁니다.', 'success');
+        // TODO: 서버 신고 API 호출이 필요하면 여기서 실행
+    }, []);
+
+    const filteredFeed = useMemo(() => {
+      return activeFeed.filter(
+        item =>
+          !hiddenPosts.includes(item.id) &&
+          !blockedUsers.includes(item.user?.id ?? '')
+      );
+    }, [activeFeed, hiddenPosts, blockedUsers]);
+
+    const isEmpty = filteredFeed.length === 0;
 
     if ((infoLoading || postsLoading || memberLoading) && !roomInfo && !postsDTO) {
       return (
@@ -203,12 +235,7 @@ export default function HarmonyPageScreen() {
     }
 
     return (
-        <LinearGradient
-          colors={['#EFFAFF', colors.WHITE]} // 원하는 색 배열
-          start={{x: 1, y: 0}}
-          end={{x: 1, y: 0.3}}
-          style={styles.container}
-        >
+        <GradientBg>
         <SafeAreaView style={{flex: 1, width: SCREEN_W, position: 'relative'}}>
             <ScrollView
                 style={{flex: 1}}
@@ -310,25 +337,18 @@ export default function HarmonyPageScreen() {
                   </View>
                 ) : (
                     <View>
-                    {activeFeed.map(item => (
+                    {filteredFeed.map(item => (
                       <PostCard
                         key={item.id}
                         post={item}
                         user={item.user}
                         harmonyId={roomID}
+                        onHide={handleHidePost}
+                        onBlock={handleBlockUser}
+                        onReport={handleReportPost}
                       />
                     ))}
                     </View>
-//                     <FlatList
-//                       data={activeFeed}
-//                       keyExtractor={(item) => item.id}
-//                       renderItem={({ item }) => (
-//                           <PostCard post={item} user={item.user!} />
-//                       )}
-//                       showsVerticalScrollIndicator={false}
-//                       contentContainerStyle={{ paddingBottom: 20 }}
-//                       ListHeaderComponent={<View style={{ height: 0 }} />}
-//                     />
                 )}
 
 
@@ -391,7 +411,7 @@ export default function HarmonyPageScreen() {
           btnTextColor={colors.WHITE}
         />
         </SafeAreaView>
-    </LinearGradient>
+    </GradientBg>
     );
 };
 

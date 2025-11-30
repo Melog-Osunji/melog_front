@@ -6,3 +6,8 @@ export type ProfileDTO = {
   platform: string;
   profileImg?: string;
 };
+
+export type followingCheckDTO = {
+  result: boolean;
+  status: "REQUESTED" | "ACCEPTED" | "BLOCKED" | "UNFOLLOW";
+};

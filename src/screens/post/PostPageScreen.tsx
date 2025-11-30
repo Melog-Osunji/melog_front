@@ -59,10 +59,7 @@ const PostPageScreen = ({navigation, route}: PostPageScreenProp) => {
     } = usePostComments(postId);
 
     const { data: followingData } = useGetUserFollowing(
-      postData?.user?.nickName ?? '',
-      {
-        enabled: !!postData?.user?.nickName,
-      }
+      postData?.user?.id ?? ''
     );
 
     const followMutation = useFollowUser();

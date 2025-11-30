@@ -1,183 +1,239 @@
-import React from 'react';
-import {Image, Text, View, StyleSheet, TouchableOpacity} from 'react-native';
-import {colors} from '@/constants';
-import {PostDTO, UserDTO} from '@/types';
-import YouTubeEmbed from '@/components/common/YouTubeEmbed';
-import PostStats from '@/components/harmonyRoom/harmonyPost/PostStats';
-import PostOptionsSheet from '@/components/harmonyRoom/harmonyPost/PostOptionsSheet';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
-import {harmonyNavigations} from '@/constants';
+    import React, {useState} from 'react';
+    import {Image, Text, View, StyleSheet, TouchableOpacity} from 'react-native';
+    import {colors} from '@/constants';
+    import {PostDTO, UserDTO} from '@/types';
+    import {useAuthContext} from '@/contexts/AuthContext';
+    import YouTubeEmbed from '@/components/common/YouTubeEmbed';
+    import PostStats from '@/components/harmonyRoom/harmonyPost/PostStats';
+    import PostOptionsSheet from '@/components/harmonyRoom/harmonyPost/PostOptionsSheet';
+    import PostOptionsBtn from '@/components/post/PostOptionsBtn';
+    import {useNavigation} from '@react-navigation/native';
+    import {StackNavigationProp} from '@react-navigation/stack';
+    import {HarmonyStackParamList} from '@/navigations/stack/HarmonyStackNavigator';
+    import {harmonyNavigations} from '@/constants';
+    import {useDeleteHarmonyPost} from '@/hooks/queries/harmonyRoom/useHarmonyPostMutation';
+    import {showToast} from '@/components/common/ToastService';
+    import CheckPopup from '@/components/common/CheckPopup';
 
-type PostCardNavigationProp = StackNavigationProp<HarmonyStackParamList>;
+    type PostCardNavigationProp = StackNavigationProp<HarmonyStackParamList>;
 
-type PostCardProps = {
-  post: PostDTO;
-  user: UserDTO;
-  harmonyId: string;
-};
+    type PostCardProps = {
+      post: PostDTO;
+      user: UserDTO;
+      harmonyId: string;
+      onHide?: (postId: string) => void;
+      onBlock?: (userId: string) => void;
+      onReport?: (postId: string) => void;
+    };
 
-function PostCard({post, user, harmonyId}: PostCardProps) {
-  const navigation = useNavigation<PostCardNavigationProp>();
+    function PostCard({post, user, harmonyId, onHide, onBlock, onReport}: PostCardProps) {
+      const {user: authUser} = useAuthContext();
+      const navigation = useNavigation<PostCardNavigationProp>();
 
-  const handlePress = () => {
-    const routes = navigation.getState()?.routeNames ?? [];
+      const deletePostMutation = useDeleteHarmonyPost(harmonyId);
+      const [confirmVisible, setConfirmVisible] = useState(false);
 
-    navigation.navigate(harmonyNavigations.HARMONY_FEED, { postId: post.id, harmonyId: harmonyId });
-  };
 
-  console.log(post.id);
-  return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={handlePress}
-      activeOpacity={0.9}
-      delayPressIn={0}>
-      {/* 사용자 정보 */}
-      <View style={styles.header}>
-        <View style={styles.userWrapper}>
-          <Image
-            source={
-              user?.profileImg
-                ? { uri: user.profileImg }
-                : require('@/assets/icons/common/EmptyProfile.png')
-            }
-            style={styles.profileImage}
-          />
-          <View style={styles.userInfo}>
-            <Text style={styles.nickName}>{user.nickName}</Text>
-            <Text style={styles.timeText}>{post.createdAgo}</Text>
+      const handlePostDelete = (postId: string) => {
+        deletePostMutation.mutate(postId, {
+          onSuccess: () => {
+            console.log('[PostCard] post deleted:', postId);
+            showToast('포스트가 삭제되었습니다.', 'success');
+          },
+          onError: () => {
+            showToast('포스트 삭제에 실패했습니다.', 'error');
+          },
+        });
+      };
+
+      const handlePress = () => {
+        const routes = navigation.getState()?.routeNames ?? [];
+
+        navigation.navigate(harmonyNavigations.HARMONY_FEED, { postId: post.id, roomID: harmonyId });
+      };
+
+      return (
+        <TouchableOpacity
+          style={styles.card}
+          onPress={handlePress}
+          activeOpacity={0.9}
+          delayPressIn={0}>
+          {/* 사용자 정보 */}
+          <View style={styles.header}>
+            <View style={styles.userWrapper}>
+              <Image
+                source={
+                  user?.profileImg
+                    ? { uri: user.profileImg }
+                    : require('@/assets/icons/common/EmptyProfile.png')
+                }
+                style={styles.profileImage}
+              />
+              <View style={styles.userInfo}>
+                <Text style={styles.nickName}>{user.nickName}</Text>
+                <Text style={styles.timeText}>{post.createdAgo}</Text>
+              </View>
+            </View>
+            {authUser?.id === user.id ? (
+                // onPress opens confirm popup; actual deletion runs when popup "삭제" pressed
+                <PostOptionsBtn onPress={() => setConfirmVisible(true)} />
+              ) : (
+                <PostOptionsSheet
+                  user={user}
+                  postId={post.id}
+                  onHide={pid => onHide?.(pid)}
+                  onBlock={uid => onBlock?.(uid)}
+                  onReport={pid => onReport?.(pid)}
+                />
+              )}
           </View>
-        </View>
-        <PostOptionsSheet user={user} postId={post.id} />
-      </View>
 
-      {/* 본문 */}
-      <Text style={styles.content}>{post.content}</Text>
+          {/* 본문 */}
+          <Text style={styles.content}>{post.content}</Text>
 
-      {/* 태그 */}
-      <View style={styles.tags}>
-        {post.tags.map((tag, index) => (
-          <Text key={index} style={styles.tag}>
-            #{tag}
-          </Text>
-        ))}
-      </View>
+          {/* 태그 */}
+          <View style={styles.tags}>
+            {post.tags.map((tag, index) => (
+              <Text key={index} style={styles.tag}>
+                #{tag}
+              </Text>
+            ))}
+          </View>
 
-      {/* 유튜브 영상 */}
-      {post?.mediaUrl &&
-        (post.mediaUrl.includes('youtube.com') ||
-          post.mediaUrl.includes('youtu.be')) && (
-          <YouTubeEmbed url={post.mediaUrl} />
-        )}
+          {/* 유튜브 영상 */}
+          {post?.mediaUrl &&
+            (post.mediaUrl.includes('youtube.com') ||
+              post.mediaUrl.includes('youtu.be')) && (
+              <YouTubeEmbed url={post.mediaUrl} />
+            )}
 
-      {/* 상태바 */}
-      <PostStats
-        id={post.id}
-        likeCount={post.likeCount}
-        commentCount={post.commentCount}
-        visibleStats={['like', 'share', 'bookmark']}
-        initialIsLiked={post.isLike}
-        isBookmark={post.isBookmark}
-      />
+          {/* 상태바 */}
+          <PostStats
+            id={post.id}
+            likeCount={post.likeCount}
+            commentCount={post.commentCount}
+            visibleStats={['like', 'share', 'bookmark']}
+            initialIsLiked={post.isLike}
+            isBookmark={post.isBookmark}
+          />
 
-      {/* 베스트 댓글 */}
-      {post.bestComment && (
-        <View style={styles.bestCommentContainer}>
-          {/* <Image
-            source={{uri: post.bestComment.profileImg}}
-            style={styles.bestCommentProfileImage}
-          /> */}
-          <Text
-            style={styles.bestCommentContent}
-            numberOfLines={1}
-            ellipsizeMode="tail">
-            {post.bestComment.content}
-          </Text>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-}
+          {/* 베스트 댓글 */}
+          {post.bestComment && (
+            <View style={styles.bestCommentContainer}>
+               <Image
+                source={{uri: post.bestComment.profileImg}}
+                style={styles.bestCommentProfileImage}
+              />
+              <Text
+                style={styles.bestCommentContent}
+                numberOfLines={1}
+                ellipsizeMode="tail">
+                {post.bestComment.content}
+              </Text>
+            </View>
+          )}
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  userWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  profileImage: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-  },
-  userInfo: {
-    color: colors.BLACK,
-    marginLeft: 8,
-  },
-  nickName: {
-    fontWeight: 'bold',
-    color: colors.BLACK,
-  },
-  timeText: {
-    color: '#888',
-    fontSize: 12,
-  },
-  content: {
-    fontSize: 14,
-    color: colors.BLACK,
-  },
-  tags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  tag: {
-    marginRight: 8,
-    color: colors.BLUE_600,
-  },
-  bestCommentContainer: {
-    backgroundColor: '#F5F7F8',
-    borderRadius: 8,
-    padding: 12,
-    paddingTop: 14,
-    paddingBottom: 12,
-    gap: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  bestCommentProfileImage: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-  },
-  bestCommentLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: colors.GRAY_500,
-    lineHeight: 16,
-  },
-  bestCommentContent: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '400',
-    color: colors.BLACK,
-    lineHeight: 20,
-    marginLeft: 8,
-  },
-});
+          {/* 삭제 확인 팝업 */}
+          <CheckPopup
+            visible={confirmVisible}
+            onClose={() => {
+                setConfirmVisible(false);
+                handlePostDelete(post.id);
+            }}
+            onExit={() => {
+                setConfirmVisible(false);
+            }}
+            iconImg={require('@/assets/icons/common/error_red.png')}
+            title={'이 피드를 삭제할까요?'}
+            leftBtnColor={colors.GRAY_50}
+            rightBtnColor={colors.WHITE}
+            leftBtnTextColor={colors.GRAY_500}
+            rightBtnTextColor={colors.ERROR_RED}
+            leftBtnText={'취소'}
+            rightBtnText={'삭제'}
+            rightBtnBorderColor={colors.ERROR_RED}
+          />
+        </TouchableOpacity>
+      );
+    }
 
-export default PostCard;
+    const styles = StyleSheet.create({
+      card: {
+        backgroundColor: '',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        gap: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e0e0e0',
+      },
+      header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 4,
+      },
+      userWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+      },
+      profileImage: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+      },
+      userInfo: {
+        color: colors.BLACK,
+        marginLeft: 8,
+      },
+      nickName: {
+        fontWeight: 'bold',
+        color: colors.BLACK,
+      },
+      timeText: {
+        color: '#888',
+        fontSize: 12,
+      },
+      content: {
+        fontSize: 14,
+        color: colors.BLACK,
+      },
+      tags: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+      },
+      tag: {
+        marginRight: 8,
+        color: colors.BLUE_600,
+      },
+      bestCommentContainer: {
+        backgroundColor: '#F5F7F8',
+        borderRadius: 8,
+        padding: 12,
+        paddingTop: 14,
+        paddingBottom: 12,
+        gap: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+      },
+      bestCommentProfileImage: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+      },
+      bestCommentLabel: {
+        fontSize: 12,
+        fontWeight: '500',
+        color: colors.GRAY_500,
+        lineHeight: 16,
+      },
+      bestCommentContent: {
+        flex: 1,
+        fontSize: 14,
+        fontWeight: '400',
+        color: colors.BLACK,
+        lineHeight: 20,
+        marginLeft: 8,
+      },
+    });
+
+    export default PostCard;

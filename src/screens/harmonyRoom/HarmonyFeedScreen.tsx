@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -25,10 +25,16 @@ import CommentList from '@/components/harmonyRoom/harmonyPost/CommentList';
 import CommentBar from '@/components/harmonyRoom/harmonyPost/CommentBar';
 import IconButton from '@/components/common/IconButton';
 import GradientBg from '@/components/common/styles/GradientBg';
-import PostOptionsSheet from '@/components/harmonyRoom/harmonyPost/PostOptionsSheet';
 import {useHarmonyPostDetail, useHarmonyPostComments} from '@/hooks/queries/harmonyRoom/useHarmonyPostQueries';
-import {useUserProfile} from '@/hooks/queries/User/useUserQueries';
+import {useDeleteHarmonyPost} from '@/hooks/queries/harmonyRoom/useHarmonyPostMutation';
+import {useUserProfile, useGetUserFollowing} from '@/hooks/queries/User/useUserQueries';
+import {useFollowUser} from '@/hooks/queries/User/useUserMutations';
 import {PostDTO, UserDTO} from '@/types';
+import CustomButton from '@/components/common/CustomButton';
+import {showToast} from '@/components/common/ToastService';
+import PostOptionsSheet from '@/components/harmonyRoom/harmonyPost/PostOptionsSheet';
+import PostOptionsBtn from '@/components/post/PostOptionsBtn';
+import CheckPopup from '@/components/common/CheckPopup';
 
 type HarmonyPageScreenProp = StackScreenProps<
   HarmonyStackParamList,
@@ -36,7 +42,7 @@ type HarmonyPageScreenProp = StackScreenProps<
 >;
 
 const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
-  const {postId} = route.params;
+  const {postId, roomID} = route.params;
   useHideTabBarOnFocus();
 
   // API 호출
@@ -46,6 +52,8 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
     error: postError,
     isError: isPostError,
   } = useHarmonyPostDetail(postId);
+
+  console.log(postData);
 
   const {
     data: commentsData,
@@ -59,6 +67,46 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
     error: userError,
     isError: isUserError,
   } = useUserProfile();
+
+  const { data: followingData } = useGetUserFollowing(
+     postData?.user?.id ?? ''
+  );
+
+  const followMutation = useFollowUser();
+  const deletePostMutation = useDeleteHarmonyPost(roomID);
+
+  const [isFollow, setIsFollow] = useState<boolean>(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+
+  const handleToggleFollow = useCallback(() => {
+    if (!postData?.user?.id) return;
+
+    const previous = isFollow;
+    setIsFollow(!previous);
+
+    followMutation.mutate(postData.user.id, {
+      onError: () => {
+        setIsFollow(previous);
+        showToast(
+          previous ? '언팔로우에 실패했어요.' : '팔로우에 실패했어요.',
+          'error',
+        );
+      },
+    });
+  }, [followMutation, postData?.user?.id, isFollow]);
+
+  const handlePostDelete = (postId: string) => {
+    deletePostMutation.mutate(postId, {
+        onSuccess: () => {
+            console.log('[HarmonyFeed] post deleted:', postId);
+            showToast('포스트가 삭제되었습니다.', 'success');
+        },
+        onError: () => {
+            showToast('포스트 삭제에 실패했습니다.', 'error');
+        },
+    });
+    navigation.navigate(harmonyNavigations.HARMONY_PAGE, {roomID: roomID});
+  };
 
   // 로딩 상태 처리
   if (postLoading) {
@@ -101,11 +149,13 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
             <IconButton
               imageSource={require('@/assets/icons/post/Search.png')}
               size={32}
+              target={[harmonyNavigations.HARMONY_SEARCH]}
+              style={{ marginRight: 8 }}
             />
-            <IconButton
-              imageSource={require('@/assets/icons/post/Info.png')}
-              size={32}
-            />
+            { user.id === userData.id
+                ? (<PostOptionsBtn onPress={() => setConfirmVisible(true)} />)
+                : (<PostOptionsSheet post={postData} user={user} type={'header'}/>)
+            }
           </View>
         </View>
 
@@ -142,7 +192,19 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
                   <Text style={styles.timeText}>{postData.createdAgo}</Text>
                 </View>
               </Pressable>
-              <PostOptionsSheet user={user} postId={postId} />
+              {user.id === userData.id
+              ? null
+              : (
+                  <CustomButton
+                      label={isFollow ? '언팔로우' : '팔로우'}
+                      size="small"
+                      onPress={handleToggleFollow}
+                      style={{
+                        backgroundColor: isFollow ? colors.GRAY_200 : colors.BLUE_400,
+                      }}
+                    />
+                  )
+              }
             </View>
 
             {/* 본문 */}
@@ -198,6 +260,27 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
           profileUrl={userData?.profileImg}
         />
       </GradientBg>
+
+      {/* 삭제 확인 팝업 */}
+      <CheckPopup
+        visible={confirmVisible}
+        onClose={() => {
+            setConfirmVisible(false);
+            handlePostDelete(postId);
+        }}
+        onExit={() => {
+            setConfirmVisible(false);
+        }}
+        iconImg={require('@/assets/icons/common/error_red.png')}
+        title={'이 피드를 삭제할까요?'}
+        leftBtnColor={colors.GRAY_50}
+        rightBtnColor={colors.WHITE}
+        leftBtnTextColor={colors.GRAY_500}
+        rightBtnTextColor={colors.ERROR_RED}
+        leftBtnText={'취소'}
+        rightBtnText={'삭제'}
+        rightBtnBorderColor={colors.ERROR_RED}
+      />
     </SafeAreaView>
   );
 };
@@ -334,6 +417,7 @@ const headerStyles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
+    paddingRight:12,
     borderBottomWidth: 1,
     borderBottomColor: colors.GRAY_100,
     backgroundColor: colors.WHITE,
@@ -344,7 +428,7 @@ const headerStyles = StyleSheet.create({
   rightButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+//     gap: 8,
   },
   icon: {
     width: 32,
