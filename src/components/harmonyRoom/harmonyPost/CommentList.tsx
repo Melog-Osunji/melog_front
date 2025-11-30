@@ -7,12 +7,16 @@ interface CommentListProps {
   commentsData: CommentsDTO;
   totalCommentCount: number;
   postId: string;
+  userId: string;
+  onReply?: (target: {commentId: string; nickname: string}) => void;
 }
 
 const CommentList = ({
   commentsData,
   totalCommentCount,
   postId,
+  userId,
+  onReply
 }: CommentListProps) => {
   const comments = commentsData?.comments || [];
   return (
@@ -26,7 +30,8 @@ const CommentList = ({
           <CommentItem
             comment={comment}
             postId={postId}
-            userId={comment.userID}
+            userId={userId}
+            onReply={onReply}
           />
         </View>
       ))}

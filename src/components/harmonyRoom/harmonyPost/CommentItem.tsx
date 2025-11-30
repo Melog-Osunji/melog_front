@@ -3,13 +3,22 @@ import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
 import type {CommentDTO} from '@/types';
 import PostOptionsSheet from '@/components/harmonyRoom/harmonyPost/PostOptionsSheet';
-import {useToggleHarmonyCommentLike} from '@/hooks/queries/harmonyRoom/useHarmonyPostMutation.ts';
+import {useToggleHarmonyCommentLike, useDeleteHarmonyComment} from '@/hooks/queries/harmonyRoom/useHarmonyPostMutation.ts';
+import PostOptionsBtn from '@/components/post/PostOptionsBtn';
+import {showToast} from '@/components/common/ToastService';
+import CheckPopup from '@/components/common/CheckPopup';
+import PostReportSheet from '@/components/post/PostReportSheet';
 
 interface CommentItemProps {
   comment: CommentDTO;
   isReply?: boolean;
   postId: string;
   userId?: string;
+  onReply?: (target: {
+    commentId?: string;
+    id?: string;
+    nickname: string;
+  }) => void;
 }
 
 const CommentItem = ({
@@ -17,15 +26,20 @@ const CommentItem = ({
   isReply = false,
   postId,
   userId,
+  onReply,
 }: CommentItemProps) => {
   const [isLiked, setIsLiked] = useState(comment.isLike);
   const [currentLikeCount, setCurrentLikeCount] = useState<number>(
     comment.likeCount,
   );
-
-  console.log(comment);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [reportVisible, setReportVisible] = useState(false);
 
   const {mutate: toggleLike} = useToggleHarmonyCommentLike();
+  const deleteCommentMutation = useDeleteHarmonyComment();
+
+      console.log('[co]', comment.replies);
+
 
   const handleLikePress = () => {
     // 이전 상태 보관 (롤백용)
@@ -70,12 +84,34 @@ const CommentItem = ({
     );
   };
 
+  const handleCommentDelete = () => {
+      deleteCommentMutation.mutate(
+        { postId, commentId: comment.id },
+        {
+        onSuccess: () => {
+          console.log('[Comment] comment deleted:', comment.id);
+          showToast('댓글이 삭제되었습니다.', 'success');
+        },
+        onError: () => {
+          showToast('댓글 삭제에 실패했습니다.', 'error');
+        },
+      });
+    };
+
+  // 클릭하여 답글(또는 리플) 트리거
+  const handleContentPress = () => {
+    onReply?.({commentId: comment.id, nickname: comment.userNickname ?? 'user'});
+  };
+
   return (
     <>
       <View style={[styles.commentContainer, isReply && styles.replyContainer]}>
         <View style={styles.commentContent}>
           {/* 프로필 섹션 */}
-          <View style={styles.profileSection}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={styles.profileSection}
+            onPress={handleContentPress}>
             <Image
               source={{uri: comment.userProfileImgLink}}
               style={styles.profileImage}
@@ -88,7 +124,7 @@ const CommentItem = ({
               </View>
               <Text style={styles.commentText}>{comment.content}</Text>
             </View>
-          </View>
+          </TouchableOpacity>
 
           {/* 액션 버튼들 */}
           <View style={styles.actionButtons}>
@@ -111,34 +147,68 @@ const CommentItem = ({
                 style={styles.actionIcon}
               />
               <Text style={styles.actionText}>
-                {comment.recomments ? comment.recomments.length : 0}
+                {comment.replies ? comment.replies.length : 0}
               </Text>
             </View>
           </View>
         </View>
 
         {/* 더보기 버튼 */}
-        <PostOptionsSheet
-          userId={userId}
-          userNickname={comment.nickname}
-          postId={postId}
-        />
+        {comment.userId === userId
+            ? (<PostOptionsBtn onPress={() => setConfirmVisible(true)} />)
+            : (<PostOptionsBtn onPress={() => setReportVisible(true)} btnText={'신고하기'} btnIcon={require('@/assets/icons/common/trash.png')}/> )
+        }
       </View>
 
       {/* 대댓글 렌더링 */}
-      {comment.recomments && comment.recomments.length > 0 && (
+      {comment.replies && comment.replies.length > 0 && (
         <View>
-          {comment.recomments.map((reply, index) => (
+          {comment.replies.map((reply, index) => (
             <CommentItem
               key={`${reply.userID}-${index}`}
               comment={reply}
               isReply={true}
               postId={postId}
-              userId={reply.userID}
+              userId={userId}
+              onReply={onReply}
             />
           ))}
         </View>
       )}
+
+        {/* 삭제 확인 팝업 */}
+        <CheckPopup
+          visible={confirmVisible}
+          onClose={() => {
+              setConfirmVisible(false);
+              handleCommentDelete(comment.id);
+          }}
+          onExit={() => {
+              setConfirmVisible(false);
+          }}
+          iconImg={require('@/assets/icons/common/error_red.png')}
+          title={'이 댓글를 삭제할까요?'}
+          leftBtnColor={colors.GRAY_50}
+          rightBtnColor={colors.WHITE}
+          leftBtnTextColor={colors.GRAY_500}
+          rightBtnTextColor={colors.ERROR_RED}
+          leftBtnText={'취소'}
+          rightBtnText={'삭제'}
+          rightBtnBorderColor={colors.ERROR_RED}
+        />
+
+       {/* 신고 시트 */}
+        <PostReportSheet
+            visible={reportVisible}
+            onClose={() => setReportVisible(false)}
+            postId={postId}
+            commentId={comment.id}
+            reportedUserId={comment.userID ?? null}
+            onReport={() => {
+              setReportVisible(false);
+              showToast('신고가 접수되었습니다.', 'success');
+            }}
+        />
     </>
   );
 };

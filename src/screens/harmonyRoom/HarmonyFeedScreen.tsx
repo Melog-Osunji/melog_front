@@ -68,15 +68,24 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
     isError: isUserError,
   } = useUserProfile();
 
-  const { data: followingData } = useGetUserFollowing(
-     postData?.user?.id ?? ''
-  );
-
+  const followingQuery = useGetUserFollowing(postData?.user?.id ?? '');
+  const followingData = followingQuery?.data;
   const followMutation = useFollowUser();
   const deletePostMutation = useDeleteHarmonyPost(roomID);
 
   const [isFollow, setIsFollow] = useState<boolean>(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
+
+  // followingData 변경 시 isFollow 즉시 갱신
+  useEffect(() => {
+    if (!followingData) return;
+    console.log(
+      '[PostPageScreen] followingData 변경, isFollow 설정:',
+      followingData,
+    );
+    setIsFollow(false);
+    if (followingData.status === 'REQUESTED') setIsFollow(true);
+  }, [followingData]);
 
   const handleToggleFollow = useCallback(() => {
     if (!postData?.user?.id) return;
@@ -95,10 +104,40 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
     });
   }, [followMutation, postData?.user?.id, isFollow]);
 
+  type ReplyTarget = {id: string; nickname: string; commentId?: string} | null;
+  const [replyTarget, setReplyTarget] = useState<ReplyTarget>(null);
+
+  const handleReply = useCallback(
+      (target: {commentId?: string; id?: string; nickname: string}) => {
+        const id = target.id ?? target.commentId;
+        if (!id) return;
+        setReplyTarget({
+          id,
+          nickname: target.nickname,
+          commentId: target.commentId ?? undefined,
+        });
+      },
+      [],
+  );
+  const handleCancelReply = useCallback(() => {
+      setReplyTarget(null);
+  }, []);
+
+  const handleSendComment = useCallback(
+      (
+        text: string,
+        reply?: {id: string; nickname: string; commentId?: string} | null,
+      ) => {
+        console.log('[HarmonyFeedScreen] send comment', {text, reply});
+        setReplyTarget(null);
+      },
+      [route.params.postId],
+  );
+
   const handlePostDelete = (postId: string) => {
     deletePostMutation.mutate(postId, {
         onSuccess: () => {
-            console.log('[HarmonyFeed] post deleted:', postId);
+            console.log('[HarmonyFeedScreen] post deleted:', postId);
             showToast('포스트가 삭제되었습니다.', 'success');
         },
         onError: () => {
@@ -109,7 +148,7 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
   };
 
   // 로딩 상태 처리
-  if (postLoading) {
+  if (postLoading && userLoading && commentsLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
@@ -152,8 +191,8 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
               target={[harmonyNavigations.HARMONY_SEARCH]}
               style={{ marginRight: 8 }}
             />
-            { user.id === userData.id
-                ? (<PostOptionsBtn onPress={() => setConfirmVisible(true)} />)
+            { user.id === userData?.id
+                ? (<PostOptionsBtn onPress={() => setConfirmVisible(true)} type={'header'}/>)
                 : (<PostOptionsSheet post={postData} user={user} type={'header'}/>)
             }
           </View>
@@ -246,6 +285,8 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
                 commentsData={commentsData}
                 totalCommentCount={postData.commentCount || 0}
                 postId={postId}
+                userId={userData.id}
+                onReply={handleReply}
               />
             ) : null}
           </View>
@@ -254,10 +295,10 @@ const HarmonyFeedScreen = ({navigation, route}: HarmonyPageScreenProp) => {
         {/* 댓글 입력 바 */}
         <CommentBar
           postId={postId}
-          onSend={(text: string) => {
-            console.log('[PostPageScreen] onSend comment:', text);
-          }}
+          replyTarget={replyTarget}
+          onSend={handleSendComment}
           profileUrl={userData?.profileImg}
+          onCancelReply={handleCancelReply}
         />
       </GradientBg>
 
