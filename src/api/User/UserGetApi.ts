@@ -32,3 +32,9 @@ export const fetchUserProfile = async () => {
   );
   return res.data.data;
 };
+
+// 회원 탈퇴
+export const resignUser = async () => {
+  const res = await instance.post<BaseResponse<null>>(`/api/resignation`);
+  return res.data.data;
+};

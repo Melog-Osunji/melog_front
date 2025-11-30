@@ -24,6 +24,6 @@ export const socialLoginButtons: SocialLoginButtonType[] = [
     text: '네이버로 로그인하기',
     backgroundColor: '#03C75A',
     textColor: '#fff',
-    enabled: false,
+    enabled: true,
   },
 ];
