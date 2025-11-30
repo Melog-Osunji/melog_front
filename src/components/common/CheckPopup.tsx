@@ -19,7 +19,7 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   onExit: () => void;
-  onConfirm?: () => void; // NEW: confirm callback for right button
+  onConfirm?: () => void; // confirm callback for right button
   iconImg?: any; // 아이콘 이미지
   title?: string;
   content?: string;
@@ -31,6 +31,7 @@ interface Props {
   rightBtnText: string;
   leftBtnBorderColor?: ColorValue;
   rightBtnBorderColor?: ColorValue;
+  hideLeftButton?: boolean; // left 버튼 숨기기 옵션
 }
 
 export default function CheckPopup({
@@ -49,6 +50,7 @@ export default function CheckPopup({
   rightBtnText,
   leftBtnBorderColor,
   rightBtnBorderColor,
+  hideLeftButton = false,
 }: Props) {
   return (
     <Modal
@@ -64,41 +66,63 @@ export default function CheckPopup({
           {content && <Text style={styles.subtitle}>{content}</Text>}
 
           <View style={styles.buttonRow}>
-            <Pressable
-              style={[
-                styles.button,
-                {
-                  backgroundColor: leftBtnColor,
-                  borderWidth: leftBtnBorderColor ? 1 : 0,
-                  borderColor: leftBtnBorderColor,
-                },
-              ]}
-              onPress={onExit}>
-              <Text style={[styles.exitText, {color: leftBtnTextColor}]}>
-                {leftBtnText}
-              </Text>
-            </Pressable>
+            {hideLeftButton ? (
+              <Pressable
+                style={[
+                  styles.singleButton,
+                  {
+                    backgroundColor: rightBtnColor,
+                    borderWidth: rightBtnBorderColor ? 1 : 0,
+                    borderColor: rightBtnBorderColor,
+                  },
+                ]}
+                onPress={() => {
+                  if (onConfirm) onConfirm();
+                  else onClose();
+                }}>
+                <Text style={[styles.exitText, {color: rightBtnTextColor}]}>
+                  {rightBtnText}
+                </Text>
+              </Pressable>
+            ) : (
+              <>
+                <Pressable
+                  style={[
+                    styles.button,
+                    {
+                      backgroundColor: leftBtnColor,
+                      borderWidth: leftBtnBorderColor ? 1 : 0,
+                      borderColor: leftBtnBorderColor,
+                    },
+                  ]}
+                  onPress={onExit}>
+                  <Text style={[styles.exitText, {color: leftBtnTextColor}]}>
+                    {leftBtnText}
+                  </Text>
+                </Pressable>
 
-            <Pressable
-              style={[
-                styles.button,
-                {
-                  backgroundColor: rightBtnColor,
-                  borderWidth: rightBtnBorderColor ? 1 : 0,
-                  borderColor: rightBtnBorderColor,
-                },
-              ]}
-              onPress={() => {
-                if (onConfirm) {
-                  onConfirm();
-                } else {
-                  onClose();
-                }
-              }}>
-              <Text style={[styles.exitText, {color: rightBtnTextColor}]}>
-                {rightBtnText}
-              </Text>
-            </Pressable>
+                <Pressable
+                  style={[
+                    styles.button,
+                    {
+                      backgroundColor: rightBtnColor,
+                      borderWidth: rightBtnBorderColor ? 1 : 0,
+                      borderColor: rightBtnBorderColor,
+                    },
+                  ]}
+                  onPress={() => {
+                    if (onConfirm) {
+                      onConfirm();
+                    } else {
+                      onClose();
+                    }
+                  }}>
+                  <Text style={[styles.exitText, {color: rightBtnTextColor}]}>
+                    {rightBtnText}
+                  </Text>
+                </Pressable>
+              </>
+            )}
           </View>
         </View>
       </View>
@@ -160,6 +184,12 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 999,
+  },
+  singleButton: {
+    width: '100%',
     paddingVertical: 12,
     alignItems: 'center',
     borderRadius: 999,
