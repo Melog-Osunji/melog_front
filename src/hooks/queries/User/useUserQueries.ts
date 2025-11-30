@@ -3,7 +3,8 @@ import {
   checkNicknameExists,
   getUserFollowing,
   fetchUserProfile,
-} from '@/api/User/UserGetApi';
+  resignUser,
+} from '@/api/User/UserApi';
 
 export const USE_USER_QK = {
   nicknameExists: (nick: string) => ['nicknameExists', nick] as const,

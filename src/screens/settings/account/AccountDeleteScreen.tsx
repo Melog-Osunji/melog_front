@@ -19,6 +19,7 @@ import BottomSheet from '@/components/common/BottomSheet';
 import {colors} from '@/constants';
 import {showToast} from '@/components/common/ToastService';
 import {useAuthContext} from '@/contexts/AuthContext';
+import {useResignUser} from '@/hooks/queries/User/useUserMutations';
 
 type AccountDeleteScreenProps = StackScreenProps<
   SettingStackParamList,
@@ -30,11 +31,15 @@ export default function AccountDeleteScreen({
 }: AccountDeleteScreenProps) {
   useHideTabBarOnFocus();
 
+  const resignMutation = useResignUser();
+
   // 초기값을 null로 두어 사용자가 선택해야만 '다음' 활성화되게 함
   const [selected, setSelected] = React.useState<number | null>(null);
   const [sheetVisible, setSheetVisible] = React.useState(false);
   const [done, setDone] = React.useState(false); // 탈퇴 완료 상태
   const {resetAuthState} = useAuthContext();
+
+  const isDeleting = resignMutation.isLoading;
 
   const options = [
     '기능이 복잡함',
@@ -54,14 +59,21 @@ export default function AccountDeleteScreen({
   };
 
   const handleDelete = () => {
-    console.log('탈퇴 처리:', {
-      reasonIndex: selected,
-      reason: options[selected ?? 0],
+    const reasonIndex = selected;
+    const reason = options[selected ?? 0];
+    console.log('탈퇴 처리:', {reasonIndex, reason});
+    // 호출
+    resignMutation.mutate(undefined, {
+      onSuccess: () => {
+        showToast('탈퇴가 완료되었습니다.', 'success');
+        setSheetVisible(false);
+        setDone(true);
+      },
+      onError: err => {
+        console.error('resign error', err);
+        showToast('탈퇴 처리 중 오류가 발생했습니다.', 'error');
+      },
     });
-    // 실제 탈퇴 API 호출 후 성공 시
-    showToast('탈퇴가 완료되었습니다.', 'success');
-    setSheetVisible(false);
-    setDone(true); // 같은 화면에서 완료 UI 표시
   };
 
   // 완료 후 홈으로 이동
@@ -140,11 +152,12 @@ export default function AccountDeleteScreen({
                   style={{flex: 1, marginRight: 8}}
                 />
                 <CustomButton
-                  label="탈퇴하기"
+                  label={isDeleting ? '처리 중...' : '탈퇴하기'}
                   onPress={handleDelete}
                   variant="outlined"
                   variantColor={colors.RED_300}
                   style={{flex: 1}}
+                  disabled={isDeleting}
                 />
               </View>
             </View>

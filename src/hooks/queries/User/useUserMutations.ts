@@ -5,7 +5,8 @@ import {
   updateUserProfile,
   postUserFollowing,
   postBlockUser,
-} from '@/api/User/UserPostApi';
+  resignUser,
+} from '@/api/User/UserApi';
 
 // #1) 이용약관
 // 1) 이용약관 동의 제출
@@ -105,6 +106,18 @@ export const useBlockUser = () => {
     onError: (err: unknown) => {
       console.warn('[useUser] useBlockUser 에러:', err);
     },
+  });
+
+  return {
+    ...mutation,
+    isLoading: mutation.isPending,
+  };
+};
+
+// 유저 탈퇴 뮤테이션
+export const useResignUser = () => {
+  const mutation = useMutation({
+    mutationFn: () => resignUser(),
   });
 
   return {
