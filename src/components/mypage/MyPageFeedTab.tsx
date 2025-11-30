@@ -13,8 +13,12 @@ import PostCard from '@/components/post/PostCard';
 
 const {width: SCREEN_W} = Dimensions.get('window');
 
-const MyPageFeedTab = () => {
-  const {data, isLoading, isError, refetch, isRefetching} = useMyPage();
+type Props = {
+  profileUser?: string; // ← 통합 포인트
+};
+
+const MyPageFeedTab: React.FC<Props> = ({profileUser}) => {
+  const {data, isLoading, isError, refetch, isRefetching} = useMyPage(profileUser);
 
   console.log('MyPageFeedTab posts:', data);
 

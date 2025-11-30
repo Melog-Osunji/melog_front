@@ -64,7 +64,7 @@ function PostSearchResultScreen({navigation, route}: IntroScreenProps) {
         />
         <SearchInputField
           value={keyword}
-          onChangeText={setKeyword}
+          onChangeText={setText}
           onFocus={() => {
               navigation.navigate(postNavigations.POST_SEARCH, {
                 initialKeyword: keyword,

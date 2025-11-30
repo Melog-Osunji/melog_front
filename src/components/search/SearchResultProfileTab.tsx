@@ -28,7 +28,36 @@ const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
   const {data, isLoading, isError} = useSearchProfile(keyword ?? '');
   const followMutation = useFollowUser();
 
-  console.log(data);
+    // ───────────────────────────────────────────
+    // 팔로우 토글 핸들러
+    // ───────────────────────────────────────────
+    const handleToggleFollow = useCallback(
+      (userId: string) => {
+        followMutation.mutate(userId, {
+          onSuccess: () => {
+            // ★ React Query 캐시 업데이트
+            queryClient.setQueryData(['search', 'profile', keyword], (prev: any) => {
+              if (!prev) return prev;
+
+              const updatedUsers = prev.user.map((u: any) =>
+                u.userId === userId
+                  ? {
+                      ...u,
+                      follow: u.follow === 'T' ? 'F' : 'T',
+                    }
+                  : u,
+              );
+
+              return {...prev, user: updatedUsers};
+            });
+          },
+          onError: err => {
+            console.warn('[팔로우 실패]', err);
+          },
+        });
+      },
+      [followMutation, queryClient, keyword],
+    );
 
   // ───────────────────────────────────────────
   // 로딩 / 에러 핸들링
@@ -45,37 +74,6 @@ const SearchResultProfileTab: React.FC<Props> = ({keyword}) => {
   if (isError || !data || data.user.length === 0) {
     return <EmptyTab keyword={keyword} fullScreen />;
   }
-
-  // ───────────────────────────────────────────
-  // 팔로우 토글 핸들러
-  // ───────────────────────────────────────────
-  const handleToggleFollow = useCallback(
-    (userId: string) => {
-      followMutation.mutate(userId, {
-        onSuccess: () => {
-          // ★ React Query 캐시 업데이트
-          queryClient.setQueryData(['search', 'profile', keyword], (prev: any) => {
-            if (!prev) return prev;
-
-            const updatedUsers = prev.user.map((u: any) =>
-              u.userId === userId
-                ? {
-                    ...u,
-                    follow: u.follow === 'T' ? 'F' : 'T',
-                  }
-                : u,
-            );
-
-            return {...prev, user: updatedUsers};
-          });
-        },
-        onError: err => {
-          console.warn('[팔로우 실패]', err);
-        },
-      });
-    },
-    [followMutation, queryClient, keyword],
-  );
 
   // ───────────────────────────────────────────
   // UI

@@ -85,7 +85,7 @@ function PostCard({post, user, onHide, onBlock, onReport}: PostCardProps) {
             <View style={styles.userInfo}>
               <Text style={styles.nickName}>{user.nickName}</Text>
               {post.createdAgo && (
-                <Text style={styles.timeText}>{post.createdAgo}</Text>
+                <Text style={styles.timeText}>{String(post.createdAgo)}</Text>
               )}
             </View>
           </View>
@@ -174,7 +174,7 @@ function PostCard({post, user, onHide, onBlock, onReport}: PostCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '',
+    backgroundColor: 'transparent',
     paddingHorizontal: 20,
     paddingVertical: 16,
     gap: 16,
