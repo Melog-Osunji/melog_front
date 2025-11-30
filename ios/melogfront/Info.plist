@@ -70,6 +70,16 @@
 				<string>kakaof128b5577e075ab54e57d47c7f386643</string>
 			</array>
 		</dict>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLName</key>
+            <string>naver</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>melognaver</string>
+            </array>
+        </dict>
 	</array>
 	
 	<key>LSApplicationQueriesSchemes</key>
