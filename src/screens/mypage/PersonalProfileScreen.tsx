@@ -78,7 +78,7 @@ function PersonalProfileScreen({ route }: PersonalProfileScreenProps) {
       }));
     }, [data]);
 
-  const feedCount = data?.posts?.length ?? 0;
+  const feedCount = data?.posts?.results.length ?? 0;
 
   if (isLoading) {
       return (

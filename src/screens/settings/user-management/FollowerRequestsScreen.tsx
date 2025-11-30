@@ -13,8 +13,18 @@ import {
 } from 'react-native';
 import IconButton from '@/components/common/IconButton';
 import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
-import {colors} from '@/constants';
 import {useQueryClient} from '@tanstack/react-query';
+import {useNavigation, useFocusEffect, useRoute} from '@react-navigation/native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import styled from 'styled-components/native';
+import {colors, harmonyNavigations} from '@/constants';
+import {useHarmonyRoomContext} from '@/contexts/HarmonyRoomContext';
+import RoomApplyCard, {ApplyUser} from '@/components/harmonyRoom/RoomApplyCard';
+import {
+  useWaitingUserList,
+  useUpdateHarmonyMembership,
+} from '@/hooks/queries/harmonyRoom/useHarmonyRoomPost';
+import {useUserInfo} from '@/hooks/common/useUserInfo';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 
@@ -27,87 +37,87 @@ const DEVICE_WIDTH = Dimensions.get('window').width;
 
 
 export default function FollowerRequestsScreen() {
-//   const navigation = useNavigation<NavigationProp>();
-//   const route = useRoute<HarmonySettingRouteProp>();
+  const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<HarmonySettingRouteProp>();
   const qc = useQueryClient();
 
-  // 1) 대기자 목록 조회
-//   const {
-//     data: waitingDTO,
-//     isLoading,
-//     isError,
-//     error,
-//     refetch,
-//     isRefetching,
-//   } = useWaitingUserList(roomID);
+  //1) 대기자 목록 조회
+  const {
+    data: waitingDTO,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isRefetching,
+  } = useWaitingUserList(roomID);
 
-  // 2) 승인/거부 - 수정
-//   const {mutateAsync: updateMembership, isPending} =
-//     useUpdateHarmonyMembership(roomID);
+  //2) 승인/거부 - 수정
+  const {mutateAsync: updateMembership, isPending} =
+    useUpdateHarmonyMembership(roomID);
 
-//   const [refreshing, setRefreshing] = useState(false);
-//   const onRefresh = useCallback(async () => {
-//     setRefreshing(true);
-//     try {
-//       await refetch();
-//     } finally {
-//       setRefreshing(false);
-//     }
-//   }, [refetch]);
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
-//   const users: ApplyUser[] = useMemo(() => {
-//     const src = waitingDTO?.waitingUsers ?? [];
-//     return src.map(u => ({
-//       id: String(u.user.id),
-//       name: u.user.nickname ?? '익명',
-//       intro: u.user.intro ?? '',
-//       profileImgLink: u.user.profileImgLink, // RoomApplyCard가 받는다면 그대로 전달
-//     }));
-//   }, [waitingDTO]);
+  const users: ApplyUser[] = useMemo(() => {
+    const src = waitingDTO?.waitingUsers ?? [];
+    return src.map(u => ({
+      id: String(u.user.id),
+      name: u.user.nickname ?? '익명',
+      intro: u.user.intro ?? '',
+      profileImgLink: u.user.profileImgLink, // RoomApplyCard가 받는다면 그대로 전달
+    }));
+  }, [waitingDTO]);
 
-//   const listKey = useMemo(() => ['harmony', 'waiting', roomID], [roomID]);
+  const listKey = useMemo(() => ['harmony', 'waiting', roomID], [roomID]);
 
   const handleApprove = async (userId: string) => {
-//     if (isPending) return; // 중복 클릭 방지
-//
-//     // 스냅샷
-//     const prev = qc.getQueryData<any>(listKey);
-//
-//     try {
-//       qc.setQueryData<any>(listKey, old => {
-//         if (!old) return old;
-//         const next = Array.isArray(old.user)
-//           ? old.user.filter((u: any) => String(u.id) !== String(userId))
-//           : [];
-//         return {...old, user: next};
-//       });
-//
-//       // 서버 호출
-//       await updateMembership({action: 'approve', userID: userId});
-//     } catch (e) {
-//       // 롤백
-//       qc.setQueryData(listKey, prev);
-//     }
+    if (isPending) return; // 중복 클릭 방지
+
+    // 스냅샷
+    const prev = qc.getQueryData<any>(listKey);
+
+    try {
+      qc.setQueryData<any>(listKey, old => {
+        if (!old) return old;
+        const next = Array.isArray(old.user)
+          ? old.user.filter((u: any) => String(u.id) !== String(userId))
+          : [];
+        return {...old, user: next};
+      });
+
+      // 서버 호출
+      await updateMembership({action: 'approve', userID: userId});
+    } catch (e) {
+      // 롤백
+      qc.setQueryData(listKey, prev);
+    }
   };
 
   const handleReject = async (userId: string) => {
-//     if (isPending) return;
-//
-//     const prev = qc.getQueryData<any>(listKey);
-//
-//     try {
-//       qc.setQueryData<any>(listKey, old => {
-//         if (!old) return old;
-//         const next = Array.isArray(old.user)
-//           ? old.user.filter((u: any) => String(u.id) !== String(userId))
-//           : [];
-//         return {...old, user: next};
-//       });
-//
-//       await updateMembership({action: 'deny', userID: userId});
-//     } catch (e) {
-//       qc.setQueryData(listKey, prev);
-//     }
+    if (isPending) return;
+
+    const prev = qc.getQueryData<any>(listKey);
+
+    try {
+      qc.setQueryData<any>(listKey, old => {
+        if (!old) return old;
+        const next = Array.isArray(old.user)
+          ? old.user.filter((u: any) => String(u.id) !== String(userId))
+          : [];
+        return {...old, user: next};
+      });
+
+      await updateMembership({action: 'deny', userID: userId});
+    } catch (e) {
+      qc.setQueryData(listKey, prev);
+    }
   };
 
   if (isLoading && !waitingDTO) {

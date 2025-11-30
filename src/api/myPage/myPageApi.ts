@@ -1,5 +1,6 @@
 import instance from '../axiosInstance';
 import type {BaseResponse} from '../baseResponse';
+import type {PostWithUserDTO} from '@/types';
 
 export type MyPageDTO = {
   profileImg: string;
@@ -12,9 +13,17 @@ export type MyPageDTO = {
   followers: number;
   followings: number;
   harmonyRooms: MyRoomDTO[];
-  posts: MyPagePostDTO[];
-  mediaPosts: MyPageDTO[];
+  posts: {
+    results: PostWithUserDTO[];
+  };
+  mediaPosts: {
+    results: PostWithUserDTO[];
+  };
+  bookmarks: {
+    results: PostWithUserDTO[];
+  };
 };
+
 
 export type MyRoomDTO = {
   roomId: number;
@@ -24,26 +33,15 @@ export type MyRoomDTO = {
   bookmark: boolean;
 };
 
-export type MyPagePostDTO = {
-  id: string;
-  title: string;
-  content: string;
-  mediaType: string;
-  mediaUrl: string;
-  tags: string[];
-};
-
-export type MyPageBookmarkDTO = {
-  postId: string;
-  title: string;
-  createdAt: string;
-};
 
 export const fetchMyPage = async (profileUser?: string): Promise<MyPageDTO> => {
     const url = profileUser
       ? `/api/users/myPage?profileUser=${profileUser}`
       : `/api/users/myPage`;
+
   const res = await instance.get<BaseResponse<MyPageDTO>>(url);
+
+  console.log(res.data.data.posts);
   return res.data.data;
 };
 

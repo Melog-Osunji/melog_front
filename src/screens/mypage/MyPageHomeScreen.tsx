@@ -36,7 +36,6 @@ function MyPageHomeScreen() {
   const {data, isLoading, isError, refetch, isRefetching} = useMyPage();
   const userInfo = useUserInfo();
 
-  console.log(data);
   useFocusEffect(
     useCallback(() => {
       refetch();
@@ -54,7 +53,7 @@ function MyPageHomeScreen() {
     }));
   }, [data]);
 
-  const feedCount = data?.posts?.length ?? 0;
+  const feedCount = data?.posts?.results.length ?? 0;
 
   if (isLoading) {
     return (
@@ -68,8 +67,6 @@ function MyPageHomeScreen() {
       </SafeAreaView>
     );
   }
-
-  console.log(data);
 
   return (
     <LinearGradient

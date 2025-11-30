@@ -14,9 +14,9 @@ const MyPageMediaTab: React.FC<Props> = ({profileUser})=> {
   const { data, isLoading, isError, refetch, isRefetching } = useMyPage(profileUser);
 
   const postMedias = useMemo(() => {
-     if (!data?.mediaPosts) return [];
+     if (!data?.mediaPosts.results) return [];
 
-     return data.posts.map((p: any) => ({
+     return data.mediaPosts.results.map((p: any) => ({
        post: p.post, // ✔ 서버 그대로 사용
        user: {
          id: data.id,
