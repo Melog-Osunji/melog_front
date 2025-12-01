@@ -34,6 +34,13 @@ local.properties
 *.keystore
 !debug.keystore
 
+# keystore & key properties
+/android/app/*.keystore
+/android/key.properties
+/key.properties
+/android/key.properties
+/android/gradle.properties
+
 # node.js
 #
 node_modules/
