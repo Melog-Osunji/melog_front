@@ -88,9 +88,7 @@ export default function AccountDeleteScreen({
 
   // 완료 후 홈으로 이동
   const handleGoHome = () => {
-    // resetAuthState가 제공되지 않을 수 있으므로 안전 호출
     resetAuthState?.();
-    navigation.popToTop();
   };
 
   return (

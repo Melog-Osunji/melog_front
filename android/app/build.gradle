@@ -115,6 +115,16 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def buildType = variant.buildType.name // debug / release
+            def versionName = variant.versionName ?: "v0"
+            def baseName = "melog"
+            // 예: melog-release-1.0.0.apk
+            outputFileName = "${baseName}-${buildType}-${versionName}.apk"
+        }
+    }
 }
 
 dependencies {
