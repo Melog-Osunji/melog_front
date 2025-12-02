@@ -4,8 +4,6 @@
 
 ```
 src/components/         # 재사용 UI 컴포넌트
-src/screens/auth/       # 인증 관련 화면
-src/screens/map/        # 지도 관련 화면
 src/screens/post/       # 게시판 관련 화면
 src/screens/mypage/     # 마이페이지 관련 화면
 src/constants/          # 상수, 타입, 네비게이션 이름 등
