@@ -43,9 +43,6 @@ src/contexts/           # 전역 상태 관리
       - GoogleMapView 또는 KakaoMapView
   - 메인 스택: RootStackNavigator
     - 탭/드로어 네비게이션
-      - 지도
-        - MapHomeScreen
-        - MapInfoScreen
       - 게시판
         - PostHomeScreen
         - PostPageScreen
@@ -55,15 +52,6 @@ src/contexts/           # 전역 상태 관리
         - 기타 마이페이지 관련 화면
 
 ## 5. 주요 컴포넌트 계층
-
-### 인증 플로우
-
-- **AuthHomeScreen**
-  - KakaoLoginButton  
-    (카카오 로그인 WebView 모달, 로그인 성공 시 토큰 저장 및 위치 인증 화면으로 이동)
-- **AuthLocationScreen**
-  - GoogleMapView 또는 KakaoMapView  
-    (위치 인증 및 지도 표시)
 
 ### 메인/게시판/마이페이지
 
