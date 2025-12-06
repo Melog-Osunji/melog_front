@@ -19,8 +19,6 @@ interface AuthContextType {
   logout: () => Promise<void>;
   refreshUserInfo: () => Promise<void>;
   completeRegistration: () => Promise<void>;
-  // 새 함수: isLogin=false, isRegistered=false, refreshUserInfo 호출
-  resetAuthState: () => Promise<void>;
   // 테스트용
   setIsLogin: (value: boolean) => void;
   setIsRegistered: (value: boolean) => void;
@@ -95,16 +93,6 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
     }
   };
 
-  const resetAuthState = async () => {
-    try {
-      // 실제로 로그아웃 절차 수행하고 사용자 정보 재동기화
-      await logout();
-      setIsRegistered(false);
-      await refreshUserInfo();
-    } catch (error) {
-      console.error('resetAuthState 실패:', error);
-    }
-  };
 
   const completeRegistration = async () => {
     try {
@@ -125,7 +113,6 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
     logout: logout as () => Promise<void>,
     refreshUserInfo,
     completeRegistration,
-    resetAuthState,
     setIsLogin,
     setIsRegistered,
   };

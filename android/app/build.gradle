@@ -121,7 +121,6 @@ android {
             def buildType = variant.buildType.name // debug / release
             def versionName = variant.versionName ?: "v0"
             def baseName = "melog"
-            // 예: melog-release-1.0.0.apk
             outputFileName = "${baseName}-${buildType}-${versionName}.apk"
         }
     }
