@@ -18,7 +18,7 @@ export const fetchFollowPosts = async (): Promise<PostsDTO> => {
 
 // GET /api/posts/recommends (추천 피드)
 export const fetchRecommendPosts = async (): Promise<PostsDTO> => {
-  const res = await instance.get('/api/feed/recommends');
+  const res = await instance.get('/api/feed/recommend');
   return res.data.data;
 };
 

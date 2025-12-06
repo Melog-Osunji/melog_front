@@ -50,6 +50,10 @@ function RootNavigator() {
     }
   }, []);
 
+  console.log(
+    `[RootNavigator] isLogin: ${isLogin}, isRegistered: ${isRegistered}`,
+  );
+
   useEffect(() => {
     // 초기 2초간은 무조건 WelcomeScreen 표시
     const timer = setTimeout(() => {

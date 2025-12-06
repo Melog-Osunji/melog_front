@@ -2,10 +2,10 @@
 
 buildscript {
     ext {
-        buildToolsVersion = "34.0.0"
-        minSdkVersion = 24  // 변경
-        compileSdkVersion = 34
-        targetSdkVersion = 34
+        buildToolsVersion = "35.0.0"     
+        minSdkVersion = 24
+        compileSdkVersion = 35          
+        targetSdkVersion = 35            
         ndkVersion = "25.1.8937393"
         kotlinVersion = "1.8.0"
     }
@@ -15,7 +15,7 @@ buildscript {
         maven { url 'https://devrepo.kakao.com/nexus/content/groups/public/' } 
     }
     dependencies {
-        classpath("com.android.tools.build:gradle")
+        classpath("com.android.tools.build:gradle:8.1.1")
         classpath("com.facebook.react:react-native-gradle-plugin")
     }
 }
@@ -34,6 +34,53 @@ allprojects {
                     sourceCompatibility JavaVersion.VERSION_11
                     targetCompatibility JavaVersion.VERSION_11
                 }
+            }
+        }
+    }
+}
+
+// Enable buildConfig generation for all Android library/application modules
+subprojects { sub ->
+    afterEvaluate {
+        if (sub.plugins.hasPlugin('com.android.library') || sub.plugins.hasPlugin('com.android.application')) {
+            try {
+                // enable buildConfig for libraries/apps
+                if (sub.android.buildFeatures == null) {
+                    sub.android.buildFeatures = [:]
+                }
+                sub.android.buildFeatures.buildConfig = true
+            } catch (ignored) {}
+
+            // ensure namespace exists for AGP
+            try {
+                def hasNamespace = false
+                try {
+                    hasNamespace = sub.android.hasProperty('namespace') && sub.android.namespace?.toString()?.trim()
+                } catch (_) {
+                    hasNamespace = false
+                }
+                if (!hasNamespace) {
+                    def manifestFile = file("${sub.projectDir}/src/main/AndroidManifest.xml")
+                    if (manifestFile.exists()) {
+                        def text = manifestFile.getText('UTF-8')
+                        def m = (text =~ /package\s*=\s*["']([^"']+)["']/)
+                        if (m.find()) {
+                            def pkg = m.group(1)
+                            sub.android.namespace = pkg
+                            println "Set namespace for ${sub.name} -> ${pkg}"
+                        } else {
+                            def fallback = (sub.group ?: 'com.example') + '.' + sub.name.replace('-', '_')
+                            sub.android.namespace = fallback
+                            println "Fallback namespace for ${sub.name} -> ${fallback}"
+                        }
+                    } else {
+                        def fallback = (sub.group ?: 'com.example') + '.' + sub.name.replace('-', '_')
+                        sub.android.namespace = fallback
+                        println "Fallback namespace for ${sub.name} -> ${fallback}"
+                    }
+                }
+            } catch (e) {
+                // ignore to avoid breaking projects without android extension yet
             }
         }
     }

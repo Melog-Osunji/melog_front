@@ -70,6 +70,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
+    namespace "com.melogapp"
 
     defaultConfig {
         applicationId "com.melogapp"
@@ -115,6 +116,12 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+
 }
 
 dependencies {

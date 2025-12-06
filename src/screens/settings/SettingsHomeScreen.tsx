@@ -3,19 +3,21 @@ import {View, Text, StyleSheet, ScrollView, Switch, Image} from 'react-native';
 // constants, navigations, contexts
 import {settingsNavigations, colors} from '@/constants';
 import {StackScreenProps} from '@react-navigation/stack';
-import {SettingNavigatorParamList} from '@/navigations/stack/SettingStackNavigator';
-import {useAuthContext} from '@/contexts/AuthContext';
+import {SettingStackParamList} from '@/navigations/stack/SettingStackNavigator';
+import {useAuthContext, logout} from '@/contexts/AuthContext';
 // components
 import IconButton from '@/components/common/IconButton';
 import SettingRow from '@/components/settings/SettingRow';
 import SettingToggleRow from '@/components/settings/SettingToggleRow';
 
 type SettingsHomeScreenProps = StackScreenProps<
-  SettingNavigatorParamList,
+  SettingStackParamList,
   typeof settingsNavigations.SETTINGS_HOME
 >;
 
-export default function SettingHomeScreen({navigation}: SettingsHomeScreenProps) {
+export default function SettingHomeScreen({
+  navigation,
+}: SettingsHomeScreenProps) {
   const {user: authUser} = useAuthContext();
   const [pushEnabled, setPushEnabled] = useState(false);
   // 플랫폼 키를 소문자로 맞춰서 아이콘 매핑
@@ -96,11 +98,7 @@ export default function SettingHomeScreen({navigation}: SettingsHomeScreenProps)
 
         <SettingRow
           label="문의하기"
-          onPress={() =>
-            navigation.navigate(settingsNavigations.SUPPORT, {
-              userId: authUser?.id || '',
-            })
-          }
+          onPress={() => navigation.navigate(settingsNavigations.SUPPORT)}
         />
 
         <Text style={styles.sectionTitle}>서비스 정보</Text>
@@ -135,7 +133,7 @@ export default function SettingHomeScreen({navigation}: SettingsHomeScreenProps)
         <SettingRow
           label="로그아웃"
           onPress={() => {
-            /* TODO: logout flow */
+            logout();
           }}
         />
 

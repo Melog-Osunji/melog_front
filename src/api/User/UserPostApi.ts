@@ -80,7 +80,7 @@ export const updateUserProfile = async (
 export const postUserFollowing = async (
   targetUserId: string,
 ): Promise<FollowResponseDto> => {
-  const body: FollowRequestDto = { follower: targetUserId };
+  const body: FollowRequestDto = {follower: targetUserId};
 
   try {
     const res = await instance.post<BaseResponse<FollowResponseDto>>(
@@ -108,4 +108,12 @@ export const postBlockUser = async (
     // rethrow so caller (mutation) can handle
     throw err;
   }
+};
+
+// 회원 탈퇴
+export const resignUser = async () => {
+  const res = await instance.delete<BaseResponse<null>>(
+    `/api/users/resignation`,
+  );
+  return res.data.data;
 };
