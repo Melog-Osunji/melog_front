@@ -70,6 +70,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
+    namespace "com.melogapp"
 
     defaultConfig {
         applicationId "com.melogapp"
@@ -116,14 +117,11 @@ android {
         }
     }
 
-    applicationVariants.all { variant ->
-        variant.outputs.all { output ->
-            def buildType = variant.buildType.name // debug / release
-            def versionName = variant.versionName ?: "v0"
-            def baseName = "melog"
-            outputFileName = "${baseName}-${buildType}-${versionName}.apk"
-        }
+    buildFeatures {
+        buildConfig true
     }
+
+
 }
 
 dependencies {
