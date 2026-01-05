@@ -16,6 +16,7 @@ import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 import SettingHeader from '@/components/settings/SettingHeader';
 import CustomButton from '@/components/common/CustomButton';
 import BottomSheet from '@/components/common/BottomSheet';
+import InputBox from '@/components/common/InputBox';
 import {colors} from '@/constants';
 import {showToast} from '@/components/common/ToastService';
 import {useAuthContext} from '@/contexts/AuthContext';
@@ -35,11 +36,10 @@ export default function AccountDeleteScreen({
   const resignMutation = useResignUser();
 
   const [checkPopupVisible, setCheckPopupVisible] = React.useState(false);
-
-  // 초기값을 null로 두어 사용자가 선택해야만 '다음' 활성화되게 함
   const [selected, setSelected] = React.useState<number | null>(null);
+  const [customReason, setCustomReason] = React.useState('');
   const [sheetVisible, setSheetVisible] = React.useState(false);
-  const [done, setDone] = React.useState(false); // 탈퇴 완료 상태
+  const [done, setDone] = React.useState(false);
   const {logout} = useAuthContext();
 
   const isDeleting = resignMutation.isLoading;
@@ -53,6 +53,10 @@ export default function AccountDeleteScreen({
     '기타',
   ];
 
+  const isLastOption = selected === options.length - 1;
+  const canProceed =
+    selected !== null && (!isLastOption || customReason.trim().length > 0);
+
   const handleNext = () => {
     setSheetVisible(true);
   };
@@ -61,17 +65,14 @@ export default function AccountDeleteScreen({
     setSheetVisible(false);
   };
 
-  // 1) 시트 내 버튼 누르면 확인 팝업 표시
   const handleDelete = () => {
     setCheckPopupVisible(true);
   };
 
-  // 2) 팝업에서 확인하면 실제 탈퇴 호출
   const handleConfirmDelete = () => {
     setCheckPopupVisible(false);
-    const reasonIndex = selected;
-    const reason = options[selected ?? 0];
-    console.log('탈퇴 처리 시작:', {reasonIndex, reason});
+    const reason = isLastOption ? customReason : options[selected ?? 0];
+    console.log('탈퇴 처리 시작:', {reasonIndex: selected, reason});
 
     resignMutation.mutate(undefined, {
       onSuccess: () => {
@@ -86,7 +87,6 @@ export default function AccountDeleteScreen({
     });
   };
 
-  // 완료 후 홈으로 이동
   const handleGoHome = () => {
     logout();
   };
@@ -122,13 +122,25 @@ export default function AccountDeleteScreen({
                 );
               })}
             </View>
+
+            {isLastOption && (
+              <View style={styles.inputContainer}>
+                <InputBox
+                  value={customReason}
+                  onChangeText={setCustomReason}
+                  placeholder="서비스를 떠나려는 이유를 알려주세요."
+                  multiline
+                  showCount
+                />
+              </View>
+            )}
           </ScrollView>
 
           <View style={styles.footer}>
             <CustomButton
               label="다음"
               onPress={handleNext}
-              inValid={selected === null}
+              inValid={!canProceed}
               size="large"
               variantColor={colors.BLUE_500}
             />
@@ -170,7 +182,7 @@ export default function AccountDeleteScreen({
               </View>
             </View>
           </BottomSheet>
-          {/* 확인 팝업: 확인 누르면 실제 탈퇴 처리 */}
+
           <CheckPopup
             iconImg={require('@/assets/icons/common/Airplane.png')}
             visible={checkPopupVisible}
@@ -191,7 +203,6 @@ export default function AccountDeleteScreen({
           />
         </>
       ) : (
-        // 탈퇴 완료
         <View style={styles.doneContainer}>
           <View style={styles.center}>
             <Image
@@ -249,6 +260,9 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     resizeMode: 'contain',
+  },
+  inputContainer: {
+    marginTop: 20,
   },
   footer: {
     paddingHorizontal: 20,
