@@ -5,6 +5,7 @@ import {useNavigation, NavigationProp} from '@react-navigation/native';
 type IconButtonProps<T extends Record<string, object | undefined>> = {
   imageSource: any;
   pressedImageSource?: any;
+  isPressed?: boolean;
   size?: number;
   target?: [keyof T] | [keyof T, T[keyof T]] | 'goBack';
   style?: ViewStyle;
@@ -15,6 +16,7 @@ type IconButtonProps<T extends Record<string, object | undefined>> = {
 function IconButton<T extends Record<string, object | undefined>>({
   imageSource,
   pressedImageSource,
+  isPressed = false,
   size = 32,
   target,
   onPress,
@@ -22,7 +24,6 @@ function IconButton<T extends Record<string, object | undefined>>({
   imageStyle,
 }: IconButtonProps<T>) {
   const navigation = useNavigation<NavigationProp<T>>();
-  const [isPressed, setIsPressed] = useState(false);
 
   const handlePress = async () => {
     if (onPress) {
@@ -49,11 +50,7 @@ function IconButton<T extends Record<string, object | undefined>>({
     isPressed && pressedImageSource ? pressedImageSource : imageSource;
 
   return (
-    <TouchableOpacity
-      style={style}
-      onPress={handlePress}
-      onPressIn={() => setIsPressed(true)}
-      onPressOut={() => setIsPressed(false)}>
+    <TouchableOpacity style={style} onPress={handlePress}>
       <Image
         source={currentImageSource}
         style={[{width: size, height: size}, imageStyle]}

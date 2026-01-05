@@ -69,26 +69,19 @@ export default function ConsentList({navigation}: ConsentListProps) {
         {/*동의 리스트*/}
         <View style={styles.toswrapper}>
           <View style={styles.tos_item}>
-            <TouchableOpacity
+            <IconButton
+              imageSource={require('@/assets/icons/intro/checkbox.png')}
+              pressedImageSource={require('@/assets/icons/intro/checkbox_activate.png')}
+              isPressed={RequiredAgreed}
+              size={24}
               onPress={() => {
                 const newChecked: Record<string, boolean> = {};
                 AGREEMENTS.forEach(a => {
                   newChecked[a.id] = !RequiredAgreed;
                 });
                 setChecked(newChecked);
-              }}>
-              <Image
-                source={
-                  AGREEMENTS.every(a => checked[a.id])
-                    ? require('@/assets/icons/intro/checkbox_activate.png')
-                    : require('@/assets/icons/intro/checkbox.png')
-                }
-                style={{
-                  width: 24,
-                  height: 24,
-                }}
-              />
-            </TouchableOpacity>
+              }}
+            />
 
             <View>
               <Text style={styles.total_text_h1}>모두 동의</Text>
@@ -107,20 +100,13 @@ export default function ConsentList({navigation}: ConsentListProps) {
           {AGREEMENTS.map(item => (
             <View key={item.id} style={styles.tos_item_wrapper}>
               <View style={styles.tos_item}>
-                <TouchableOpacity
-                  onPress={() => toggle(item.id, !checked[item.id])}>
-                  <Image
-                    source={
-                      checked[item.id]
-                        ? require('@/assets/icons/intro/checkbox_activate.png')
-                        : require('@/assets/icons/intro/checkbox.png')
-                    }
-                    style={{
-                      width: 24,
-                      height: 24,
-                    }}
-                  />
-                </TouchableOpacity>
+                <IconButton
+                  imageSource={require('@/assets/icons/intro/checkbox.png')}
+                  pressedImageSource={require('@/assets/icons/intro/checkbox_activate.png')}
+                  isPressed={!!checked[item.id]}
+                  size={24}
+                  onPress={() => toggle(item.id, !checked[item.id])}
+                />
 
                 <Text>
                   <Text style={styles.tos_item_text}>
