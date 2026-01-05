@@ -76,8 +76,8 @@ android {
         applicationId "com.melogapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName "1.0.1"
         multiDexEnabled true
         // Provide appAuthRedirectScheme for react-native-app-auth / AppAuth library
         manifestPlaceholders = [appAuthRedirectScheme: "melognaver"]
