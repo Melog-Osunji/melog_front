@@ -32,8 +32,8 @@ function App() {
       <AuthProvider>
         <NavigationContainer>
           <OverlayProvider>
-            <RootNavigator />
-            {/* <SettingStackNavigator /> */}
+            {/* <RootNavigator /> */}
+            <SettingStackNavigator />
             <GlobalToast />
           </OverlayProvider>
         </NavigationContainer>

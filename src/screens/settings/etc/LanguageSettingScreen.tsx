@@ -1,20 +1,23 @@
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
+import SettingHeader from '@/components/settings/SettingHeader';
 import IconButton from '@/components/common/IconButton';
+import {colors} from '@/constants';
 
 export default function LanguageSettingScreen() {
   return (
     <View style={styles.screen}>
-      <View style={styles.header}>
-        <IconButton
-          imageSource={require('@/assets/icons/post/BackArrow.png')}
-          target={'goBack'}
-          size={24}
-        />
-        <Text style={styles.title}>언어 설정</Text>
-      </View>
+      <SettingHeader title={'언어 설정'} />
       <View style={styles.body}>
-        <Text style={styles.text}>LanguageSettingScreen</Text>
+        <View style={styles.container}>
+          <Text style={styles.text}>한국어</Text>
+          <IconButton
+            imageSource={require('@/assets/icons/intro/checkbox.png')}
+            pressedImageSource={require('@/assets/icons/intro/checkbox_activate.png')}
+            isPressed={true}
+            size={24}
+          />
+        </View>
       </View>
     </View>
   );
@@ -22,16 +25,12 @@ export default function LanguageSettingScreen() {
 
 const styles = StyleSheet.create({
   screen: {flex: 1, backgroundColor: '#fff'},
-  header: {
-    height: 56,
+  body: {flex: 1, alignItems: 'center', padding: 20},
+  container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#EEE',
-    gap: 12,
+    justifyContent: 'space-between',
+    width: '100%',
   },
-  title: {fontSize: 18, fontWeight: '600'},
-  body: {flex: 1, alignItems: 'center', justifyContent: 'center'},
-  text: {fontSize: 18},
+  text: {color: colors.BLACK, colorsfontSize: 24, fontWeight: 'bold'},
 });
