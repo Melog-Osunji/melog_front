@@ -4,3 +4,4 @@ export type PickedImage = {
   type?: string;
   isLocal?: boolean;
 };
+

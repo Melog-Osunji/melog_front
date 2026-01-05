@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, ScrollView, Switch, Image} from 'react-native';
 // constants, navigations, contexts
-import {settingsNavigations, colors} from '@/constants';
+import {introNavigations, settingsNavigations, colors} from '@/constants';
 import {StackScreenProps} from '@react-navigation/stack';
 import {SettingStackParamList} from '@/navigations/stack/SettingStackNavigator';
 import {useAuthContext, logout} from '@/contexts/AuthContext';
@@ -105,13 +105,17 @@ export default function SettingHomeScreen({
         <SettingRow
           label="이용약관"
           onPress={() =>
-            navigation.navigate(settingsNavigations.TERMS_OF_SERVICE)
+            navigation.navigate(settingsNavigations.AGREEMENT_VIEWER, {
+              docId: 'terms',
+            })
           }
         />
         <SettingRow
           label="개인정보 처리방침"
           onPress={() =>
-            navigation.navigate(settingsNavigations.PRIVACY_POLICY)
+            navigation.navigate(settingsNavigations.AGREEMENT_VIEWER, {
+              docId: 'privacy',
+            })
           }
         />
 

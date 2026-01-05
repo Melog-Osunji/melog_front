@@ -11,12 +11,13 @@ import {
 import {StackScreenProps} from '@react-navigation/stack';
 import {IntroStackParamList} from '@/navigations/stack/IntroStackNavigator';
 //data loader
-import {AgreementsLoader} from '@/utils/AgreementsLoader';
+import {AgreementsLoader} from '@/utils/agreements_loader';
 import Markdown from 'react-native-markdown-display';
 //constants
 import {introNavigations, colors} from '@/constants';
 //components
 import CustomButton from '@/components/common/CustomButton';
+import IconButton from '@/components/common/IconButton';
 
 type AgreementViewerProps = StackScreenProps<
   IntroStackParamList,
@@ -39,17 +40,31 @@ export default function AgreementViewer({
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>{doc.title}</Text>
+        <IconButton
+          imageSource={require('@/assets/icons/common/close.png')}
+          size={24}
+          target="goBack"
+          imageStyle={{tintColor: colors.GRAY_300}}
+        />
+      </View>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Text style={styles.header}>{doc.title}</Text>
-        <Markdown>{doc.body}</Markdown>
+        <View
+          style={{
+            height: 30,
+          }}
+        />
+
+        <Markdown style={markdownStyles}>{doc.body}</Markdown>
         <CustomButton
           label="확인되었습니다"
           style={{
-        marginVertical: 20,
-        backgroundColor: colors.BLUE_500,
+            marginVertical: 20,
+            backgroundColor: colors.BLUE_500,
           }}
           onPress={() => {
-        navigation.goBack();
+            navigation.goBack();
           }}
         />
       </ScrollView>
@@ -65,5 +80,49 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignContent: 'center',
   },
-  header: {fontSize: 18, fontWeight: 'bold', marginBottom: 12},
+  header: {justifyContent: 'space-between', flexDirection: 'row'},
+  title: {
+    color: colors.BLACK,
+    fontSize: 17,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
 });
+
+const markdownStyles = {
+  body: {
+    color: colors.BLACK,
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  heading1: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.BLACK,
+    marginBottom: 12,
+  },
+  heading2: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.BLACK,
+    marginBottom: 20,
+  },
+  paragraph: {
+    fontSize: 14,
+    color: colors.BLACK,
+    marginBottom: 20,
+  },
+  strong: {
+    fontWeight: 'bold',
+    color: colors.BLACK,
+  },
+  link: {
+    color: colors.BLUE_500,
+    textDecorationLine: 'underline',
+  },
+  list_item: {
+    fontSize: 14,
+    color: colors.BLACK,
+    marginBottom: 20,
+  },
+} as const;

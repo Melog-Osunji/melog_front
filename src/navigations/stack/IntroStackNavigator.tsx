@@ -6,6 +6,7 @@ import {
   TransitionSpecs,
 } from '@react-navigation/stack';
 import {introNavigations} from '@/constants';
+import {AgreementId} from '@/utils/agreements_loader';
 //screens
 import WelcomeScreen from '@/screens/intro/WelcomeScreen';
 import PreOnboardingScreen from '@/screens/intro/PreOnboardingScreen';
@@ -21,7 +22,7 @@ export type IntroStackParamList = {
   [introNavigations.INTRO_ONBOARDING_3]: {onDone?: () => void} | undefined;
 
   [introNavigations.TOS_CONSENTLIST]: undefined;
-  [introNavigations.TOS_AGREEMENT_VIEWER]: {docId: string};
+  [introNavigations.TOS_AGREEMENT_VIEWER]: {docId: AgreementId};
 
   [introNavigations.INTRO_PROFILE]: undefined;
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import {settingsNavigations} from '@/constants';
+import {AgreementId} from '@/utils/agreements_loader';
 // SettingsHomeScreen
 import SettingsHomeScreen from '@/screens/settings/SettingsHomeScreen';
 // user-management
@@ -13,8 +14,9 @@ import SupportScreen from '@/screens/settings/notification/SupportScreen';
 import SupportFormScreen from '@/screens/settings/notification/SupportFormScreen';
 import {ParentType} from '@/constants/Support';
 // service-info
-import TermsOfServiceScreen from '@/screens/settings/service-info/TermsOfServiceScreen';
-import PrivacyPolicyScreen from '@/screens/settings/service-info/PrivacyPolicyScreen';
+// import TermsOfServiceScreen from '@/screens/settings/service-info/TermsOfServiceScreen';
+// import PrivacyPolicyScreen from '@/screens/settings/service-info/PrivacyPolicyScreen';
+import AgreementViewer from '@/screens/common/ToS/AgreementViewer';
 // etc
 import LanguageSettingScreen from '@/screens/settings/etc/LanguageSettingScreen';
 // account
@@ -28,8 +30,9 @@ export type SettingStackParamList = {
   [settingsNavigations.NOTICES]: undefined;
   [settingsNavigations.SUPPORT]: undefined;
   [settingsNavigations.SUPPORT_FORM]: {type?: ParentType};
-  [settingsNavigations.TERMS_OF_SERVICE]: undefined;
-  [settingsNavigations.PRIVACY_POLICY]: undefined;
+  // [settingsNavigations.TERMS_OF_SERVICE]: undefined;
+  // [settingsNavigations.PRIVACY_POLICY]: undefined;
+  [settingsNavigations.AGREEMENT_VIEWER]: {docId: AgreementId};
   [settingsNavigations.LANGUAGE_SETTING]: undefined;
   [settingsNavigations.ACCOUNT_DELETE]: {userId: string};
 };
@@ -67,13 +70,18 @@ function SettingStackNavigator() {
         name={settingsNavigations.SUPPORT_FORM}
         component={SupportFormScreen}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name={settingsNavigations.TERMS_OF_SERVICE}
         component={TermsOfServiceScreen}
       />
       <Stack.Screen
         name={settingsNavigations.PRIVACY_POLICY}
         component={PrivacyPolicyScreen}
+      /> */}
+
+      <Stack.Screen
+        name={settingsNavigations.AGREEMENT_VIEWER}
+        component={AgreementViewer}
       />
       <Stack.Screen
         name={settingsNavigations.LANGUAGE_SETTING}

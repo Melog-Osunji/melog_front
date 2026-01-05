@@ -1,6 +1,5 @@
 // assets/agreements/privacy.ko.ts
 const privacyKo = `
-# 개인정보 수집 및 이용 동의
 
 _최종 업데이트: 2025-11-20_
 

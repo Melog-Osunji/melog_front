@@ -5,8 +5,8 @@ import {
   TransitionSpecs,
 } from '@react-navigation/stack';
 //screens
-import ConsentList from '@/screens/intro/ToS/ConsentList';
-import AgreementViewer from '@/screens/intro/ToS/AgreementViewer';
+import ConsentList from '@/screens/common/ToS/ConsentList';
+import AgreementViewer from '@/screens/common/ToS/AgreementViewer';
 import InitProfileStackNavigator from '@/navigations/stack/InitProfileStackNavigator';
 import Onboarding1Screen from '@/screens/intro/Onboarding/Onboarding1Screen';
 import Onboarding2Screen from '@/screens/intro/Onboarding/Onboarding2Screen';
