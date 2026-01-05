@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, {memo, useEffect, useMemo, useRef, useCallback} from 'react';
 import {
   Animated,
   Easing,
@@ -7,8 +7,11 @@ import {
   ViewStyle,
   ColorValue,
   AccessibilityActionEvent,
+  Text,
+  View,
 } from 'react-native';
-import { colors } from '@/constants';
+import {colors} from '@/constants';
+import LoadingIndicator from './Loading';
 
 type ToggleSize = 'sm' | 'md' | 'lg';
 
@@ -17,6 +20,8 @@ type ToggleProps = {
   value: boolean;
   /** 값 변경 콜백 */
   onValueChange: (next: boolean) => void;
+  /** 로딩 상태 */
+  isloading?: boolean;
   /** 비활성화 여부 */
   disabled?: boolean;
   /** 크기 프리셋 */
@@ -34,20 +39,24 @@ type ToggleProps = {
   /** 애니메이션 지속 시간(ms) */
   animationDuration?: number;
   /** 터치 영역 확장 */
-  hitSlop?: { top?: number; bottom?: number; left?: number; right?: number };
+  hitSlop?: {top?: number; bottom?: number; left?: number; right?: number};
   /** 테스트용 */
   testID?: string;
 };
 
-const SIZE_MAP: Record<ToggleSize, { width: number; height: number; padding: number; thumb: number }> = {
-  sm: { width: 36, height: 20, padding: 2, thumb: 16 },
-  md: { width: 55, height: 30, padding: 3, thumb: 24 },
-  lg: { width: 64, height: 36, padding: 3, thumb: 30 },
+const SIZE_MAP: Record<
+  ToggleSize,
+  {width: number; height: number; padding: number; thumb: number}
+> = {
+  sm: {width: 36, height: 20, padding: 2, thumb: 16},
+  md: {width: 55, height: 30, padding: 3, thumb: 24},
+  lg: {width: 64, height: 36, padding: 3, thumb: 30},
 };
 
 const SwitchToggle: React.FC<ToggleProps> = ({
   value,
   onValueChange,
+  isloading = false,
   disabled = false,
   size = 'md',
   onColor = colors.BLUE_400,
@@ -56,7 +65,7 @@ const SwitchToggle: React.FC<ToggleProps> = ({
   thumbOffColor = colors.WHITE,
   style,
   animationDuration = 160,
-  hitSlop = { top: 8, bottom: 8, left: 8, right: 8 },
+  hitSlop = {top: 8, bottom: 8, left: 8, right: 8},
   testID,
 }) => {
   const dims = SIZE_MAP[size];
@@ -77,7 +86,7 @@ const SwitchToggle: React.FC<ToggleProps> = ({
 
   const maxTranslate = useMemo(
     () => dims.width - dims.padding * 2 - dims.thumb,
-    [dims.width, dims.padding, dims.thumb]
+    [dims.width, dims.padding, dims.thumb],
   );
 
   const translateX = progress.interpolate({
@@ -89,7 +98,7 @@ const SwitchToggle: React.FC<ToggleProps> = ({
   const backgroundColor = progress.interpolate({
     inputRange: [0, 1],
     outputRange: [offColor as string, onColor as string],
-    });
+  });
 
   const thumbBg = (Animated as any).interpolateColor
     ? (progress as any).interpolate({
@@ -99,9 +108,9 @@ const SwitchToggle: React.FC<ToggleProps> = ({
     : thumbOffColor;
 
   const toggle = useCallback(() => {
-    if (disabled) return;
+    if (disabled || isloading) return;
     onValueChange(!value);
-  }, [disabled, onValueChange, value]);
+  }, [disabled, isloading, onValueChange, value]);
 
   const onAccessibilityAction = (e: AccessibilityActionEvent) => {
     if (e.nativeEvent.actionName === 'activate') toggle();
@@ -110,15 +119,14 @@ const SwitchToggle: React.FC<ToggleProps> = ({
   return (
     <Pressable
       onPress={toggle}
-      disabled={disabled}
+      disabled={disabled || isloading}
       hitSlop={hitSlop}
-      style={[styles.wrap, style, disabled && styles.disabled]}
+      style={[styles.wrap, style, (disabled || isloading) && styles.disabled]}
       accessibilityRole="switch"
-      accessibilityState={{ checked: value, disabled }}
-      accessibilityActions={[{ name: 'activate' }]}
+      accessibilityState={{checked: value, disabled}}
+      accessibilityActions={[{name: 'activate'}]}
       onAccessibilityAction={onAccessibilityAction}
-      testID={testID}
-    >
+      testID={testID}>
       <Animated.View
         style={[
           styles.track,
@@ -129,20 +137,23 @@ const SwitchToggle: React.FC<ToggleProps> = ({
             backgroundColor,
             padding: dims.padding,
           },
-        ]}
-      >
-        <Animated.View
-          style={[
-            styles.thumb,
-            {
-              width: dims.thumb,
-              height: dims.thumb,
-              borderRadius: dims.thumb / 2,
-              transform: [{ translateX }],
-              backgroundColor: thumbBg,
-            },
-          ]}
-        />
+        ]}>
+        {isloading ? (
+          <LoadingIndicator size={dims.height - 10} tintColor="white" />
+        ) : (
+          <Animated.View
+            style={[
+              styles.thumb,
+              {
+                width: dims.thumb,
+                height: dims.thumb,
+                borderRadius: dims.thumb / 2,
+                transform: [{translateX}],
+                backgroundColor: thumbBg,
+              },
+            ]}
+          />
+        )}
       </Animated.View>
     </Pressable>
   );
@@ -162,7 +173,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.12,
     shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: {width: 0, height: 1},
     elevation: 1,
   },
   disabled: {

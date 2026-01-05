@@ -1,11 +1,47 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {colors} from '@/constants';
 import SettingHeader from '@/components/settings/SettingHeader';
 import SwitchToggle from '@/components/common/SwitchToggle';
+import {useAuthContext} from '@/contexts/AuthContext';
+import {showToast} from '@/components/common/ToastService';
 
 export default function ActivityScopeScreen() {
-  const [value, setValue] = useState(false);
+  const {isPrivate, updatePrivateStatus} = useAuthContext();
+  const [localValue, setLocalValue] = useState(isPrivate);
+  const [isLoading, setIsLoading] = useState(false);
+  const valueRef = useRef(isPrivate);
+
+  // 전역 상태와 동기화
+  useEffect(() => {
+    setLocalValue(isPrivate);
+    valueRef.current = isPrivate;
+  }, [isPrivate]);
+
+  const handleToggle = (newValue: boolean) => {
+    // ref를 먼저 동기 업데이트
+    valueRef.current = newValue;
+    console.log('[ActivityScopeScreen] ****toggle to:', newValue);
+    // 상태 업데이트 (UI 렌더링)
+    setLocalValue(newValue);
+    setIsLoading(true);
+
+    // 백그라운드에서 비동기 작업 수행 (await 하지 않음)
+    updatePrivateStatus(newValue)
+      .then(() => {
+        showToast('공개 설정 변경 완료', 'success');
+      })
+      .catch(error => {
+        console.error('공개 설정 변경 실패:', error);
+        showToast('공개 설정 변경에 실패했습니다. 다시 시도해주세요.', 'error');
+        // 롤백
+        valueRef.current = isPrivate;
+        setLocalValue(isPrivate);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
 
   return (
     <View style={styles.screen}>
@@ -15,7 +51,12 @@ export default function ActivityScopeScreen() {
         <View style={styles.container}>
           <View style={styles.btn_container}>
             <Text style={styles.h1}>비공개 설정</Text>
-            <SwitchToggle value={value} onValueChange={setValue} size="md" />
+            <SwitchToggle
+              value={localValue}
+              onValueChange={handleToggle}
+              isloading={isLoading}
+              size="md"
+            />
           </View>
           <Text style={styles.h3}>
             내 팔로워 혹은 내가 승인한 사용자만 내 피드를 볼 수 있습니다.

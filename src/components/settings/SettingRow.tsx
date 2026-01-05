@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   left: {flex: 1},
-  right: {flexDirection: 'row', alignItems: 'center', gap: 8},
+  right: {flexDirection: 'row', gap: 8},
   label: {fontSize: 14, color: '#222', fontWeight: 'bold'},
   infoText: {fontSize: 14, color: '#888', marginRight: 8},
 });

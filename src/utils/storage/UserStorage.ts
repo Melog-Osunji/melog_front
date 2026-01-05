@@ -9,6 +9,7 @@ const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_INFO_KEY = 'user_info';
 const REGISTRATION_STATUS_KEY = 'registration_completed';
+const IS_PRIVATE_KEY = 'is_private';
 
 // Access Token 저장
 export const setAccessToken = async (token: string): Promise<void> => {
@@ -74,4 +75,15 @@ export const isLoggedIn = async (): Promise<boolean> => {
   const accessToken = await getAccessToken();
   const refreshToken = await getRefreshToken();
   return !!(accessToken && refreshToken);
+};
+
+// 비공개 설정 저장
+export const setPrivateStatus = async (isPrivate: boolean): Promise<void> => {
+  await setEncryptStorage(IS_PRIVATE_KEY, isPrivate);
+};
+
+// 비공개 설정 조회
+export const getPrivateStatus = async (): Promise<boolean> => {
+  const status = await getEncryptStorage(IS_PRIVATE_KEY);
+  return status === true;
 };

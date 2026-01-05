@@ -18,7 +18,7 @@ type SettingsHomeScreenProps = StackScreenProps<
 export default function SettingHomeScreen({
   navigation,
 }: SettingsHomeScreenProps) {
-  const {user: authUser} = useAuthContext();
+  const {user: authUser, isPrivate} = useAuthContext();
   const [pushEnabled, setPushEnabled] = useState(false);
   // 플랫폼 키를 소문자로 맞춰서 아이콘 매핑
   const PLATFORM_ICONS: Record<string, any> = {
@@ -59,7 +59,7 @@ export default function SettingHomeScreen({
         <Text style={styles.sectionTitle}>사용자 관리</Text>
         <SettingRow
           label="나의 활동 범위"
-          info="공개"
+          info={isPrivate ? '비공개' : '공개'}
           onPress={() =>
             navigation.navigate(settingsNavigations.ACTIVITY_SCOPE, {
               userId: authUser?.id || '',

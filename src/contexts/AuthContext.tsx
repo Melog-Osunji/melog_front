@@ -5,6 +5,8 @@ import {
   clearAuthData,
   getRegistrationStatus,
   setRegistrationStatus,
+  getPrivateStatus,
+  setPrivateStatus,
 } from '@/utils/storage/UserStorage';
 import instance from '@/api/axiosInstance'; // axios 인스턴스 import
 
@@ -14,11 +16,13 @@ interface AuthContextType {
   user: ProfileDTO | null;
   isLogin: boolean;
   isRegistered: boolean;
+  isPrivate: boolean;
   isLoading: boolean;
   login: (userData: ProfileDTO) => void;
   logout: () => Promise<void>;
   refreshUserInfo: () => Promise<void>;
   completeRegistration: () => Promise<void>;
+  updatePrivateStatus: (isPrivate: boolean) => Promise<void>;
   // 테스트용
   setIsLogin: (value: boolean) => void;
   setIsRegistered: (value: boolean) => void;
@@ -34,6 +38,7 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
   const [user, setUser] = useState<ProfileDTO | null>(null);
   const [isLogin, setIsLogin] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // 앱 시작 시 인증 상태 확인
@@ -46,6 +51,7 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
     try {
       const loggedIn = await isLoggedIn();
       const registered = await getRegistrationStatus();
+      const privateStatus = await getPrivateStatus();
 
       if (loggedIn) {
         const userInfo = await getUserInfo();
@@ -56,6 +62,7 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
       }
 
       setIsRegistered(registered);
+      setIsPrivate(privateStatus);
     } catch (error) {
       console.error('인증 상태 확인 실패:', error);
     } finally {
@@ -76,6 +83,7 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
       setUser(null);
       setIsLogin(false);
       setIsRegistered(false);
+      setIsPrivate(false);
     } catch (err) {
       console.error('logout 실패:', err);
       throw err;
@@ -93,7 +101,6 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
     }
   };
 
-
   const completeRegistration = async () => {
     try {
       await setRegistrationStatus(true);
@@ -104,15 +111,28 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
     }
   };
 
+  const updatePrivateStatus = async (isPrivate: boolean) => {
+    try {
+      await setPrivateStatus(isPrivate);
+      setIsPrivate(isPrivate);
+      console.log('비공개 설정 변경됨:', isPrivate);
+    } catch (error) {
+      console.error('비공개 설정 변경 실패:', error);
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     isLogin,
     isRegistered,
+    isPrivate,
     isLoading,
     login,
     logout: logout as () => Promise<void>,
     refreshUserInfo,
     completeRegistration,
+    updatePrivateStatus,
     setIsLogin,
     setIsRegistered,
   };
