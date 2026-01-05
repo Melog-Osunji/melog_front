@@ -13,6 +13,8 @@ import {IntroStackParamList} from '@/navigations/stack/IntroStackNavigator';
 //data loader
 import {AgreementsLoader} from '@/utils/agreements_loader';
 import Markdown from 'react-native-markdown-display';
+//hooks
+import {useHideTabBarOnFocus} from '@/hooks/common/roadBottomNavigationBar';
 //constants
 import {introNavigations, colors} from '@/constants';
 //components
@@ -28,6 +30,7 @@ export default function AgreementViewer({
   route,
   navigation,
 }: AgreementViewerProps) {
+  useHideTabBarOnFocus();
   const {docId} = route.params;
   const [doc, setDoc] = useState<any>(null);
 
