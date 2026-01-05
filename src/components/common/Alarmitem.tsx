@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, Image, StyleSheet} from 'react-native';
+import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
 import {colors} from '@/constants';
 
 type Props = {
@@ -7,6 +7,7 @@ type Props = {
   title: string;
   content: string;
   profileUri?: string | null;
+  onPress?: () => void;
 };
 
 export default function AlarmitemAlertitem({
@@ -14,9 +15,13 @@ export default function AlarmitemAlertitem({
   title,
   content,
   profileUri,
+  onPress,
 }: Props) {
   return (
-    <View style={s.container}>
+    <TouchableOpacity
+      style={s.container}
+      onPress={onPress}
+      activeOpacity={onPress ? 0.7 : 1}>
       {profileUri ? (
         <Image source={{uri: profileUri}} style={s.avatar} />
       ) : (
@@ -26,9 +31,11 @@ export default function AlarmitemAlertitem({
       <View style={s.contentWrapper}>
         <Text style={s.typeText}>{type}</Text>
         <Text style={s.titleText}>{title}</Text>
-        <Text style={s.contentText}>{content}</Text>
+        <Text style={s.contentText} numberOfLines={2}>
+          {content}
+        </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -43,8 +50,8 @@ const s = StyleSheet.create({
     gap: 11,
   },
   avatar: {
-    width: 48,
-    height: 48,
+    width: 24,
+    height: 24,
     borderRadius: 24,
     backgroundColor: colors.GRAY_200,
   },
@@ -58,7 +65,7 @@ const s = StyleSheet.create({
     fontSize: 12,
   },
   titleText: {
-    fontSize: 15, // reduce so it wraps comfortably
+    fontSize: 15,
     color: colors.BLACK,
     fontWeight: 'bold',
     flexShrink: 1,

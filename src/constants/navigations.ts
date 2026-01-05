@@ -72,10 +72,9 @@ const settingsNavigations = {
   FOLLOWER_REQUESTS: 'FollowerRequests', //팔로워 요청 관리
   BLOCKED_USERS: 'BlockedUsers', //차단한 사용자 관리
   NOTICES: 'Notices', //공지사항
+  NOTICES_PAGE: 'NoticesPage', //공지사항 상세 페이지
   SUPPORT: 'Support', //문의하기
   SUPPORT_FORM: 'SupportForm', //문의 전송 화면
-  // TERMS_OF_SERVICE: 'TermsOfService', //이용약관
-  // PRIVACY_POLICY: 'PrivacyPolicy', //개인정보 처리방침
   AGREEMENT_VIEWER: 'AgreementViewer',
   LANGUAGE_SETTING: 'LanguageSetting', //언어 설정
   ACCOUNT_DELETE: 'AccountDelete', //탈퇴하기

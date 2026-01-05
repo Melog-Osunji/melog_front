@@ -9,6 +9,7 @@ import {useNotices} from '@/hooks/queries/settings/useSettingsQueries';
 
 export default function NoticesScreen() {
   const {data, isLoading, error} = useNotices();
+  console.log('**ss**notices data:', data);
 
   if (isLoading) {
     return (
