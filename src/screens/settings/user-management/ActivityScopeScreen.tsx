@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {colors} from '@/constants';
 import SettingHeader from '@/components/settings/SettingHeader';
@@ -10,37 +10,27 @@ export default function ActivityScopeScreen() {
   const {isPrivate, updatePrivateStatus} = useAuthContext();
   const [localValue, setLocalValue] = useState(isPrivate);
   const [isLoading, setIsLoading] = useState(false);
-  const valueRef = useRef(isPrivate);
 
   // 전역 상태와 동기화
   useEffect(() => {
     setLocalValue(isPrivate);
-    valueRef.current = isPrivate;
   }, [isPrivate]);
 
-  const handleToggle = (newValue: boolean) => {
-    // ref를 먼저 동기 업데이트
-    valueRef.current = newValue;
-    console.log('[ActivityScopeScreen] ****toggle to:', newValue);
-    // 상태 업데이트 (UI 렌더링)
-    setLocalValue(newValue);
+  const handleToggle = async (newValue: boolean) => {
     setIsLoading(true);
-
-    // 백그라운드에서 비동기 작업 수행 (await 하지 않음)
-    updatePrivateStatus(newValue)
-      .then(() => {
-        showToast('공개 설정 변경 완료', 'success');
-      })
-      .catch(error => {
-        console.error('공개 설정 변경 실패:', error);
-        showToast('공개 설정 변경에 실패했습니다. 다시 시도해주세요.', 'error');
-        // 롤백
-        valueRef.current = isPrivate;
-        setLocalValue(isPrivate);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    setLocalValue(newValue);
+    try {
+      // 전역 상태 업데이트
+      await updatePrivateStatus(newValue);
+      showToast('공개 설정 변경 완료', 'success');
+    } catch (error) {
+      console.error('공개 설정 변경 실패:', error);
+      showToast('공개 설정 변경에 실패했습니다. 다시 시도해주세요.', 'error');
+      // 롤백
+      setLocalValue(isPrivate);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -54,8 +44,8 @@ export default function ActivityScopeScreen() {
             <SwitchToggle
               value={localValue}
               onValueChange={handleToggle}
-              isloading={isLoading}
               size="md"
+              isloading={isLoading}
             />
           </View>
           <Text style={styles.h3}>
